@@ -41,6 +41,9 @@ The system shall display generated test cases in a readable format.
 If the user submits an empty requirement,  
 the system shall display an alert message.
 
+**FR-06: Error handling**  
+The system shall disable the Generate button when the requirement input is empty.
+
 ---
 
 ## 3. Non-Functional Requirements
