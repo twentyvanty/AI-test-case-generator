@@ -1,0 +1,72 @@
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;   /* horizontal */
+  align-items: flex-start;   /* top, not vertical center */
+  background-color: #727272;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+
+#title {
+  color: white;
+}
+
+.app {
+  margin-top: 100px;
+  max-width: 600px;
+  align-items: center;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.box {
+  color: #565656;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+label {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+textarea,
+select {
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+button {
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  background-color: #474747;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:disabled {
+  background-color: #727272;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  cursor: not-allowed;
+}
+
+.Generatebtn {
+  color: #D2B746;
+}
