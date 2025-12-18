@@ -1,5 +1,6 @@
 import {useState} from 'react';
-import { Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import GeneratePage from './pages/GeneratePage'
 import ResultPage from './pages/ResultPage'
 
@@ -11,8 +12,14 @@ function App() {
 
     const [requirement, setRequirement] = useState('')
     const [testType, setTestType] = useState('')
+    const navigate = useNavigate();
+
+    const handleGenerate = () => {
+        navigate("/result");
+    }
 
     return (
+        <BrowserRouter>
         <Routes>
             <Route
                 path="/"
@@ -22,6 +29,7 @@ function App() {
                        setRequirement={setRequirement}
                        testType={testType}
                        setTestType={setTestType}
+                       onGenerate={handleGenerate}
                     />
                 }
             />
@@ -36,6 +44,7 @@ function App() {
                }
             />
         </Routes>
+        </BrowserRouter>
     )
 }
 

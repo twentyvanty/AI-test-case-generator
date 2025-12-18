@@ -5,13 +5,16 @@
     setRequirement: React.Dispatch<React.SetStateAction<string>>
     testType: string
     setTestType: React.Dispatch<React.SetStateAction<string>>
+    onGenerate: React.MouseEventHandler<HTMLButtonElement>;
   }
+
 
   function GeneratePage({
     requirement,
     setRequirement,
     testType,
-    setTestType
+    setTestType,
+    onGenerate, 
   }: GeneratePageProps) {
 
     const canGenerate = requirement.trim() !== '' && testType !== '';
@@ -43,7 +46,7 @@
           </div>
 
           <div>
-            <button disabled={!canGenerate} className="Generatebtn">
+            <button onClick={onGenerate} disabled={!canGenerate} className="Generatebtn">
               Generate Test Case
             </button>
           </div>
@@ -51,6 +54,7 @@
       </>
     )
   }
+
 
 
 
