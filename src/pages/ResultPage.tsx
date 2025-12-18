@@ -1,6 +1,15 @@
-function ResultPage() {
+type ResultPageProps = {
+    requirement: string
+    testType: string
+}
+
+function ResultPage({ requirement, testType }: ResultPageProps) {
     return (
-        <h1>Result Page</h1>
+        <div>
+            <h1>Ressult</h1>
+            <p>Requirement: {requirement}</p>
+            <p>Test Type: {testType}</p>
+        </div>
     )
 }
 
