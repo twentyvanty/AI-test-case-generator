@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import GeneratePage from './pages/GeneratePage'
 import ResultPage from './pages/ResultPage'
@@ -19,7 +19,6 @@ function App() {
     }
 
     return (
-        <BrowserRouter>
         <Routes>
             <Route
                 path="/"
@@ -44,7 +43,6 @@ function App() {
                }
             />
         </Routes>
-        </BrowserRouter>
     )
 }
 
