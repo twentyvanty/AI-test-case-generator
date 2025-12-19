@@ -8,7 +8,7 @@ function ResultPage({ requirement, testType }: ResultPageProps) {
         <div>
             <h1>Result</h1>
             <p>Requirement: {requirement}</p>
-            <p>Test Type: {testType</p>
+            <p>Test Type: {testType}</p>
         </div>
     )
 }
