@@ -6,9 +6,9 @@ type ResultPageProps = {
 function ResultPage({ requirement, testType }: ResultPageProps) {
     return (
         <div>
-            <h1>Ressult</h1>
+            <h1>Result</h1>
             <p>Requirement: {requirement}</p>
-            <p>Test Type: {testType}</p>
+            <p>Test Type: {testType</p>
         </div>
     )
 }
