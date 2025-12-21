@@ -6,7 +6,14 @@ type ResultPageProps = {
 
 function ResultPage({ requirement, testType }: ResultPageProps) {
 
-    const cases = ['case1', 'case2', 'case3;']
+    const cases = [
+        {red: 'User1', green: 'Do1', reFactor:'result1'},
+        {red: 'User2', green: 'Do2', reFactor:'result2'}
+    ]
+    const req = [
+        {given: 'User1', when: 'Do1', then:'result1'},
+        {given: 'User2', when: 'Do2', then:'result2'}
+    ]
 
     return (
         <div>
@@ -26,11 +33,24 @@ function ResultPage({ requirement, testType }: ResultPageProps) {
             <div>
                 {testType === 'TDD' && (
                     cases.map(oneCase => ( //map(): check every value and display
-                        <p key={oneCase}>{oneCase}</p> 
+                        <div key={oneCase.red}>Red:{oneCase.red}
+                        <p>Green:{oneCase.green}</p>
+                        <p>Re-Factor:{oneCase.reFactor}</p>
+                        </div>
                     ))
                 )}
             </div>
             {/* {condition} && result */}
+            <div>
+                {testType === 'BDD' && (
+                    req.map(oneReq => (
+                        <div key={oneReq.given}>Given:{oneReq.given}
+                        <p>When: {oneReq.when}</p>
+                        <p>Then: {oneReq.then}</p>
+                        </div>
+                    ))
+                )}
+            </div>
         </div>
     )
 }
