@@ -1,12 +1,19 @@
-export async function generateTestCases(requirement: string) {
-    fetch(
-        "AIzaSyCx_f9a2znUhAW1Eg7pCOLeWc9fZiuR9Ic",
-        {
-            method: "POST",
-            headers: { json },
-            body: { prompt: requirement}
-        }
-    )
+export async function generateTestCases(req: string) {
 
-    return AI result
-};
+  const apiKey = import.meta.env.VITE_GEMINI_KE;
+
+//   const prompt = $(req)
+//     Format: 
+//        - Test case ID
+//        - Title
+//        - Steps
+//        - Expected ResultPage;
+
+//   fetch POST to gemini
+
+//   const data = await response.json()
+
+//   const text = extract result
+
+  return text
+}
