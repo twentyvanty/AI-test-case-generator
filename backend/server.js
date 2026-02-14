@@ -34,7 +34,7 @@ const schema = {
 
 // 3. Setup Model พร้อมตั้งค่า Response MIME Type เป็น JSON
 const model = genAI.getGenerativeModel({
-  model: "gemini-2.0-flash", // ใช้รุ่นที่คุณ List มาได้
+  model: "gemini-2.5-flash", // ใช้รุ่นที่คุณ List มาได้
   generationConfig: {
     responseMimeType: "application/json",
     responseSchema: schema,
@@ -70,5 +70,5 @@ app.post("/api/generate", async (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`Using model: gemini-2.0-flash`);
+  console.log(`Using model: gemini-2.5-flash`);
 });
