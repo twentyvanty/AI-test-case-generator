@@ -1,7 +1,7 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import OpenAI from "openai";
+import express from "express"; //server
+import cors from "cors"; //browser allows req
+import dotenv from "dotenv"; //.env file
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 dotenv.config();
 
@@ -9,8 +9,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// Initialize Gemini
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// Choose model
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.0-flash", 
 });
 
 app.post("/api/generate", async (req, res) => {
@@ -35,19 +39,15 @@ Return ONLY valid JSON like this:
 ]
 `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.3,
-    });
-
-    const text = completion.choices[0].message.content;
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
 
     let parsed;
 
     try {
       parsed = JSON.parse(text);
-    } catch {
+    } catch (err) {
       return res.status(500).json({
         error: "AI did not return valid JSON",
         raw: text,
