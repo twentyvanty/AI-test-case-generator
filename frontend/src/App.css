@@ -1,3 +1,11 @@
+:root {
+  --primary--sunset: #E4568B;
+  --secondary--golden: #F6C94D;
+  --primary--sky: #A7C7E4;
+  --primary--green: #5D783D;
+  --secondary--rosebud: #F29BB9;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
