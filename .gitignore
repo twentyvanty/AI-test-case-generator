@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables file
+.env
+# Other sensitive files/patterns
+*.key
+*.pem
