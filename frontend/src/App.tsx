@@ -22,7 +22,7 @@ function App() {
   };
 
   return (
-    <div>
+    <div className="glass-card">
       <h1>AI Test Case Generator</h1>
 
       <textarea

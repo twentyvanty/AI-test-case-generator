@@ -10,6 +10,27 @@
   --glass-border: rgba(255, 255, 255, 0.3);
 }
 
+.glass-card {
+  /* ใช้สีพื้นหลังที่โปร่งแสง */
+  background: var(--glass-bg);
+  
+  /* หัวใจของ Liquid Glass: การเบลอพื้นหลัง */
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  
+  /* ขอบกระจกบางๆ เพื่อให้ดูมีมิติ */
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  
+  /* เงาที่นุ่มนวล (Soft Shadow) */
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  
+  padding: 40px;
+  width: 90%;
+  max-width: 600px;
+  color: #fff; /* สีตัวหนังสือบนกระจก */
+}
+
 body {
   margin: 0;
   min-height: 100vh;
