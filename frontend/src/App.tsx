@@ -7,6 +7,7 @@ function App() {
   const [testCases, setTestCases] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isOpen, setIsOpen] = useState(false); // ควบคุมการเปิด/ปิด Dropdown
 
   const handleGenerate = async () => {
     try {
@@ -25,36 +26,47 @@ function App() {
     <div className="glass-card">
       <h1>AI Test Case Generator</h1>
 
-      <textarea className="input-group"
+      <textarea 
+        className="requirement-input" // เปลี่ยนชื่อ class ให้ชัดเจน
         value={requirement}
         onChange={(e) => setRequirement(e.target.value)}
         placeholder="Enter requirement..."
       />
 
-      <select
-        value={testType}
-        onChange={(e) => setTestType(e.target.value)}
-      >
-        <option value="BDD">BDD</option>
-        <option value="TDD">TDD</option>
-      </select>
+      <div className="action-bar">
+        {/* --- Custom Dropdown Start --- */}
+        <div className="custom-dropdown">
+          <div className="dropdown-header" onClick={() => setIsOpen(!isOpen)}>
+            <span>{testType}</span>
+            <span className={`arrow ${isOpen ? 'open' : ''}`}>▼</span>
+          </div>
+          
+          {isOpen && (
+            <div className="dropdown-list">
+              <div className="option" onClick={() => { setTestType("BDD"); setIsOpen(false); }}>BDD</div>
+              <div className="option" onClick={() => { setTestType("TDD"); setIsOpen(false); }}>TDD</div>
+            </div>
+          )}
+        </div>
+        {/* --- Custom Dropdown End --- */}
 
-      <button className="generate-btn" onClick={handleGenerate} disabled={loading}>
-        {loading ? "Generating..." : "Generate"}
-      </button>
+        <button className="generate-btn" onClick={handleGenerate} disabled={loading}>
+          {loading ? "Generating..." : "Generate"}
+        </button>
+      </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="error-msg">{error}</p>}
 
-      <div>
+      <div className="results-container">
         {testCases.map((tc, index) => (
-          <div key={index}>
+          <div key={index} className="test-case-card">
             <h3>{tc.title}</h3>
             <ul>
               {tc.steps.map((step: string, i: number) => (
                 <li key={i}>{step}</li>
               ))}
             </ul>
-            <p><strong>Expected:</strong> {tc.expected}</p>
+            <p className="expected-text"><strong>Expected:</strong> {tc.expected}</p>
           </div>
         ))}
       </div>
