@@ -1,33 +1,32 @@
 :root {
-  --primary--sunset: #E4568B;
-  --secondary--golden: #F6C94D;
-  --primary--sky: #A7C7E4;
-  --primary--green: #5D783D;
-  --secondary--rosebud: #F29BB9;
+  --primary--ivory: #EDE9e8;
+  --secondary--nude: #d8d2cf;
+  --primary--sky: #9db6cf;
+  --primary--baby: #b6cade;
+  --secondary--bloom: #d4e4ed;
+
+  /* เพิ่มตัวแปรสำหรับความกระจก (Glass Color) */
+  --glass-bg: rgba(255, 255, 255, 0.2); 
+  --glass-border: rgba(255, 255, 255, 0.3);
 }
 
 body {
   margin: 0;
-  padding: 0;
   min-height: 100vh;
-  width: 100vw;
-
-  background-color: var(--primary--sunset);
-  background-image: 
-    radial-gradient(circle at 10% 20%, var(--primary--sunset) 0%, transparent 40%),   /* Sunset - มุมซ้ายบน */
-    radial-gradient(circle at 90% 10%, var(--primary--green) 0%, transparent 35%),   /* Green - มุมขวาบน */
-    radial-gradient(circle at 50% 50%, var(--secondary--golden) 0%, transparent 45%),   /* Golden - ตรงกลาง */
-    radial-gradient(circle at 80% 90%, var(--secondary--rosebud) 0%, transparent 40%),   /* Rosebud - มุมขวาล่าง */
-    radial-gradient(circle at 20% 80%, var(--primary--sky) 0%, transparent 40%);  /* Sky - มุมซ้ายล่าง */
-
-      background-attachment: 0;
-
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: 'Inter', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  /* ไล่สีจากบนลงล่างโดยใช้ตัวแปรของคุณ */
+  background: linear-gradient(
+    100deg,
+    var(--primary--sky) 0%,
+    var(--secondary--bloom) 50%,
+    var(--secondary--nude) 100%
+  );
+  background-attachment: fixed;
 }
- 
+
 
 #title {
   color: white;
@@ -39,7 +38,7 @@ body {
   align-items: center;
   padding: 24px;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .box {
@@ -83,7 +82,7 @@ button {
 
 button:disabled {
   background-color: #727272;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   cursor: not-allowed;
 }
 
