@@ -25,7 +25,7 @@ function App() {
     <div className="glass-card">
       <h1>AI Test Case Generator</h1>
 
-      <textarea
+      <textarea className="input-group"
         value={requirement}
         onChange={(e) => setRequirement(e.target.value)}
         placeholder="Enter requirement..."
@@ -39,7 +39,7 @@ function App() {
         <option value="TDD">TDD</option>
       </select>
 
-      <button onClick={handleGenerate} disabled={loading}>
+      <button className="generate-btn" onClick={handleGenerate} disabled={loading}>
         {loading ? "Generating..." : "Generate"}
       </button>
 
