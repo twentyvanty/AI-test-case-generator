@@ -8,14 +8,26 @@
 
 body {
   margin: 0;
+  padding: 0;
   min-height: 100vh;
-  display: flex;
-  justify-content: center;   /* horizontal */
-  align-items: flex-start;   /* top, not vertical center */
-  background-color: #727272;
-  font-family: system-ui, -apple-system, sans-serif;
-}
+  width: 100vw;
 
+  background-color: var(--primary--sunset);
+  background-image: 
+    radial-gradient(circle at 10% 20%, var(--primary--sunset) 0%, transparent 40%),   /* Sunset - มุมซ้ายบน */
+    radial-gradient(circle at 90% 10%, var(--primary--green) 0%, transparent 35%),   /* Green - มุมขวาบน */
+    radial-gradient(circle at 50% 50%, var(--secondary--golden) 0%, transparent 45%),   /* Golden - ตรงกลาง */
+    radial-gradient(circle at 80% 90%, var(--secondary--rosebud) 0%, transparent 40%),   /* Rosebud - มุมขวาล่าง */
+    radial-gradient(circle at 20% 80%, var(--primary--sky) 0%, transparent 40%);  /* Sky - มุมซ้ายล่าง */
+
+      background-attachment: 0;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Inter', sans-serif;
+}
+ 
 
 #title {
   color: white;
