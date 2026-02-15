@@ -25,6 +25,7 @@ dist-ssr
 
 # Environment variables file
 .env
+.GEMINI_API_KEY
 # Other sensitive files/patterns
 *.key
 *.pem
