@@ -9,11 +9,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 1. Initialize Gemini
+//Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// 2. กำหนดโครงสร้าง JSON ที่ต้องการ (Response Schema) 
-// เพื่อให้ AI ตอบกลับมาเป็น JSON ที่ถูกต้อง 100%
+//กำหนดโครงสร้าง JSON ที่ต้องการ (Response Schema) 
+//เพื่อให้ AI ตอบกลับมาเป็น JSON ที่ถูกต้อง 100%
 const schema = {
   description: "List of test cases",
   type: SchemaType.ARRAY,
@@ -32,7 +32,7 @@ const schema = {
   },
 };
 
-// 3. Setup Model พร้อมตั้งค่า Response MIME Type เป็น JSON
+//Setup Model พร้อมตั้งค่า Response MIME Type เป็น JSON
 const model = genAI.getGenerativeModel({
   model: "gemini-2.5-flash", // ใช้รุ่นที่คุณ List มาได้
   generationConfig: {
