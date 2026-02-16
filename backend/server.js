@@ -9,35 +9,34 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-//Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-//กำหนดโครงสร้าง JSON ที่ต้องการ (Response Schema) 
-//เพื่อให้ AI ตอบกลับมาเป็น JSON ที่ถูกต้อง 100%
-const schema = {
+// 1. สร้าง Schema แบบ "ครอบจักรวาล" (รองรับทั้ง BDD และ TDD)
+const universalSchema = {
   description: "List of test cases",
   type: SchemaType.ARRAY,
   items: {
     type: SchemaType.OBJECT,
     properties: {
-      title: { type: SchemaType.STRING, description: "Test title" },
+      title: { type: SchemaType.STRING },
+      setup: { type: SchemaType.STRING, description: "Only for TDD: Mock data or setup code" },
       steps: { 
         type: SchemaType.ARRAY, 
-        items: { type: SchemaType.STRING },
-        description: "Steps to execute the test"
+        items: { type: SchemaType.STRING } 
       },
-      expected: { type: SchemaType.STRING, description: "Expected result" },
+      assertion: { type: SchemaType.STRING, description: "Only for TDD: code assertion like expect()" },
+      expected: { type: SchemaType.STRING },
     },
+    // กำหนดฟิลด์ที่ "ต้องมีเสมอ" ส่วน setup/assertion ปล่อยให้เป็น optional ได้
     required: ["title", "steps", "expected"],
   },
 };
 
-//Setup Model พร้อมตั้งค่า Response MIME Type เป็น JSON
 const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash", // ใช้รุ่นที่คุณ List มาได้
+  model: "gemini-2.5-flash", // แนะนำให้ใช้ 1.5-flash เพื่อความเสถียรครับ
   generationConfig: {
     responseMimeType: "application/json",
-    responseSchema: schema,
+    responseSchema: universalSchema,
   },
 });
 
@@ -46,29 +45,33 @@ app.post("/api/generate", async (req, res) => {
     const { requirement, testType } = req.body;
 
     if (!requirement || !testType) {
-      return res.status(400).json({ error: "Missing input (requirement or testType)" });
+      return res.status(400).json({ error: "Missing requirement or testType" });
     }
 
-    const prompt = `Generate ${testType} test cases for the following requirement: ${requirement}`;
+    // 2. ปรับตัวแปรคำสั่งตามประเภทที่เลือก
+    let instructions = "";
+    if (testType === 'TDD') {
+      instructions = "Act as a Developer. Focus on Unit Testing, code logic, and include 'setup' and 'assertion' fields.";
+    } else {
+      instructions = "Act as a QA. Focus on user behavior and Gherkin style (Given/When/Then). Leave 'setup' and 'assertion' empty.";
+    }
+
+    const prompt = `Generate ${testType} test cases for: ${requirement}. Instructions: ${instructions}`;
 
     const result = await model.generateContent(prompt);
     const text = result.response.text();
 
-    // เนื่องจากเราตั้งค่า responseMimeType แล้ว AI จะส่ง JSON เพียวๆ มาให้เลย
+    // 3. ส่งข้อมูลกลับ
     const parsedData = JSON.parse(text);
     res.json(parsedData);
 
   } catch (error) {
-    console.error("Gemini Error:", error);
-    res.status(500).json({ 
-      error: "Failed to generate content",
-      details: error.message 
-    });
+    console.error("❌ Gemini Error:", error);
+    res.status(500).json({ error: "Server failed to process AI response", details: error.message });
   }
 });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`Using model: gemini-2.5-flash`);
 });

@@ -26,7 +26,7 @@ function App() {
     <div className="glass-card">
       <h1>AI Test Case Generator</h1>
 
-      <textarea 
+      <textarea
         className="requirement-input" // เปลี่ยนชื่อ class ให้ชัดเจน
         value={requirement}
         onChange={(e) => setRequirement(e.target.value)}
@@ -40,7 +40,7 @@ function App() {
             <span>{testType}</span>
             <span className={`arrow ${isOpen ? 'open' : ''}`}>▼</span>
           </div>
-          
+
           {isOpen && (
             <div className="dropdown-list">
               <div className="option" onClick={() => { setTestType("BDD"); setIsOpen(false); }}>BDD</div>
@@ -61,12 +61,35 @@ function App() {
         {testCases.map((tc, index) => (
           <div key={index} className="test-case-card">
             <h3>{tc.title}</h3>
-            <ul>
-              {tc.steps.map((step: string, i: number) => (
-                <li key={i}>{step}</li>
-              ))}
-            </ul>
-            <p className="expected-text"><strong>Expected:</strong> {tc.expected}</p>
+
+            {/* --- ส่วนที่เพิ่มสำหรับ TDD: Setup --- */}
+            {tc.setup && (
+              <div className="technical-box">
+                <strong>🛠 Setup / Mock:</strong>
+                <pre>{tc.setup}</pre>
+              </div>
+            )}
+
+            <div className="steps-section">
+              <strong>📝 Steps:</strong>
+              <ul>
+                {tc.steps.map((step: string, i: number) => (
+                  <li key={i}>{step}</li>
+                ))}
+              </ul>
+            </div>
+
+            {/* --- ส่วนที่เพิ่มสำหรับ TDD: Assertion --- */}
+            {tc.assertion && (
+              <div className="technical-box assertion-box">
+                <strong>✅ Assertion:</strong>
+                <code>{tc.assertion}</code>
+              </div>
+            )}
+
+            <p className="expected-text">
+              <strong>🎯 Expected:</strong> {tc.expected}
+            </p>
           </div>
         ))}
       </div>
