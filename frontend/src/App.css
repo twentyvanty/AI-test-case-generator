@@ -11,18 +11,37 @@
 }
 
 .glass-card {
+  width: 90%; /* ให้กว้าง 90% ของหน้าจอในมือถือ */
+  max-width: 800px; /* แต่ไม่กว้างเกิน 800px ในคอม */
+  margin: 20px auto;
+  padding: 30px;
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(15px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 24px;
-  padding: 60px 40px;
-  width: 90%;
-  max-width: 800px; /* บีบให้แคบลงหน่อยจะดูแพงขึ้น */
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
   
-  /* --- หัวใจของการจัดตำแหน่ง --- */
+  /* จัดการเรื่องความสูง */
   display: flex;
-  flex-direction: column; /* เรียงจากบนลงล่าง */
-  gap: 20px;              /* เว้นระยะห่างระหว่างชิ้นส่วน 20px */
+  flex-direction: column;
+  max-height: 90vh; /* สูงไม่เกิน 90% ของความสูงหน้าจอ */
+}
+
+/* ปรับพื้นที่แสดงผลลัพธ์ให้เลื่อนได้ (Scrolling) */
+.results-container {
+  margin-top: 25px;
+  overflow-y: auto; /* ถ้าเนื้อหายาว ให้เลื่อนขึ้นลงได้แค่ในส่วนนี้ */
+  padding-right: 10px; /* เว้นที่ให้ Scrollbar */
+  flex-grow: 1; /* กินพื้นที่ที่เหลือทั้งหมดใน Card */
+}
+
+/* ปรับแต่ง Scrollbar ให้ดู Minimal เข้ากับกระจก */
+.results-container::-webkit-scrollbar {
+  width: 6px;
+}
+.results-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
 }
 
 body {
@@ -82,9 +101,9 @@ textarea:focus {
 }
 
 .action-bar {
-  display: flex;      /* ให้ select กับ button อยู่บรรทัดเดียวกัน */
-  gap: 10px;          /* ห่างกันนิดนึง */
-  align-items: center;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap; /* ถ้าจอมือถือเล็ก ให้ปุ่มลงมาบรรทัดใหม่ได้ */
 }
 
 /* ปรับให้ textarea กว้างเต็มกล่องเสมอ */
@@ -221,9 +240,9 @@ select option {
   margin-top: 10px;
 }
 
-.custom-dropdown {
-  position: relative;
-  flex: 1; /* ให้ขยายขนาดตามพื้นที่ */
+.custom-dropdown, .generate-btn {
+  flex: 1; /* ให้ทั้งคู่ขยายเต็มพื้นที่ที่มี */
+  min-width: 150px;
 }
 
 .dropdown-header {
@@ -275,7 +294,45 @@ select option {
   transform: rotate(180deg);
 }
 
-/* ถ้าอยากให้ปุ่มยาวขึ้นเพื่อความเต็มตา */
-.generate-btn {
-  flex-grow: 1; /* ทำให้ปุ่มขยายกินพื้นที่ที่เหลือทั้งหมด */
+.test-case-card {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: left;
+  word-wrap: break-word; /* ป้องกันตัวอักษรยาวๆ ล้นขอบ */
+}
+
+.test-case-card h3 {
+  margin-top: 0;
+  color: #1a1a1a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 10px;
+}
+
+.technical-box pre {
+  margin: 0;
+  white-space: pre-wrap; /* สำคัญ: ทำให้ Code ขึ้นบรรทัดใหม่เองเมื่อชนขอบ */
+  word-break: break-all;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 600px) {
+  .glass-card {
+    padding: 15px;
+    width: 95%;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  .action-bar {
+    flex-direction: column; /* มือถือให้ปุ่มอยู่คนละบรรทัด */
+  }
+  
+  .generate-btn {
+    width: 100%;
+  }
 }
