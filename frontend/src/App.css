@@ -100,12 +100,6 @@ textarea:focus {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
-.action-bar {
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap; /* ถ้าจอมือถือเล็ก ให้ปุ่มลงมาบรรทัดใหม่ได้ */
-}
-
 /* ปรับให้ textarea กว้างเต็มกล่องเสมอ */
 textarea {
   width: 100%;
@@ -201,24 +195,16 @@ select option {
 }
 
 .generate-btn {
-  color: black;
-  padding: 12px 30px;
+  flex: 2;              /* ปรับตัวเลขนี้เพื่อเลือกว่าจะให้ปุ่มกว้างแค่ไหนเมื่อเทียบกับ dropdown */
+  padding: 12px 20px;
   border-radius: 12px;
   border: none;
-  
-  /* ใช้สีชมพู Sunset จาก Palette ของคุณ */
-  background: var(--primary--sunset); 
-  
-  font-size: 1.1rem;
-  font-weight: bold;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
   cursor: pointer;
-  
-  /* ทำให้ดูมีมิติ (Liquid Pop) */
-  box-shadow: 
-    0 8px 20px rgba(228, 86, 139, 0.3), /* เงาสีชมพูฟุ้งๆ */
-    inset 0 -4px 0 rgba(0, 0, 0, 0.1);    /* มิติขอบล่างของปุ่ม */
-    
-  transition: all 0.2s active;
+  font-size: large;
+  font-weight: bold;
+  transition: 0.3s;
 }
 
 .generate-btn:hover {
@@ -232,21 +218,35 @@ select option {
   box-shadow: 0 4px 10px rgba(228, 86, 139, 0.2);
 }
 
-/* จัดระเบียบแถวของ Dropdown และปุ่ม */
-.action-bar {
-  display: flex;
-  gap: 15px;
+.requirement-input {
   width: 100%;
-  margin-top: 10px;
+  box-sizing: border-box; /* สำคัญ: เพื่อให้ padding ไม่ดันความกว้างเกิน 100% */
+  min-height: 50px; 
+  resize: none;         /* ปิดปุ่มลากขยายขอบขวา */
+  overflow: hidden;      /* ลบ scrollbar */
+  padding: 15px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  margin-bottom: 15px;   /* ระยะห่างก่อนถึงแถวปุ่ม */
 }
 
-.custom-dropdown, .generate-btn {
-  flex: 1; /* ให้ทั้งคู่ขยายเต็มพื้นที่ที่มี */
-  min-width: 150px;
+/* 2. จัดแถวปุ่มให้กว้างเท่ากับ Input พอดี */
+.action-bar {
+  display: flex;
+  gap: 12px;            /* ระยะห่างระหว่าง dropdown และปุ่ม */
+  width: 100%;          /* กว้างเท่ากับ input ด้านบน */
+  box-sizing: border-box;
+}
+
+/* 3. ปรับ Dropdown และปุ่มให้แชร์พื้นที่กัน */
+.custom-dropdown {
+  flex: 1;              /* ให้กินพื้นที่ส่วนใหญ่ หรือตั้งค่าตามต้องการ */
+  position: relative;
 }
 
 .dropdown-header {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.4);
   padding: 12px 20px;
@@ -255,23 +255,23 @@ select option {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #333;
-  font-weight: 600;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  min-height: 45px; /* ล็อกความสูงไว้ */
 }
 
+/* ส่วนที่เด้งลงมา ต้องอยู่บนสุดเสมอ */
 .dropdown-list {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 5px);
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.5); /* กระจกใสขึ้นอีกนิด */
+  background: rgba(255, 255, 255, 0.8); /* เพิ่มความทึบให้เลือกง่ายขึ้น */
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 12px;
-  z-index: 100;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  z-index: 999; /* สูงที่สุดในหน้าจอ */
   overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 .option {
