@@ -6,13 +6,15 @@
   --secondary--bloom: #d4e4ed;
 
   /* เพิ่มตัวแปรสำหรับความกระจก (Glass Color) */
-  --glass-bg: rgba(255, 255, 255, 0.2); 
+  --glass-bg: rgba(255, 255, 255, 0.2);
   --glass-border: rgba(255, 255, 255, 0.3);
 }
 
 .glass-card {
-  width: 90%; /* ให้กว้าง 90% ของหน้าจอในมือถือ */
-  max-width: 800px; /* แต่ไม่กว้างเกิน 800px ในคอม */
+  width: 90%;
+  /* ให้กว้าง 90% ของหน้าจอในมือถือ */
+  max-width: 800px;
+  /* แต่ไม่กว้างเกิน 800px ในคอม */
   margin: 20px auto;
   padding: 30px;
   background: rgba(255, 255, 255, 0.2);
@@ -20,25 +22,30 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 24px;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-  
+
   /* จัดการเรื่องความสูง */
   display: flex;
   flex-direction: column;
-  max-height: 90vh; /* สูงไม่เกิน 90% ของความสูงหน้าจอ */
+  max-height: 90vh;
+  /* สูงไม่เกิน 90% ของความสูงหน้าจอ */
 }
 
 /* ปรับพื้นที่แสดงผลลัพธ์ให้เลื่อนได้ (Scrolling) */
 .results-container {
   margin-top: 25px;
-  overflow-y: auto; /* ถ้าเนื้อหายาว ให้เลื่อนขึ้นลงได้แค่ในส่วนนี้ */
-  padding-right: 10px; /* เว้นที่ให้ Scrollbar */
-  flex-grow: 1; /* กินพื้นที่ที่เหลือทั้งหมดใน Card */
+  overflow-y: auto;
+  /* ถ้าเนื้อหายาว ให้เลื่อนขึ้นลงได้แค่ในส่วนนี้ */
+  padding-right: 10px;
+  /* เว้นที่ให้ Scrollbar */
+  flex-grow: 1;
+  /* กินพื้นที่ที่เหลือทั้งหมดใน Card */
 }
 
 /* ปรับแต่ง Scrollbar ให้ดู Minimal เข้ากับกระจก */
 .results-container::-webkit-scrollbar {
   width: 6px;
 }
+
 .results-container::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.3);
   border-radius: 10px;
@@ -50,14 +57,12 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  
+
   /* ไล่สีจากบนลงล่างโดยใช้ตัวแปรของคุณ */
-  background: linear-gradient(
-    100deg,
-    var(--primary--sky) 0%,
-    var(--secondary--bloom) 60%,
-    var(--secondary--nude) 100%
-  );
+  background: linear-gradient(100deg,
+      var(--primary--sky) 0%,
+      var(--secondary--bloom) 60%,
+      var(--secondary--nude) 100%);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -67,7 +72,8 @@ body {
 .input-group {
   padding: 10px;
   display: flex;
-  flex-direction: column; /* ให้ textarea อยู่บน */
+  flex-direction: column;
+  /* ให้ textarea อยู่บน */
   gap: 15px;
   min-height: 150px;
   resize: none;
@@ -75,22 +81,26 @@ body {
 
 textarea {
   width: 100%;
-  height: 200px;         /* เพิ่มความสูงให้พิมพ์ได้สะใจขึ้น */
-  resize: none;          /* ลบสัญลักษณ์ลากขยายที่มุมขวาล่างออก */
-  
+  height: 200px;
+  /* เพิ่มความสูงให้พิมพ์ได้สะใจขึ้น */
+  resize: none;
+  /* ลบสัญลักษณ์ลากขยายที่มุมขวาล่างออก */
+
   /* ทำให้ดู Pop up ด้วยสีขาวที่สว่างกว่าแผ่นกระจกหลักนิดนึง */
-  background: rgba(255, 255, 255, 0.4); 
+  background: rgba(255, 255, 255, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 15px;
-  
+
   /* เพิ่มเงาด้านใน (Inset Shadow) และด้านนอก เพื่อให้ดูมีมิติ */
-  box-shadow: 
+  box-shadow:
     0 4px 15px rgba(0, 0, 0, 0.05),
     inset 0 2px 4px rgba(255, 255, 255, 0.5);
-    
+
   padding: 20px;
-  font-size: 1.1rem;      /* ขยายตัวหนังสือให้อ่านง่ายขึ้น */
-  outline: none;          /* ลบเส้นขอบสีฟ้าเวลาคลิก (Focus) */
+  font-size: 1.1rem;
+  /* ขยายตัวหนังสือให้อ่านง่ายขึ้น */
+  outline: none;
+  /* ลบเส้นขอบสีฟ้าเวลาคลิก (Focus) */
   transition: all 0.3s ease;
 }
 
@@ -103,7 +113,8 @@ textarea:focus {
 /* ปรับให้ textarea กว้างเต็มกล่องเสมอ */
 textarea {
   width: 100%;
-  box-sizing: border-box; /* ป้องกัน textarea ล้นขอบกระจก */
+  box-sizing: border-box;
+  /* ป้องกัน textarea ล้นขอบกระจก */
   padding: 12px;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -115,51 +126,58 @@ select {
   border-radius: 15px;
   font-size: 1rem;
   font-weight: 600;
-  
+
   /* สไตล์กระจก */
-  background: rgba(255, 255, 255, 0.4); 
+  background: rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.5);
   color: #333;
-  
+
   /* ลบขอบสีฟ้าเวลาคลิกและทำให้ดูมีมิติ */
   outline: none;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  
+
   /* ปรับแต่งความกว้าง (ถ้าอยากให้ใหญ่ขึ้น) */
   min-width: 120px;
   transition: all 0.3s ease;
 }
 
 select {
-  appearance: none;       /* ลบลูกศรมาตรฐานของ Browser ออก */
+  appearance: none;
+  /* ลบลูกศรมาตรฐานของ Browser ออก */
   -webkit-appearance: none;
   -moz-appearance: none;
-  
+
   /* เพิ่มรูปทรงลูกศรใหม่ด้วย SVG หรือใช้สัญลักษณ์พื้นฐาน */
   background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 15px center; /* วางลูกศรไว้ทางขวา */
+  background-position: right 15px center;
+  /* วางลูกศรไว้ทางขวา */
   background-size: 18px;
-  padding-right: 45px; /* เว้นที่ให้ลูกศร */
+  padding-right: 45px;
+  /* เว้นที่ให้ลูกศร */
 }
 
 select:hover {
   background: rgba(255, 255, 255, 0.6);
-  transform: translateY(-2px); /* ลอยขึ้นเล็กน้อย */
+  transform: translateY(-2px);
+  /* ลอยขึ้นเล็กน้อย */
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
 select:focus {
   background: rgba(255, 255, 255, 0.7);
-  border-color: var(--primary--sunset); /* ใช้สีชมพู Sunset เป็นเส้นขอบตอนเลือก */
+  border-color: var(--primary--sunset);
+  /* ใช้สีชมพู Sunset เป็นเส้นขอบตอนเลือก */
 }
 
 /* จัดการตัวหนังสือและพื้นหลังของรายการข้างใน */
 select option {
-  background-color: white; /* เปลี่ยนพื้นหลังรายการเป็นสีขาว */
-  color: #333;             /* ตัวหนังสือสีเข้มอ่านง่าย */
+  background-color: white;
+  /* เปลี่ยนพื้นหลังรายการเป็นสีขาว */
+  color: #333;
+  /* ตัวหนังสือสีเข้มอ่านง่าย */
   font-family: inherit;
   padding: 10px;
 }
@@ -171,9 +189,9 @@ select option {
   left: 0;
   right: 0;
   margin-top: 10px;
-  
+
   /* สไตล์กระจกใส */
-  background: rgba(255, 255, 255, 0.4); 
+  background: rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(15px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
@@ -191,11 +209,13 @@ select option {
 }
 
 .option:hover {
-  background: rgba(255, 255, 255, 0.3); /* ไฮไลท์เวลาเอาเมาส์วาง */
+  background: rgba(255, 255, 255, 0.3);
+  /* ไฮไลท์เวลาเอาเมาส์วาง */
 }
 
 .generate-btn {
-  flex: 2;              /* ปรับตัวเลขนี้เพื่อเลือกว่าจะให้ปุ่มกว้างแค่ไหนเมื่อเทียบกับ dropdown */
+  flex: 2;
+  /* ปรับตัวเลขนี้เพื่อเลือกว่าจะให้ปุ่มกว้างแค่ไหนเมื่อเทียบกับ dropdown */
   padding: 12px 20px;
   border-radius: 12px;
   border: none;
@@ -208,41 +228,50 @@ select option {
 }
 
 .generate-btn:hover {
-  filter: brightness(1.1); /* สว่างขึ้นนิดนึงตอนวางเมาส์ */
+  filter: brightness(1.1);
+  /* สว่างขึ้นนิดนึงตอนวางเมาส์ */
   transform: translateY(-2px);
   box-shadow: 0 12px 25px rgba(228, 86, 139, 0.4);
 }
 
 .generate-btn:active {
-  transform: translateY(2px); /* เอฟเฟกต์ตอนกดปุ่มให้ดูยุบลงไปจริงๆ */
+  transform: translateY(2px);
+  /* เอฟเฟกต์ตอนกดปุ่มให้ดูยุบลงไปจริงๆ */
   box-shadow: 0 4px 10px rgba(228, 86, 139, 0.2);
 }
 
 .requirement-input {
   width: 100%;
-  box-sizing: border-box; /* สำคัญ: เพื่อให้ padding ไม่ดันความกว้างเกิน 100% */
-  min-height: 50px; 
-  resize: none;         /* ปิดปุ่มลากขยายขอบขวา */
-  overflow: hidden;      /* ลบ scrollbar */
+  box-sizing: border-box;
+  /* สำคัญ: เพื่อให้ padding ไม่ดันความกว้างเกิน 100% */
+  min-height: 50px;
+  resize: none;
+  /* ปิดปุ่มลากขยายขอบขวา */
+  overflow: hidden;
+  /* ลบ scrollbar */
   padding: 15px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  margin-bottom: 15px;   /* ระยะห่างก่อนถึงแถวปุ่ม */
+  margin-bottom: 15px;
+  /* ระยะห่างก่อนถึงแถวปุ่ม */
 }
 
 /* 2. จัดแถวปุ่มให้กว้างเท่ากับ Input พอดี */
 .action-bar {
   display: flex;
-  gap: 12px;            /* ระยะห่างระหว่าง dropdown และปุ่ม */
-  width: 100%;          /* กว้างเท่ากับ input ด้านบน */
+  gap: 12px;
+  /* ระยะห่างระหว่าง dropdown และปุ่ม */
+  width: 100%;
+  /* กว้างเท่ากับ input ด้านบน */
   box-sizing: border-box;
 }
 
 /* Container ของ Dropdown */
 .custom-dropdown {
   position: relative;
-  flex: 0 0 120px; /* กำหนดความกว้างคงที่ */
+  flex: 0 0 120px;
+  /* กำหนดความกว้างคงที่ */
   user-select: none;
 }
 
@@ -297,6 +326,7 @@ select option {
   font-size: 0.8rem;
   transition: transform 0.3s ease;
 }
+
 .arrow.open {
   transform: rotate(180deg);
 }
@@ -308,7 +338,8 @@ select option {
   padding: 20px;
   margin-bottom: 20px;
   text-align: left;
-  word-wrap: break-word; /* ป้องกันตัวอักษรยาวๆ ล้นขอบ */
+  word-wrap: break-word;
+  /* ป้องกันตัวอักษรยาวๆ ล้นขอบ */
 }
 
 .test-case-card h3 {
@@ -320,25 +351,67 @@ select option {
 
 .technical-box pre {
   margin: 0;
-  white-space: pre-wrap; /* สำคัญ: ทำให้ Code ขึ้นบรรทัดใหม่เองเมื่อชนขอบ */
+  white-space: pre-wrap;
+  /* สำคัญ: ทำให้ Code ขึ้นบรรทัดใหม่เองเมื่อชนขอบ */
   word-break: break-all;
   font-size: 0.85rem;
 }
+
+ /* HTML: <div class="loader"></div> */
+
+ .loading-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;      /* จัดกลางแนวนอน */
+  justify-content: center;   /* จัดกลางแนวตั้ง */
+  
+  /* สำคัญ: ต้องมีความสูงเพื่อให้ justify-content ทำงานได้ */
+  min-height: 300px;         
+  flex-grow: 1;             /* ให้ขยายเต็มพื้นที่ที่เหลือใน glass-card */
+  
+  text-align: center;
+  gap: 20px;                /* ระยะห่างระหว่าง Loader กับตัวหนังสือ */
+}
+
+  .loader {
+    display: block;
+  margin: 0 auto;
+    width: 50px;
+    padding: 8px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #25b09b;
+    --_m:
+      conic-gradient(#0000 10%, #000),
+      linear-gradient(#000 0 0) content-box;
+    -webkit-mask: var(--_m);
+    mask: var(--_m);
+    -webkit-mask-composite: source-out;
+    mask-composite: subtract;
+    animation: l3 1s infinite linear;
+  }
+
+  @keyframes l3 {
+    to {
+      transform: rotate(1turn)
+    }
+  }
 
 @media (max-width: 600px) {
   .glass-card {
     padding: 15px;
     width: 95%;
   }
-  
+
   h1 {
     font-size: 1.5rem;
   }
-  
+
   .action-bar {
-    flex-direction: column; /* มือถือให้ปุ่มอยู่คนละบรรทัด */
+    flex-direction: column;
+    /* มือถือให้ปุ่มอยู่คนละบรรทัด */
   }
-  
+
   .generate-btn {
     width: 100%;
   }

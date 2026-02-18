@@ -1,8 +1,8 @@
 const LoadingSpinner = () => {
   return (
     <div className="spinner-container">
-      <div className="spinner"></div>
-      <p>Processing...</p>
+      <div className="loader"></div>
+      
     </div>
   );
 };
