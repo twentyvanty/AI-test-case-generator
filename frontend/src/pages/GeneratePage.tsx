@@ -7,6 +7,7 @@ interface GeneratePageProps {
 const GeneratePage: React.FC<GeneratePageProps> = ({ onGenerate }) => {
   const [requirement, setRequirement] = useState("");
   const [testType, setTestType] = useState("TDD");
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setRequirement(e.target.value);
@@ -17,26 +18,30 @@ const GeneratePage: React.FC<GeneratePageProps> = ({ onGenerate }) => {
   return (
     <div className="view-container fade-in">
       <h1>AI Test Case Generator</h1>
-      <textarea 
+      <textarea
         className="requirement-input"
         value={requirement}
         onChange={handleInput}
         placeholder="Describe your requirement..."
       />
+
       <div className="action-bar">
-        <select 
-          className="custom-select" 
-          value={testType} 
-          onChange={(e) => setTestType(e.target.value)}
-        >
-          <option value="TDD">TDD</option>
-          <option value="BDD">BDD</option>
-        </select>
-        <button 
-          className="generate-btn" 
-          onClick={() => onGenerate(requirement, testType)}
-          disabled={!requirement.trim()}
-        >
+        {/* Custom Glass Dropdown */}
+        <div className="custom-dropdown">
+          <div className="dropdown-header" onClick={() => setIsOpen(!isOpen)}>
+            <span>{testType}</span>
+            <span className={`arrow ${isOpen ? 'open' : ''}`}>▼</span>
+          </div>
+
+          {isOpen && (
+            <div className="dropdown-list fade-in">
+              <div className="option" onClick={() => { setTestType("BDD"); setIsOpen(false); }}>BDD</div>
+              <div className="option" onClick={() => { setTestType("TDD"); setIsOpen(false); }}>TDD</div>
+            </div>
+          )}
+        </div>
+
+        <button className="generate-btn" onClick={() => onGenerate(requirement, testType)}>
           Generate
         </button>
       </div>

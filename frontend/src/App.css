@@ -239,56 +239,63 @@ select option {
   box-sizing: border-box;
 }
 
-/* 3. ปรับ Dropdown และปุ่มให้แชร์พื้นที่กัน */
+/* Container ของ Dropdown */
 .custom-dropdown {
-  flex: 1;              /* ให้กินพื้นที่ส่วนใหญ่ หรือตั้งค่าตามต้องการ */
   position: relative;
+  flex: 0 0 120px; /* กำหนดความกว้างคงที่ */
+  user-select: none;
 }
 
+/* หัวข้อ Dropdown (แผ่นกระจกหลัก) */
 .dropdown-header {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  padding: 12px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 12px 15px;
   border-radius: 12px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  color: #1a1a1a;
+  font-weight: 500;
   transition: all 0.3s ease;
-  min-height: 45px; /* ล็อกความสูงไว้ */
 }
 
-/* ส่วนที่เด้งลงมา ต้องอยู่บนสุดเสมอ */
+.dropdown-header:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* รายการตัวเลือก (แผ่นกระจกที่ลอยลงมา) */
 .dropdown-list {
   position: absolute;
-  top: calc(100% + 5px);
+  top: calc(100% + 8px);
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.8); /* เพิ่มความทึบให้เลือกง่ายขึ้น */
+  background: rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  z-index: 999; /* สูงที่สุดในหน้าจอ */
   overflow: hidden;
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .option {
-  padding: 12px 20px;
+  padding: 12px 15px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: 0.2s;
+  color: #1a1a1a;
 }
 
 .option:hover {
   background: rgba(255, 255, 255, 0.3);
-  padding-left: 25px; /* เอฟเฟกต์เลื่อนนิดๆ เวลา hover */
 }
 
-/* ปรับแต่งลูกศรให้หมุนได้ */
+/* ลูกศรหมุน */
 .arrow {
-  transition: transform 0.3s ease;
   font-size: 0.8rem;
+  transition: transform 0.3s ease;
 }
 .arrow.open {
   transform: rotate(180deg);
