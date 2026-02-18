@@ -1,61 +1,47 @@
-import { generateTestCases } from "../services/geminiService"
+import React, { useState } from "react"; // แก้ไข: เพิ่มการ import useState
 
-  type GeneratePageProps = {
-    requirement: string
-    setRequirement: React.Dispatch<React.SetStateAction<string>>
-    testType: string
-    setTestType: React.Dispatch<React.SetStateAction<string>>
-    onGenerate: React.MouseEventHandler<HTMLButtonElement>;
-  }
+interface GeneratePageProps {
+  onGenerate: (requirement: string, testType: string) => void;
+}
 
+const GeneratePage: React.FC<GeneratePageProps> = ({ onGenerate }) => {
+  const [requirement, setRequirement] = useState("");
+  const [testType, setTestType] = useState("TDD");
 
-  function GeneratePage({
-    requirement,
-    setRequirement,
-    testType,
-    setTestType,
-    onGenerate, 
-  }: GeneratePageProps) {
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setRequirement(e.target.value);
+    e.target.style.height = "auto";
+    e.target.style.height = `${e.target.scrollHeight}px`;
+  };
 
-    const canGenerate = requirement.trim() !== '' && testType !== '';
-    //trim(): removes spaces 
+  return (
+    <div className="view-container fade-in">
+      <h1>AI Test Case Generator</h1>
+      <textarea 
+        className="requirement-input"
+        value={requirement}
+        onChange={handleInput}
+        placeholder="Describe your requirement..."
+      />
+      <div className="action-bar">
+        <select 
+          className="custom-select" 
+          value={testType} 
+          onChange={(e) => setTestType(e.target.value)}
+        >
+          <option value="TDD">TDD</option>
+          <option value="BDD">BDD</option>
+        </select>
+        <button 
+          className="generate-btn" 
+          onClick={() => onGenerate(requirement, testType)}
+          disabled={!requirement.trim()}
+        >
+          Generate
+        </button>
+      </div>
+    </div>
+  );
+};
 
-    return (
-      <>
-        <div className="app">
-          <h1 id="title">Test Case Generator</h1>
-
-          <div className="field">
-            <label> Please enter your requirement first. </label>
-            <textarea className="box"
-              value={requirement} //display state value 
-              onChange={(e) => setRequirement(e.target.value)}
-            //onchange: everytime user type sth do...
-            //e.target.value: latest value */}
-            //setreq(..): store text in state */}
-            />
-          </div>
-
-          <div className="field">
-            <label>Test Type</label>
-            <select value={testType} onChange={(e) => setTestType(e.target.value)}>
-              <option value=""> Select test type </option>
-              <option value="BDD">BDD</option>
-              <option value="TDD">TDD</option>
-            </select>
-          </div>
-
-          <div>
-            <button onClick={onGenerate} disabled={!canGenerate} className="Generatebtn">
-              Generate Test Case
-            </button>
-          </div>
-        </div>
-      </>
-    )
-  }
-
-
-
-
-  export default GeneratePage
+export default GeneratePage; // แก้ไข: ต้องมีบรรทัดนี้เพื่อให้ไฟล์อื่น import ไปใช้ได้
