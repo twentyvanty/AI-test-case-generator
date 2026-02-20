@@ -29,7 +29,6 @@ function App() {
       {step === "loading" && (
         <div className="loading-view fade-in">
           <LoadingSpinner />
-          <p>Generating {config.testType} cases...</p>
         </div>
       )}
 

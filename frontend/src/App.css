@@ -10,10 +10,15 @@
   --glass-border: rgba(255, 255, 255, 0.3);
 }
 
+/*แก้เพิ่ม*/
+#root{
+  width: 90%;
+}
+
 .glass-card {
   width: 90%;
   /* ให้กว้าง 90% ของหน้าจอในมือถือ */
-  max-width: 800px;
+  max-width: 100%;
   /* แต่ไม่กว้างเกิน 800px ในคอม */
   margin: 20px auto;
   padding: 30px;
@@ -26,7 +31,11 @@
   /* จัดการเรื่องความสูง */
   display: flex;
   flex-direction: column;
-  max-height: 90vh;
+  /*แก้เพิ่ม*/
+  max-height: 90%;
+
+  margin-top: 5%;
+  margin-bottom: 5%;
   /* สูงไม่เกิน 90% ของความสูงหน้าจอ */
 }
 
@@ -229,7 +238,6 @@ select option {
 
 .generate-btn:hover {
   filter: brightness(1.1);
-  /* สว่างขึ้นนิดนึงตอนวางเมาส์ */
   transform: translateY(-2px);
   box-shadow: 0 12px 25px rgba(228, 86, 139, 0.4);
 }
@@ -244,7 +252,7 @@ select option {
   width: 100%;
   box-sizing: border-box;
   /* สำคัญ: เพื่อให้ padding ไม่ดันความกว้างเกิน 100% */
-  min-height: 50px;
+  min-height: 250px;
   resize: none;
   /* ปิดปุ่มลากขยายขอบขวา */
   overflow: hidden;
@@ -404,6 +412,8 @@ select option {
   }
 
   h1 {
+    display: felx;
+    justify-content: center;
     font-size: 1.5rem;
   }
 
