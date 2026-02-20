@@ -17,7 +17,7 @@ const GeneratePage: React.FC<GeneratePageProps> = ({ onGenerate }) => {
 
   return (
     <div className="view-container fade-in">
-      <h1>AI Test Case Generator</h1>
+      <h1 className="Title">AI Test Case Generator</h1>
       <textarea
         className="requirement-input"
         value={requirement}
