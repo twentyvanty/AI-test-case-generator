@@ -424,3 +424,44 @@ select option {
     width: 100%;
   }
 }
+
+.test-case-card strong {
+  color: #1a1a1a;
+}
+
+.test-case-card ol li {
+  line-height: 1.5;
+}
+
+.test-case-card p {
+  margin: 0;
+}
+
+.test-case-card:hover {
+  transform: translateY(-3px);
+  transition: 0.3s ease;
+}
+
+.back-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  width: 90px;          /* fixed width */
+  height: 36px;         /* fixed height */
+  flex: none;           /* IMPORTANT: disable flex growing */
+  transition: 0.3s ease;
+}
+
+.back-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
+.back-btn:active {
+  transform: translateY(1px);
+}

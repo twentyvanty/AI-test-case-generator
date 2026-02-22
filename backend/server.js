@@ -19,21 +19,37 @@ const universalSchema = {
     type: SchemaType.OBJECT,
     properties: {
       title: { type: SchemaType.STRING },
-      setup: { type: SchemaType.STRING, description: "Only for TDD: Mock data or setup code" },
-      steps: { 
-        type: SchemaType.ARRAY, 
-        items: { type: SchemaType.STRING } 
+
+      setup: {
+        type: SchemaType.STRING,
+        description: "Only for TDD: Mock data or setup code"
       },
-      assertion: { type: SchemaType.STRING, description: "Only for TDD: code assertion like expect()" },
+
+      steps: {
+        type: SchemaType.ARRAY,
+        items: { type: SchemaType.STRING }
+      },
+
+      assertion: {
+        type: SchemaType.STRING,
+        description: "Only for TDD: code assertion like expect()"
+      },
+
       expected: { type: SchemaType.STRING },
+
+      caseType: {
+        type: SchemaType.STRING,
+        description: "Type of test case: VALID, INVALID, or BOUNDARY"
+      }
     },
-    // กำหนดฟิลด์ที่ "ต้องมีเสมอ" ส่วน setup/assertion ปล่อยให้เป็น optional ได้
-    required: ["title", "steps", "expected"],
+
+    // Required for ALL test types
+    required: ["title", "steps", "expected", "caseType"],
   },
 };
 
 const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash", // แนะนำให้ใช้ 1.5-flash เพื่อความเสถียรครับ
+  model: "gemini-3-flash-preview", // แนะนำให้ใช้ 1.5-flash เพื่อความเสถียรครับ
   generationConfig: {
     responseMimeType: "application/json",
     responseSchema: universalSchema,
@@ -51,9 +67,79 @@ app.post("/api/generate", async (req, res) => {
     // 2. ปรับตัวแปรคำสั่งตามประเภทที่เลือก
     let instructions = "";
     if (testType === 'TDD') {
-      instructions = "Act as a Developer. Focus on Unit Testing, code logic, and include 'setup' and 'assertion' fields.";
-    } else {
-      instructions = "Act as a QA. Focus on user behavior and Gherkin style (Given/When/Then). Leave 'setup' and 'assertion' empty.";
+
+      instructions = `
+    You are a professional software developer practicing Test-Driven Development.
+
+    Generate unit test cases focusing on:
+    - Code logic
+    - Edge cases
+    - Validation scenarios
+
+    Each test case MUST include:
+    - title
+    - setup (mock data or initialization code)
+    - steps (logical execution steps)
+    - assertion (example: expect(...).toBe(...))
+    - expected
+    - caseType
+
+    Rules:
+    - caseType must be "VALID" for normal working logic.
+    - If the test checks invalid input or error handling, caseType must be "INVALID".
+    - Do not leave caseType empty.
+    - Return only a valid JSON array.
+    - Do not include explanations.
+    `;
+
+    } else if (testType === 'BDD') {
+
+      instructions = `
+    You are a professional QA engineer writing Behavior-Driven Development test cases.
+
+    Generate test cases in Gherkin style:
+    - Given
+    - When
+    - Then
+
+    Each test case MUST include:
+    - title
+    - steps (written in Given/When/Then style)
+    - expected
+    - caseType
+
+    Rules:
+    - Leave setup and assertion as empty strings.
+    - If the scenario represents normal behavior, caseType must be "VALID".
+    - If the scenario represents error or rejection behavior, caseType must be "INVALID".
+    - Do not leave caseType empty.
+    - Return only a valid JSON array.
+    - Do not include explanations.
+    `;
+
+    } else if (testType === 'Equivalence Partitioning') {
+
+      instructions = `
+    You are a professional QA engineer.
+
+    Generate test cases using:
+    - Equivalence Partitioning
+    - Boundary Value Analysis
+
+    Each test case MUST include:
+    - title
+    - steps
+    - expected
+    - caseType
+
+    caseType must be exactly one of:
+    - VALID
+    - INVALID
+    - BOUNDARY
+
+    Do not explain anything.
+    Return only valid JSON array.
+    `;
     }
 
     const prompt = `Generate ${testType} test cases for: ${requirement}. Instructions: ${instructions}`;

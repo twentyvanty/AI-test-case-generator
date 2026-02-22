@@ -37,6 +37,7 @@ const GeneratePage: React.FC<GeneratePageProps> = ({ onGenerate }) => {
             <div className="dropdown-list fade-in">
               <div className="option" onClick={() => { setTestType("BDD"); setIsOpen(false); }}>BDD</div>
               <div className="option" onClick={() => { setTestType("TDD"); setIsOpen(false); }}>TDD</div>
+              <div className="option" onClick={() => { setTestType("Equivalence Partitioning"); setIsOpen(false); }}>Equivalence Partitioning</div>
             </div>
           )}
         </div>
