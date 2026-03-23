@@ -49,7 +49,7 @@ const universalSchema = {
 };
 
 const model = genAI.getGenerativeModel({
-  model: "gemini-3-flash-preview", // แนะนำให้ใช้ 1.5-flash เพื่อความเสถียรครับ
+  model: "gemini-3-flash-preview", 
   generationConfig: {
     responseMimeType: "application/json",
     responseSchema: universalSchema,
@@ -64,58 +64,38 @@ app.post("/api/generate", async (req, res) => {
       return res.status(400).json({ error: "Missing requirement or testType" });
     }
 
-    // 2. ปรับตัวแปรคำสั่งตามประเภทที่เลือก
     let instructions = "";
+
     if (testType === 'TDD') {
 
       instructions = `
-    You are a professional software developer practicing Test-Driven Development.
-
-    Generate unit test cases focusing on:
-    - Code logic
-    - Edge cases
-    - Validation scenarios
-
-    Each test case MUST include:
-    - title
-    - setup (mock data or initialization code)
-    - steps (logical execution steps)
-    - assertion (example: expect(...).toBe(...))
-    - expected
-    - caseType
-
-    Rules:
-    - caseType must be "VALID" for normal working logic.
-    - If the test checks invalid input or error handling, caseType must be "INVALID".
-    - Do not leave caseType empty.
-    - Return only a valid JSON array.
-    - Do not include explanations.
-    `;
+    TASK: Generate a TDD (Test-Driven Development) workflow.
+    STRICT RULES:
+    1. You must output THREE separate code blocks.
+    2. Phase 1: [RED] - Write only the failing test case. Explain why it fails (e.g., function not defined).
+    3. Phase 2: [GREEN] - Write the simplest possible code to pass the RED test. 
+    4. Phase 3: [REFACTOR] - Clean up the GREEN code for production standards.
+    
+    GOAL: Isolated unit testing with mocked dependencies and a rapid feedback loop.
+    FORMAT: Use Markdown headers for each phase.
+  `;
 
     } else if (testType === 'BDD') {
 
       instructions = `
-    You are a professional QA engineer writing Behavior-Driven Development test cases.
-
-    Generate test cases in Gherkin style:
-    - Given
-    - When
-    - Then
-
-    Each test case MUST include:
-    - title
-    - steps (written in Given/When/Then style)
-    - expected
-    - caseType
-
-    Rules:
-    - Leave setup and assertion as empty strings.
-    - If the scenario represents normal behavior, caseType must be "VALID".
-    - If the scenario represents error or rejection behavior, caseType must be "INVALID".
-    - Do not leave caseType empty.
-    - Return only a valid JSON array.
-    - Do not include explanations.
-    `;
+    TASK: Generate BDD (Behavior-Driven Development) Test Cases.
+    STRICT RULES:
+    1. Act as a PO and QA. 
+    2. Use 'Specification by Example' to meet business goals.
+    3. Every test case MUST follow the Gherkin format: 
+       - Given [Initial context]
+       - When [Action taken]
+       - Then [Expected result]
+    4. Provide one 'Happy Path' and one 'Negative/Edge Case'.
+    
+    GOAL: Integration-level behavior verification.
+    FORMAT: Use a clear list or table format.
+  `;
 
     } else if (testType === 'Equivalence Partitioning') {
 
