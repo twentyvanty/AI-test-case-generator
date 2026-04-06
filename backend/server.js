@@ -223,34 +223,34 @@ app.post("/api/generate-testing-process", async (req, res) => {
 
     if (approach === 'TDD') {
       instructions = `
-    TASK: Generate TDD (Test-Driven Development) implementation for the given test cases.
+    TASK: Generate a TDD (Test-Driven Development) workflow.
     STRICT RULES:
-    1. For each test case, provide:
-       - RED: Failing test code (Jest format)
-       - GREEN: Minimal code to pass the test
-       - REFACTOR: Improved production code
-    2. Include setup code and assertions
-    3. Provide copy-paste ready code blocks
+    1. You must output THREE separate code blocks.
+    2. Phase 1: [RED] - Write only the failing test case. Explain why it fails (e.g., function not defined).
+    3. Phase 2: [GREEN] - Write the simplest possible code to pass the RED test. 
+    4. Phase 3: [REFACTOR] - Clean up the GREEN code for production standards.
     
-    FORMAT: Return JSON with testCases array, each containing:
-    - red: string (failing test)
-    - green: string (implementation)
-    - refactor: string (production code)
-    - script: string (complete test file)
+    GOAL: Isolated unit testing with mocked dependencies and a rapid feedback loop.
+    FORMAT: Use Markdown headers for each phase.
     `;
     } else if (approach === 'BDD') {
       instructions = `
-    TASK: Generate BDD (Behavior-Driven Development) implementation for the given test cases.
+    TASK: Generate BDD (Behavior-Driven Development) Test Cases.
     STRICT RULES:
-    1. Convert each test case to Gherkin format
-    2. Provide Cucumber step definitions
-    3. Include feature files and step implementation
-    4. Provide copy-paste ready code blocks
-    
-    FORMAT: Return JSON with testCases array, each containing:
-    - feature: string (Gherkin feature)
-    - steps: string (step definitions)
-    - script: string (complete feature file)
+    1. Act as a PO and QA.
+    2. Use 'Specification by Example' to meet business goals.
+    3. For each test case, return ONLY a "script" field.
+    4. The script must follow this exact format:
+        Scenario: [title]
+          Given [initial context]
+          When [action taken]
+          Then [expected result]
+    5. Provide one 'Happy Path' and one 'Negative/Edge Case'.
+    6. Do NOT include Feature blocks, step definitions, or any code.
+    7. Just the Scenario with Given/When/Then.
+   
+    GOAL: Integration-level behavior verification.
+    FORMAT: Use a clear list or table format.
     `;
     }
 

@@ -29,6 +29,102 @@ interface ResultPageProps {
   onSelectApproach: (approach: string) => void;
 }
 
+// ─── Utility: format single-line code into readable multiline ────────────────
+
+function formatCode(code: string): string {
+  if (!code) return "";
+
+  // If the code already has newlines, just return trimmed
+  if (code.includes("\n")) return code.trim();
+
+  return code
+    .replace(/;\s*/g, ";\n")
+    .replace(/\{\s*/g, "{\n  ")
+    .replace(/\}\s*/g, "\n}\n")
+    .replace(/\n\s*\n/g, "\n")
+    .trim();
+}
+
+// ─── CodeBlock component ─────────────────────────────────────────────────────
+
+const CodeBlock: React.FC<{ code: string; label?: string; dotColor?: string }> = ({
+  code,
+  label,
+  dotColor,
+}) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code || "");
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div style={{ marginTop: "10px" }}>
+      {label && (
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+          {dotColor && (
+            <span style={{
+              width: "10px",
+              height: "10px",
+              borderRadius: "50%",
+              background: dotColor,
+              display: "inline-block",
+              flexShrink: 0,
+            }} />
+          )}
+          <strong style={{ fontSize: "13px" }}>{label}</strong>
+        </div>
+      )}
+      <div style={{ position: "relative" }}>
+        <button
+          onClick={handleCopy}
+          style={{
+            position: "absolute",
+            top: "10px",
+            right: "10px",
+            zIndex: 2,
+            padding: "4px 10px",
+            fontSize: "11px",
+            fontWeight: 600,
+            border: "1px solid rgba(255,255,255,0.2)",
+            borderRadius: "5px",
+            background: copied ? "rgba(76,175,80,0.3)" : "rgba(255,255,255,0.1)",
+            color: copied ? "#4caf50" : "rgba(255,255,255,0.7)",
+            cursor: "pointer",
+            transition: "all 0.2s",
+            backdropFilter: "blur(4px)",
+          }}
+        >
+          {copied ? "✓ Copied" : "Copy"}
+        </button>
+        <pre
+          style={{
+            background: "#1a1d23",
+            border: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: "8px",
+            padding: "14px 16px",
+            paddingRight: "70px", // room for copy button
+            margin: 0,
+            fontSize: "13px",
+            lineHeight: "1.7",
+            color: "#e2e8f0",
+            fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            overflowX: "auto",
+            maxHeight: "420px",
+            overflowY: "auto",
+          }}
+        >
+          <code>{formatCode(code)}</code>
+        </pre>
+      </div>
+    </div>
+  );
+};
+
 // ─── Decision Table styles ───────────────────────────────────────────────────
 
 const tableStyles = {
@@ -105,33 +201,13 @@ const DecisionTableView: React.FC<{ data: DecisionTableData }> = ({ data }) => {
   return (
     <div>
       <div style={{ marginBottom: "16px" }}>
-        <span style={{
-          fontSize: "12px",
-          fontWeight: 600,
-          letterSpacing: "0.07em",
-          textTransform: "uppercase",
-          opacity: 0.5,
-          marginRight: "12px",
-        }}>
+        <span style={{ fontSize: "12px", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", opacity: 0.5, marginRight: "12px" }}>
           {conditions.length} conditions
         </span>
-        <span style={{
-          fontSize: "12px",
-          fontWeight: 600,
-          letterSpacing: "0.07em",
-          textTransform: "uppercase",
-          opacity: 0.5,
-          marginRight: "12px",
-        }}>
+        <span style={{ fontSize: "12px", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", opacity: 0.5, marginRight: "12px" }}>
           {actions.length} actions
         </span>
-        <span style={{
-          fontSize: "12px",
-          fontWeight: 600,
-          letterSpacing: "0.07em",
-          textTransform: "uppercase",
-          opacity: 0.5,
-        }}>
+        <span style={{ fontSize: "12px", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", opacity: 0.5 }}>
           {rules.length} rules
         </span>
       </div>
@@ -147,13 +223,9 @@ const DecisionTableView: React.FC<{ data: DecisionTableData }> = ({ data }) => {
             </tr>
           </thead>
           <tbody>
-            {/* Section label: Conditions */}
             <tr>
-              <td colSpan={rules.length + 1} style={tableStyles.sectionLabel}>
-                Conditions
-              </td>
+              <td colSpan={rules.length + 1} style={tableStyles.sectionLabel}>Conditions</td>
             </tr>
-
             {conditions.map((cond) => (
               <tr key={cond.id}>
                 <td style={tableStyles.labelCell}>{cond.name}</td>
@@ -164,17 +236,11 @@ const DecisionTableView: React.FC<{ data: DecisionTableData }> = ({ data }) => {
                 ))}
               </tr>
             ))}
-
-            {/* Section label: Actions */}
             <tr>
-              <td
-                colSpan={rules.length + 1}
-                style={{ ...tableStyles.sectionLabel, ...tableStyles.dividerRow }}
-              >
+              <td colSpan={rules.length + 1} style={{ ...tableStyles.sectionLabel, ...tableStyles.dividerRow }}>
                 Actions
               </td>
             </tr>
-
             {actions.map((action, ai) => (
               <tr key={ai}>
                 <td style={tableStyles.labelCell}>{action}</td>
@@ -188,24 +254,10 @@ const DecisionTableView: React.FC<{ data: DecisionTableData }> = ({ data }) => {
                 })}
               </tr>
             ))}
-
-            {/* Rule titles row */}
             <tr>
-              <td style={{ ...tableStyles.sectionLabel, borderTop: "2px solid rgba(255,255,255,0.15)" }}>
-                Rule
-              </td>
+              <td style={{ ...tableStyles.sectionLabel, borderTop: "2px solid rgba(255,255,255,0.15)" }}>Rule</td>
               {rules.map((rule, i) => (
-                <td
-                  key={i}
-                  style={{
-                    ...tableStyles.valueCell,
-                    fontSize: "11px",
-                    opacity: 0.45,
-                    borderTop: "2px solid rgba(255,255,255,0.15)",
-                    padding: "8px 16px",
-                  }}
-                  title={rule.title}
-                >
+                <td key={i} style={{ ...tableStyles.valueCell, fontSize: "11px", opacity: 0.45, borderTop: "2px solid rgba(255,255,255,0.15)", padding: "8px 16px" }} title={rule.title}>
                   {rule.caseType}
                 </td>
               ))}
@@ -214,40 +266,15 @@ const DecisionTableView: React.FC<{ data: DecisionTableData }> = ({ data }) => {
         </table>
       </div>
 
-      {/* Rule titles as cards below the table */}
       <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "8px" }}>
         {rules.map((rule, i) => (
-          <div
-            key={i}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              padding: "10px 16px",
-              borderRadius: "8px",
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              fontSize: "13px",
-            }}
-          >
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 16px", borderRadius: "8px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: "13px" }}>
             <span style={{ opacity: 0.45, minWidth: "40px", fontWeight: 600 }}>TC {i + 1}</span>
             <span style={{ flex: 1 }}>{rule.title}</span>
             <span style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              padding: "3px 8px",
-              borderRadius: "4px",
-              background: rule.caseType === "VALID"
-                ? "rgba(76,175,80,0.15)"
-                : rule.caseType === "INVALID"
-                ? "rgba(244,67,54,0.15)"
-                : "rgba(255,193,7,0.15)",
-              color: rule.caseType === "VALID"
-                ? "#4caf50"
-                : rule.caseType === "INVALID"
-                ? "#f44336"
-                : "#ffc107",
+              fontSize: "11px", fontWeight: 700, letterSpacing: "0.06em", padding: "3px 8px", borderRadius: "4px",
+              background: rule.caseType === "VALID" ? "rgba(76,175,80,0.15)" : rule.caseType === "INVALID" ? "rgba(244,67,54,0.15)" : "rgba(255,193,7,0.15)",
+              color: rule.caseType === "VALID" ? "#4caf50" : rule.caseType === "INVALID" ? "#f44336" : "#ffc107",
             }}>
               {rule.caseType}
             </span>
@@ -275,15 +302,8 @@ const ResultPage: React.FC<ResultPageProps> = ({
     onSelectApproach(approach);
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    alert("Copied to clipboard!");
-  };
-
   const isDecisionTable = technique === "decision-table";
 
-  // For decision table, data is the full { conditions, actions, rules } object.
-  // For EP/BVA, data is an array of test case objects.
   const flatTestCases: any[] = isDecisionTable
     ? (data?.rules ?? [])
     : Array.isArray(data) ? data : [];
@@ -291,9 +311,7 @@ const ResultPage: React.FC<ResultPageProps> = ({
   return (
     <div className="glass-card fade-in">
       <div style={{ display: "flex", alignItems: "center", gap: "15px", marginBottom: "20px" }}>
-        <button className="back-btn" onClick={onBack}>
-          ← Back
-        </button>
+        <button className="back-btn" onClick={onBack}>← Back</button>
         <h2>Test Cases Generated</h2>
       </div>
 
@@ -319,61 +337,24 @@ const ResultPage: React.FC<ResultPageProps> = ({
           <div className="process-content">
             {testingProcess.testCases?.map((tc: any, index: number) => (
               <div key={index} className="process-card">
-                <h4>Test Case #{index + 1}: {tc.title}</h4>
+                <h4 style={{ marginBottom: "16px", fontSize: "15px", fontWeight: 600 }}>
+                  Test Case #{index + 1}: {tc.title}
+                </h4>
 
                 {selectedApproach === "TDD" && (
                   <>
-                    <div className="phase">
-                      <strong>🔴 RED - Failing Test:</strong>
-                      <div className="code-block">
-                        <button className="copy-btn" onClick={() => copyToClipboard(tc.red)}>Copy</button>
-                        <pre>{tc.red}</pre>
-                      </div>
-                    </div>
-                    <div className="phase">
-                      <strong>🟢 GREEN - Implementation:</strong>
-                      <div className="code-block">
-                        <button className="copy-btn" onClick={() => copyToClipboard(tc.green)}>Copy</button>
-                        <pre>{tc.green}</pre>
-                      </div>
-                    </div>
-                    <div className="phase">
-                      <strong>🔵 REFACTOR - Production Code:</strong>
-                      <div className="code-block">
-                        <button className="copy-btn" onClick={() => copyToClipboard(tc.refactor)}>Copy</button>
-                        <pre>{tc.refactor}</pre>
-                      </div>
-                    </div>
+                    <CodeBlock code={tc.red} label="RED — Failing Test" dotColor="#f44336" />
+                    <CodeBlock code={tc.green} label="GREEN — Implementation" dotColor="#4caf50" />
+                    <CodeBlock code={tc.refactor} label="REFACTOR — Production Code" dotColor="#2196f3" />
                   </>
                 )}
 
                 {selectedApproach === "BDD" && (
-                  <>
-                    <div className="phase">
-                      <strong>Feature File:</strong>
-                      <div className="code-block">
-                        <button className="copy-btn" onClick={() => copyToClipboard(tc.feature)}>Copy</button>
-                        <pre>{tc.feature}</pre>
-                      </div>
-                    </div>
-                    <div className="phase">
-                      <strong>Step Definitions:</strong>
-                      <div className="code-block">
-                        <button className="copy-btn" onClick={() => copyToClipboard(tc.steps)}>Copy</button>
-                        <pre>{tc.steps}</pre>
-                      </div>
-                    </div>
-                  </>
+                  <CodeBlock code={tc.script} label="Scenario (Given / When / Then)" />
                 )}
 
                 {tc.script && (
-                  <div className="phase">
-                    <strong>Complete Script:</strong>
-                    <div className="code-block">
-                      <button className="copy-btn" onClick={() => copyToClipboard(tc.script)}>Copy</button>
-                      <pre>{tc.script}</pre>
-                    </div>
-                  </div>
+                  <CodeBlock code={tc.script} label="Complete Script" />
                 )}
               </div>
             ))}
@@ -388,12 +369,10 @@ const ResultPage: React.FC<ResultPageProps> = ({
       {/* ── Results section ── */}
       <div className="results-container">
 
-        {/* Decision Table matrix view */}
         {isDecisionTable && data && (
           <DecisionTableView data={data as DecisionTableData} />
         )}
 
-        {/* EP / BVA flat card list */}
         {!isDecisionTable && flatTestCases.map((tc, index) => {
           const isNegative = [
             "invalid", "reject", "error", "fail", "not allowed", "denied",
@@ -401,12 +380,8 @@ const ResultPage: React.FC<ResultPageProps> = ({
 
           return (
             <div key={index} className="test-case-card">
-              <div style={{ fontSize: "0.85rem", opacity: 0.7 }}>
-                Test Case #{index + 1}
-              </div>
-
+              <div style={{ fontSize: "0.85rem", opacity: 0.7 }}>Test Case #{index + 1}</div>
               <h3>{tc.title}</h3>
-
               <div style={{ marginBottom: "15px" }}>
                 <strong>Steps:</strong>
                 <ol style={{ paddingLeft: "20px", marginTop: "8px" }}>
@@ -415,16 +390,13 @@ const ResultPage: React.FC<ResultPageProps> = ({
                   ))}
                 </ol>
               </div>
-
               <div style={{
                 background: isNegative ? "rgba(255,0,0,0.15)" : "rgba(0,200,100,0.15)",
                 padding: "12px",
                 borderRadius: "10px",
               }}>
                 <strong>Expected Result:</strong>
-                <p style={{ marginTop: "6px" }}>
-                  {tc.expected || "No expected result provided"}
-                </p>
+                <p style={{ marginTop: "6px" }}>{tc.expected || "No expected result provided"}</p>
               </div>
             </div>
           );
