@@ -1,79 +1,127 @@
-<<<<<<< HEAD
-# AI-test-case-generator
-=======
-# React + TypeScript + Vite
+# AI Test Case Generator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An intelligent web application that leverages AI to automatically generate comprehensive test cases from software requirements using various testing techniques.
 
-Currently, two official plugins are available:
+## 🚀 Project Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The AI Test Case Generator is a modern web application designed to help QA engineers, developers, and students create high-quality test cases efficiently. By inputting software requirements as text, the system uses Google's Gemini AI to generate test cases following established testing methodologies.
 
-## React Compiler
+## ✨ Features
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+### Testing Techniques Supported
+- **Equivalence Partitioning**: Divides input data into valid and invalid partitions
+- **Boundary Value Analysis**: Tests the boundaries of input ranges
+- **Decision Table Testing**: Creates comprehensive decision tables with conditions, actions, and rules
 
-Note: This will impact Vite dev & build performances.
+### Testing Process Generation
+- **TDD (Test-Driven Development)**: Generates RED (failing tests), GREEN (implementation), and REFACTOR (production code)
+- **BDD (Behavior-Driven Development)**: Creates Gherkin features and step definitions
 
-## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🛠 Tech Stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Frontend
+- **React 19** - Modern React with hooks and concurrent features
+- **TypeScript** - Type-safe JavaScript
+- **Vite** - Fast build tool and development server
+- **React Router** - Client-side routing
+- **CSS Modules** - Scoped styling
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Backend
+- **Node.js** - JavaScript runtime
+- **Express.js** - Web framework
+- **Google Generative AI (Gemini)** - AI-powered test case generation
+- **CORS** - Cross-origin resource sharing
+- **dotenv** - Environment variable management
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 📋 Prerequisites
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Before running this application, make sure you have the following installed:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **Node.js** (version 18 or higher)
+- **npm** (comes with Node.js)
+- **Google Gemini API Key** (get from [Google AI Studio](https://makersuite.google.com/app/apikey))
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
->>>>>>> 5aba757 (Initial commit)
+## 🔧 Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd AI-test-case-generator
+   ```
+
+2. **Set up the backend**
+   ```bash
+   cd backend
+   npm install
+   ```
+
+3. **Set up the frontend**
+   ```bash
+   cd ../frontend
+   npm install
+   ```
+
+4. **Configure environment variables**
+
+   Create a `.env` file in the `backend` directory:
+   ```env
+   GEMINI_API_KEY=your_gemini_api_key_here
+   PORT=5000
+   ```
+
+## 🚀 Running the Application
+
+### Development Mode
+
+1. **Start the backend server**
+   ```bash
+   cd backend
+   npm run dev
+   ```
+   The backend will run on `http://localhost:5000`
+
+2. **Start the frontend development server**
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+   The frontend will run on `http://localhost:5173`
+
+3. **Open your browser**
+   Navigate to `http://localhost:5173` to use the application
+
+### Production Build
+
+1. **Build the frontend**
+   ```bash
+   cd frontend
+   npm run build
+   ```
+
+2. **Start the backend**
+   ```bash
+   cd backend
+   npm run dev
+   ```
+
+## 📡 API Endpoints
+
+### Generate Test Cases
+- **POST** `/api/generate-test-cases`
+- **Body**: `{ "requirement": "string", "technique": "equivalence-partitioning|boundary-value-analysis|decision-table" }`
+- **Response**: JSON array of test cases or decision table object
+
+### Generate Testing Process
+- **POST** `/api/generate-testing-process`
+- **Body**: `{ "testCases": [...], "approach": "TDD|BDD" }`
+- **Response**: JSON object with test cases and implementation details
+
+## 🧪 Usage Example
+
+1. Open the application in your browser
+2. Select a testing technique (Equivalence Partitioning, Boundary Value Analysis, or Decision Table)
+3. Enter a software requirement (e.g., "Password must be between 8 and 20 characters.")
+4. Click "Generate Test Cases"
+5. View the generated test cases
+6. Optionally, generate TDD or BDD implementation
