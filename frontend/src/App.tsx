@@ -1,19 +1,26 @@
 import { useState } from "react";
+import HomePage from "./pages/HomePage";
 import GeneratePage from "./pages/GeneratePage";
 import ResultPage from "./pages/ResultPage";
 import LoadingSpinner from "./components/common/LoadingSpinner";
-import { generateTestCases } from "./services/api";
+import { generateTestCases, generateTestingProcess } from "./services/api";
 
 function App() {
-  const [step, setStep] = useState("input"); // input, loading, result
+  const [step, setStep] = useState("home"); // home, input, loading, result
   const [testCases, setTestCases] = useState([]);
-  const [config, setConfig] = useState({ requirement: "", testType: "TDD" });
+  const [testingProcess, setTestingProcess] = useState(null);
+  const [config, setConfig] = useState({ requirement: "", technique: "", approach: "" });
 
-  const handleGenerate = async (requirement: string, testType: string) => {
+  const handleSelectTechnique = (technique: string) => {
+    setConfig(prev => ({ ...prev, technique }));
+    setStep("input");
+  };
+
+  const handleGenerate = async (requirement: string) => {
     try {
-      setConfig({ requirement, testType });
+      setConfig(prev => ({ ...prev, requirement }));
       setStep("loading");
-      const data = await generateTestCases(requirement, testType);
+      const data = await generateTestCases(requirement, config.technique);
       setTestCases(data);
       setStep("result");
     } catch (err) {
@@ -22,9 +29,24 @@ function App() {
     }
   };
 
+  const handleSelectApproach = async (approach: string) => {
+    try {
+      setConfig(prev => ({ ...prev, approach }));
+      setStep("loading");
+      const data = await generateTestingProcess(testCases, approach);
+      setTestingProcess(data);
+      setStep("result");
+    } catch (err) {
+      alert("Error: " + err);
+      setStep("result"); // Stay on result page
+    }
+  };
+
   return (
     <div className="glass-card">
-      {step === "input" && <GeneratePage onGenerate={handleGenerate} />}
+      {step === "home" && <HomePage onSelectTechnique={handleSelectTechnique} />}
+      
+      {step === "input" && <GeneratePage onGenerate={handleGenerate} onBack={() => setStep("home")} />}
       
       {step === "loading" && (
         <div className="loading-view fade-in">
@@ -35,8 +57,11 @@ function App() {
       {step === "result" && (
         <ResultPage 
           data={testCases} 
-          testType={config.testType} 
+          testingProcess={testingProcess}
+          technique={config.technique}
+          approach={config.approach}
           onBack={() => setStep("input")} 
+          onSelectApproach={handleSelectApproach}
         />
       )}
     </div>

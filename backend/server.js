@@ -11,94 +11,124 @@ app.use(express.json());
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// 1. สร้าง Schema แบบ "ครอบจักรวาล" (รองรับทั้ง BDD และ TDD)
-const universalSchema = {
+// Schema for test cases
+const testCasesSchema = {
   description: "List of test cases",
   type: SchemaType.ARRAY,
   items: {
     type: SchemaType.OBJECT,
     properties: {
       title: { type: SchemaType.STRING },
-
-      setup: {
-        type: SchemaType.STRING,
-        description: "Only for TDD: Mock data or setup code"
-      },
-
       steps: {
         type: SchemaType.ARRAY,
         items: { type: SchemaType.STRING }
       },
-
-      assertion: {
-        type: SchemaType.STRING,
-        description: "Only for TDD: code assertion like expect()"
-      },
-
       expected: { type: SchemaType.STRING },
-
       caseType: {
         type: SchemaType.STRING,
         description: "Type of test case: VALID, INVALID, or BOUNDARY"
       }
     },
-
-    // Required for ALL test types
     required: ["title", "steps", "expected", "caseType"],
   },
 };
 
-const model = genAI.getGenerativeModel({
+// Schema for testing process
+const testingProcessSchema = {
+  description: "Testing process with implementation",
+  type: SchemaType.OBJECT,
+  properties: {
+    testCases: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          title: { type: SchemaType.STRING },
+          red: { type: SchemaType.STRING, description: "TDD: Failing test" },
+          green: { type: SchemaType.STRING, description: "TDD: Implementation" },
+          refactor: { type: SchemaType.STRING, description: "TDD: Production code" },
+          feature: { type: SchemaType.STRING, description: "BDD: Gherkin feature" },
+          steps: { type: SchemaType.STRING, description: "BDD: Step definitions" },
+          script: { type: SchemaType.STRING, description: "Complete script" }
+        },
+        required: ["title", "script"]
+      }
+    }
+  },
+  required: ["testCases"]
+};
+
+// Schema for decision table
+const decisionTableSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    conditions: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          name: { type: SchemaType.STRING },
+          values: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } }
+        },
+        required: ["name", "values"]
+      }
+    },
+    actions: {
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING }
+    },
+    rules: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          title: { type: SchemaType.STRING },
+          conditionValues: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+          expectedActions: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+          caseType: { type: SchemaType.STRING }
+        },
+        required: ["title", "conditionValues", "expectedActions", "caseType"]
+      }
+    }
+  },
+  required: ["conditions", "actions", "rules"]
+};
+
+const testCasesModel = genAI.getGenerativeModel({
   model: "gemini-3-flash-preview", 
   generationConfig: {
     responseMimeType: "application/json",
-    responseSchema: universalSchema,
+    responseSchema: testCasesSchema,
   },
 });
 
-app.post("/api/generate", async (req, res) => {
-  try {
-    const { requirement, testType } = req.body;
+const testingProcessModel = genAI.getGenerativeModel({
+  model: "gemini-3-flash-preview", 
+  generationConfig: {
+    responseMimeType: "application/json",
+    responseSchema: testingProcessSchema,
+  },
+});
 
-    if (!requirement || !testType) {
-      return res.status(400).json({ error: "Missing requirement or testType" });
+const decisionTableModel = genAI.getGenerativeModel({
+  model: "gemini-3-flash-preview", 
+  generationConfig: {
+    responseMimeType: "application/json",
+    responseSchema: decisionTableSchema,
+  },
+});
+
+app.post("/api/generate-test-cases", async (req, res) => {
+  try {
+    const { requirement, technique } = req.body;
+
+    if (!requirement || !technique) {
+      return res.status(400).json({ error: "Missing requirement or technique" });
     }
 
     let instructions = "";
 
-    if (testType === 'TDD') {
-
-      instructions = `
-    TASK: Generate a TDD (Test-Driven Development) workflow.
-    STRICT RULES:
-    1. You must output THREE separate code blocks.
-    2. Phase 1: [RED] - Write only the failing test case. Explain why it fails (e.g., function not defined).
-    3. Phase 2: [GREEN] - Write the simplest possible code to pass the RED test. 
-    4. Phase 3: [REFACTOR] - Clean up the GREEN code for production standards.
-    
-    GOAL: Isolated unit testing with mocked dependencies and a rapid feedback loop.
-    FORMAT: Use Markdown headers for each phase.
-  `;
-
-    } else if (testType === 'BDD') {
-
-      instructions = `
-    TASK: Generate BDD (Behavior-Driven Development) Test Cases.
-    STRICT RULES:
-    1. Act as a PO and QA. 
-    2. Use 'Specification by Example' to meet business goals.
-    3. Every test case MUST follow the Gherkin format: 
-       - Given [Initial context]
-       - When [Action taken]
-       - Then [Expected result]
-    4. Provide one 'Happy Path' and one 'Negative/Edge Case'.
-    
-    GOAL: Integration-level behavior verification.
-    FORMAT: Use a clear list or table format.
-  `;
-
-    } else if (testType === 'Equivalence Partitioning') {
-
+    if (technique === 'equivalence-partitioning') {
       instructions = `
     You are a professional QA engineer.
 
@@ -120,14 +150,115 @@ app.post("/api/generate", async (req, res) => {
     Do not explain anything.
     Return only valid JSON array.
     `;
+    } else if (technique === 'boundary-value-analysis') {
+      instructions = `
+    You are a professional QA engineer.
+
+    Generate test cases using Boundary Value Analysis.
+    Focus on testing the boundaries of input ranges.
+
+    Each test case MUST include:
+    - title
+    - steps
+    - expected
+    - caseType
+
+    caseType must be exactly one of:
+    - VALID
+    - INVALID
+    - BOUNDARY
+
+    Do not explain anything.
+    Return only valid JSON array.
+    `;
+    } else if (technique === 'decision-table') {
+      instructions = `
+    You are a QA engineer using Decision Table testing.
+
+    Given the requirement, do the following:
+    1. Identify all conditions (inputs) and their possible values
+    2. Identify all possible actions (outputs/results)
+    3. Generate ALL meaningful combinations of condition values as rules
+    4. For each rule, specify which actions apply (Y/N)
+    5. Each rule becomes one test case
+
+    Requirement: ${requirement}
+
+    Return a decision table with conditions, actions, and rules.
+    Each rule maps a unique combination of condition values to expected actions.
+    `;
     }
 
-    const prompt = `Generate ${testType} test cases for: ${requirement}. Instructions: ${instructions}`;
+    const prompt = `Generate test cases for: ${requirement}. Instructions: ${instructions}`;
+
+    let model;
+    if (technique === 'decision-table') {
+      model = decisionTableModel;
+    } else {
+      model = testCasesModel;
+    }
 
     const result = await model.generateContent(prompt);
     const text = result.response.text();
 
     // 3. ส่งข้อมูลกลับ
+    const parsedData = JSON.parse(text);
+    res.json(parsedData);
+
+  } catch (error) {
+    console.error("❌ Gemini Error:", error);
+    res.status(500).json({ error: "Server failed to process AI response", details: error.message });
+  }
+});
+
+app.post("/api/generate-testing-process", async (req, res) => {
+  try {
+    const { testCases, approach } = req.body;
+
+    if (!testCases || !approach) {
+      return res.status(400).json({ error: "Missing testCases or approach" });
+    }
+
+    let instructions = "";
+
+    if (approach === 'TDD') {
+      instructions = `
+    TASK: Generate TDD (Test-Driven Development) implementation for the given test cases.
+    STRICT RULES:
+    1. For each test case, provide:
+       - RED: Failing test code (Jest format)
+       - GREEN: Minimal code to pass the test
+       - REFACTOR: Improved production code
+    2. Include setup code and assertions
+    3. Provide copy-paste ready code blocks
+    
+    FORMAT: Return JSON with testCases array, each containing:
+    - red: string (failing test)
+    - green: string (implementation)
+    - refactor: string (production code)
+    - script: string (complete test file)
+    `;
+    } else if (approach === 'BDD') {
+      instructions = `
+    TASK: Generate BDD (Behavior-Driven Development) implementation for the given test cases.
+    STRICT RULES:
+    1. Convert each test case to Gherkin format
+    2. Provide Cucumber step definitions
+    3. Include feature files and step implementation
+    4. Provide copy-paste ready code blocks
+    
+    FORMAT: Return JSON with testCases array, each containing:
+    - feature: string (Gherkin feature)
+    - steps: string (step definitions)
+    - script: string (complete feature file)
+    `;
+    }
+
+    const prompt = `Test Cases: ${JSON.stringify(testCases)}. Approach: ${approach}. Instructions: ${instructions}`;
+
+    const result = await testingProcessModel.generateContent(prompt);
+    const text = result.response.text();
+
     const parsedData = JSON.parse(text);
     res.json(parsedData);
 
