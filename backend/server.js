@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { authenticateToken } from "./middleware/auth.js";
 
 dotenv.config();
 
@@ -266,6 +267,13 @@ app.post("/api/generate-testing-process", async (req, res) => {
     console.error("❌ Gemini Error:", error);
     res.status(500).json({ error: "Server failed to process AI response", details: error.message });
   }
+});
+
+app.get("/api/me", authenticateToken, (req, res) => {
+  res.json({
+    message: "Authentication successful",
+    user: req.user,
+  });
 });
 
 const PORT = process.env.PORT || 5000;

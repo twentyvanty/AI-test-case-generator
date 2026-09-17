@@ -1,69 +1,88 @@
 import { useState } from "react";
-import HomePage from "./pages/HomePage";
-import GeneratePage from "./pages/GeneratePage";
-import ResultPage from "./pages/ResultPage";
-import LoadingSpinner from "./components/common/LoadingSpinner";
-import { generateTestCases, generateTestingProcess } from "./services/api";
+import { useAuth } from "./auth/AuthProvider";
+import DashboardPage from "./pages/DashboardPage";
+import ProjectPage from "./pages/ProjectPage";
+import keycloak from "./auth/keycloak";
 
 function App() {
-  const [step, setStep] = useState("home"); // home, input, loading, result
-  const [testCases, setTestCases] = useState([]);
-  const [testingProcess, setTestingProcess] = useState(null);
-  const [config, setConfig] = useState({ requirement: "", technique: "", approach: "" });
+  const {
+    isAuthenticated,
+    login,
+    logout,
+  } = useAuth();
 
-  const handleSelectTechnique = (technique: string) => {
-    setConfig(prev => ({ ...prev, technique }));
-    setStep("input");
+  const [currentPage, setCurrentPage] = useState<"dashboard" | "project">(
+    "dashboard"
+  );
+
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
+    null
+  );
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-100">
+        <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
+          <h1 className="text-2xl font-semibold text-gray-900">
+            AI Test Case Generator
+          </h1>
+
+          <p className="mt-2 text-gray-500">
+            Please log in to continue.
+          </p>
+
+          <button
+            onClick={login}
+            className="mt-6 rounded-xl bg-gray-900 px-5 py-3 text-sm font-medium text-white"
+          >
+            Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  console.log("ACCESS TOKEN:", keycloak.token);
+
+  const handleOpenProject = (projectId: number) => {
+    setSelectedProjectId(projectId);
+    setCurrentPage("project");
   };
 
-  const handleGenerate = async (requirement: string) => {
-    try {
-      setConfig(prev => ({ ...prev, requirement }));
-      setStep("loading");
-      const data = await generateTestCases(requirement, config.technique);
-      setTestCases(data);
-      setStep("result");
-    } catch (err) {
-      alert("Error: " + err);
-      setStep("input");
-    }
-  };
-
-  const handleSelectApproach = async (approach: string) => {
-    try {
-      setConfig(prev => ({ ...prev, approach }));
-      setStep("loading");
-      const data = await generateTestingProcess(testCases, approach);
-      setTestingProcess(data);
-      setStep("result");
-    } catch (err) {
-      alert("Error: " + err);
-      setStep("result"); // Stay on result page
-    }
+  const handleBackToDashboard = () => {
+    setSelectedProjectId(null);
+    setCurrentPage("dashboard");
   };
 
   return (
-    <div className="glass-card">
-      {step === "home" && <HomePage onSelectTechnique={handleSelectTechnique} />}
-      
-      {step === "input" && <GeneratePage onGenerate={handleGenerate} onBack={() => setStep("home")} />}
-      
-      {step === "loading" && (
-        <div className="loading-view fade-in">
-          <LoadingSpinner />
-        </div>
-      )}
+    <div className="min-h-screen bg-slate-100">
 
-      {step === "result" && (
-        <ResultPage 
-          data={testCases} 
-          testingProcess={testingProcess}
-          technique={config.technique}
-          approach={config.approach}
-          onBack={() => setStep("input")} 
-          onSelectApproach={handleSelectApproach}
+      <header className="flex items-center justify-between border-b bg-white px-8 py-4">
+        <span className="font-semibold text-gray-900">
+          AI Test Case Generator
+        </span>
+
+        <button
+          onClick={logout}
+          className="text-sm text-gray-500 hover:text-gray-900"
+        >
+          Logout
+        </button>
+      </header>
+
+      {currentPage === "dashboard" && (
+        <DashboardPage
+          onOpenProject={handleOpenProject}
         />
       )}
+
+      {currentPage === "project" && selectedProjectId !== null && (
+        <ProjectPage
+          projectId={selectedProjectId}
+          onBack={handleBackToDashboard}
+        />
+      )}
+
     </div>
   );
 }
