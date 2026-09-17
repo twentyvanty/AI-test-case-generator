@@ -1,6 +1,7 @@
 import { useAuth } from "../auth/AuthProvider";
 import { useEffect, useState } from "react";
 import { getProjects, createProject, type Project } from "../services/api";
+import { useTranslation } from "react-i18next";
 
 type DashboardPageProps = {
   onOpenProject: (projectId: number) => void;
@@ -15,6 +16,7 @@ function DashboardPage({ onOpenProject }: DashboardPageProps) {
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [creating, setCreating] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     async function loadProjects() {
@@ -67,7 +69,7 @@ function DashboardPage({ onOpenProject }: DashboardPageProps) {
   if (loading) {
     return (
       <main className="mx-auto max-w-7xl px-8 py-8">
-        <p className="text-gray-500">Loading projects...</p>
+        <p className="text-gray-500">{t("common.loading")}</p>
       </main>
     );
   }
@@ -87,11 +89,11 @@ function DashboardPage({ onOpenProject }: DashboardPageProps) {
       <section className="mb-10 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-gray-900">
-            Welcome back, {username}
+            {t("dashboard.welcome", { username })}
           </h1>
 
           <p className="mt-2 text-gray-500">
-            Continue working on your test case projects.
+            {t("dashboard.subtitle")}
           </p>
         </div>
 
@@ -99,7 +101,7 @@ function DashboardPage({ onOpenProject }: DashboardPageProps) {
           onClick={handleNewProject}
           className="rounded-xl bg-gray-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-700"
         >
-          + New Project
+          {t("dashboard.newProject")}
         </button>
       </section>
 
@@ -109,16 +111,16 @@ function DashboardPage({ onOpenProject }: DashboardPageProps) {
         <div className="mb-5 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">
-              Your Projects
+              {t("dashboard.yourProjects")}
             </h2>
 
             <p className="mt-1 text-sm text-gray-500">
-              Manage your test case generation projects.
+              {t("dashboard.projectsDescription")}
             </p>
           </div>
 
           <span className="text-sm text-gray-400">
-            {projects.length} projects
+            {t("dashboard.projectCount", { count: projects.length })}
           </span>
         </div>
 
@@ -135,14 +137,14 @@ function DashboardPage({ onOpenProject }: DashboardPageProps) {
               </h2>
 
               <p className="mt-2 text-sm text-gray-500">
-                {project.description || "No description"}
+                {project.description || t("dashboard.noDescription")}
               </p>
 
               <button
                 onClick={() => onOpenProject(project.id)}
                 className="mt-4 rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white"
               >
-                Open Project
+                {t("common.open")}
               </button>
             </div>
           ))}
@@ -155,36 +157,36 @@ function DashboardPage({ onOpenProject }: DashboardPageProps) {
         <div className="fixed inset-0 flex items-center justify-center bg-black/30 px-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
             <h2 className="text-xl font-semibold text-gray-900">
-              Create New Project
+              {t("project.createTitle")}
             </h2>
 
             <p className="mt-1 text-sm text-gray-500">
-              Create a project to start generating test cases.
+              {t("project.createDescription")}
             </p>
 
             <div className="mt-6">
               <label className="text-sm font-medium text-gray-700">
-                Project Name
+                {t("project.projectName")}
               </label>
 
               <input
                 type="text"
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
-                placeholder="e.g. E-Commerce Website"
+                placeholder={t("project.projectNamePlaceholder")}
                 className="mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-gray-500"
               />
             </div>
 
             <div className="mt-4">
               <label className="text-sm font-medium text-gray-700">
-                Description
+                {t("project.description")}
               </label>
 
               <textarea
                 value={projectDescription}
                 onChange={(e) => setProjectDescription(e.target.value)}
-                placeholder="Describe your project..."
+                placeholder={t("project.descriptionPlaceholder")}
                 rows={4}
                 className="mt-2 w-full resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-gray-500"
               />
@@ -195,7 +197,7 @@ function DashboardPage({ onOpenProject }: DashboardPageProps) {
                 onClick={() => setShowCreateModal(false)}
                 className="rounded-xl px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
 
               <button
@@ -203,7 +205,7 @@ function DashboardPage({ onOpenProject }: DashboardPageProps) {
                 disabled={creating || !projectName.trim()}
                 className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {creating ? "Creating..." : "Create Project"}
+                {creating ? t("project.creating") : t("project.createProject")}
               </button>
             </div>
           </div>

@@ -3,8 +3,12 @@ import { useAuth } from "./auth/AuthProvider";
 import DashboardPage from "./pages/DashboardPage";
 import ProjectPage from "./pages/ProjectPage";
 import keycloak from "./auth/keycloak";
+import LanguageSwitcher from "./components/common/LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
 function App() {
+  const { t } = useTranslation();
+
   const {
     isAuthenticated,
     login,
@@ -59,14 +63,16 @@ function App() {
 
       <header className="flex items-center justify-between border-b bg-white px-8 py-4">
         <span className="font-semibold text-gray-900">
-          AI Test Case Generator
+          {t("app.name")}
         </span>
+
+        <LanguageSwitcher />
 
         <button
           onClick={logout}
           className="text-sm text-gray-500 hover:text-gray-900"
         >
-          Logout
+          {t("common.logout")}
         </button>
       </header>
 
