@@ -3,8 +3,11 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { authenticateToken } from "./middleware/auth.js";
+import { PrismaClient } from "@prisma/client";
 
 dotenv.config();
+
+const prisma = new PrismaClient();
 
 const app = express();
 app.use(cors());
@@ -269,14 +272,140 @@ app.post("/api/generate-testing-process", async (req, res) => {
   }
 });
 
-app.get("/api/me", authenticateToken, (req, res) => {
+app.get("/api/me", authenticateToken, async (req, res) => {
+  try {
+    const keycloakId = req.user.sub;
+
+    const user = await prisma.user.upsert({
+      where: {
+        keycloakId,
+      },
+      update: {
+        email: req.user.email ?? null,
+        name: req.user.name ?? req.user.preferred_username ?? null,
+      },
+      create: {
+        keycloakId,
+        email: req.user.email ?? null,
+        name: req.user.name ?? req.user.preferred_username ?? null,
+      },
+    });
+
+    res.json({
+      message: "Authentication and database connection successful",
+      user,
+    });
+  } catch (error) {
+    console.error("User database error:", error);
+
+    res.status(500).json({
+      message: "Failed to create or find user",
+    });
+  }
+});
+
+app.get("/api/projects", authenticateToken, async (req, res) => {
+  try {
+    const keycloakId = req.user.sub;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        keycloakId,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    const projects = await prisma.project.findMany({
+      where: {
+        userId: user.id,
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+
+    res.json(projects);
+  } catch (error) {
+    console.error("Get projects error:", error);
+
+    res.status(500).json({
+      message: "Failed to get projects",
+    });
+  }
+});
+
+app.post("/api/projects", authenticateToken, async (req, res) => {
+  try {
+    const { name, description } = req.body;
+
+    if (!name) {
+      return res.status(400).json({
+        message: "Project name is required",
+      });
+    }
+
+    const keycloakId = req.user.sub;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        keycloakId,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    const project = await prisma.project.create({
+      data: {
+        name,
+        description: description ?? null,
+        userId: user.id,
+      },
+    });
+
+    res.status(201).json(project);
+  } catch (error) {
+    console.error("Create project error:", error);
+
+    res.status(500).json({
+      message: "Failed to create project",
+    });
+  }
+});
+
+app.get("/test", (req, res) => {
   res.json({
-    message: "Authentication successful",
-    user: req.user,
+    message: "Express is working",
   });
 });
 
-const PORT = process.env.PORT || 5000;
+app.get("/test-db", async (req, res) => {
+  try {
+    const users = await prisma.user.findMany();
+
+    res.json({
+      message: "Database connection successful",
+      users,
+    });
+  } catch (error) {
+    console.error("Database error:", error);
+
+    res.status(500).json({
+      message: "Database connection failed",
+    });
+  }
+});
+
+const PORT = process.env.PORT || 5001;
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });

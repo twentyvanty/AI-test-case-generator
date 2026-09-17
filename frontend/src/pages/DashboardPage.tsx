@@ -1,46 +1,84 @@
 import { useAuth } from "../auth/AuthProvider";
-
-type Project = {
-  id: number;
-  name: string;
-  description: string;
-  status: "Not Started" | "In Progress" | "Completed";
-  totalTestCases: number;
-  completedTestCases: number;
-  lastUpdated: string;
-};
+import { useEffect, useState } from "react";
+import { getProjects, createProject, type Project } from "../services/api";
 
 type DashboardPageProps = {
   onOpenProject: (projectId: number) => void;
 };
 
-const projects: Project[] = [
-  {
-    id: 1,
-    name: "E-Commerce Website",
-    description: "Test case generation for the online shopping system.",
-    status: "In Progress",
-    totalTestCases: 24,
-    completedTestCases: 18,
-    lastUpdated: "Today",
-  },
-  {
-    id: 2,
-    name: "Hotel Booking System",
-    description: "Test cases for hotel search and booking functionality.",
-    status: "Not Started",
-    totalTestCases: 0,
-    completedTestCases: 0,
-    lastUpdated: "2 days ago",
-  },
-];
-
 function DashboardPage({ onOpenProject }: DashboardPageProps) {
   const { username } = useAuth();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [projectName, setProjectName] = useState("");
+  const [projectDescription, setProjectDescription] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    async function loadProjects() {
+      try {
+        const data = await getProjects();
+        setProjects(data);
+      } catch (error) {
+        console.error("Failed to load projects:", error);
+        setError("Failed to load projects.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProjects();
+  }, []);
 
   const handleNewProject = () => {
-    console.log("Create new project");
+    setShowCreateModal(true);
   };
+
+  const handleCreateProject = async () => {
+    if (!projectName.trim()) {
+      return;
+    }
+
+    try {
+      setCreating(true);
+
+      const newProject = await createProject(
+        projectName.trim(),
+        projectDescription.trim()
+      );
+
+      setProjects((currentProjects) => [
+        newProject,
+        ...currentProjects,
+      ]);
+
+      setProjectName("");
+      setProjectDescription("");
+      setShowCreateModal(false);
+    } catch (error) {
+      console.error("Failed to create project:", error);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <main className="mx-auto max-w-7xl px-8 py-8">
+        <p className="text-gray-500">Loading projects...</p>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="mx-auto max-w-7xl px-8 py-8">
+        <p className="text-red-500">{error}</p>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto max-w-7xl px-8 py-8">
@@ -87,135 +125,90 @@ function DashboardPage({ onOpenProject }: DashboardPageProps) {
         {/* Project Cards */}
         <div className="grid gap-5 md:grid-cols-2">
 
-          {projects.map((project) => {
+          {projects.map((project) => (
+            <div
+              key={project.id}
+              className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+            >
+              <h2 className="text-lg font-semibold text-gray-900">
+                {project.name}
+              </h2>
 
-            const progress =
-              project.totalTestCases === 0
-                ? 0
-                : Math.round(
-                    (project.completedTestCases /
-                      project.totalTestCases) *
-                      100
-                  );
+              <p className="mt-2 text-sm text-gray-500">
+                {project.description || "No description"}
+              </p>
 
-            const remaining =
-              project.totalTestCases -
-              project.completedTestCases;
-
-            return (
-              <div
-                key={project.id}
-                className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+              <button
+                onClick={() => onOpenProject(project.id)}
+                className="mt-4 rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white"
               >
-
-                {/* Project Header */}
-                <div className="flex items-start justify-between">
-
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {project.name}
-                    </h3>
-
-                    <span
-                      className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-medium ${
-                        project.status === "In Progress"
-                          ? "bg-blue-50 text-blue-600"
-                          : project.status === "Completed"
-                          ? "bg-green-50 text-green-600"
-                          : "bg-gray-100 text-gray-500"
-                      }`}
-                    >
-                      {project.status}
-                    </span>
-                  </div>
-
-                </div>
-
-                {/* Description */}
-                <p className="mt-4 text-sm leading-6 text-gray-500">
-                  {project.description}
-                </p>
-
-                {/* Progress */}
-                <div className="mt-6">
-
-                  <div className="mb-2 flex justify-between text-sm">
-                    <span className="text-gray-500">
-                      Test Case Progress
-                    </span>
-
-                    <span className="font-medium text-gray-700">
-                      {progress}%
-                    </span>
-                  </div>
-
-                  <div className="h-2 overflow-hidden rounded-full bg-gray-100">
-                    <div
-                      className="h-full rounded-full bg-blue-500 transition-all"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-
-                </div>
-
-                {/* Statistics */}
-                <div className="mt-6 grid grid-cols-3 divide-x rounded-xl bg-gray-50 py-4">
-
-                  <div className="text-center">
-                    <p className="text-lg font-semibold text-gray-900">
-                      {project.totalTestCases}
-                    </p>
-
-                    <p className="text-xs text-gray-400">
-                      Total
-                    </p>
-                  </div>
-
-                  <div className="text-center">
-                    <p className="text-lg font-semibold text-gray-900">
-                      {project.completedTestCases}
-                    </p>
-
-                    <p className="text-xs text-gray-400">
-                      Completed
-                    </p>
-                  </div>
-
-                  <div className="text-center">
-                    <p className="text-lg font-semibold text-gray-900">
-                      {remaining}
-                    </p>
-
-                    <p className="text-xs text-gray-400">
-                      Remaining
-                    </p>
-                  </div>
-
-                </div>
-
-                {/* Footer */}
-                <div className="mt-6 flex items-center justify-between">
-
-                  <span className="text-xs text-gray-400">
-                    Updated {project.lastUpdated}
-                  </span>
-
-                  <button
-                    onClick={() => onOpenProject(project.id)}
-                    className="text-sm font-medium text-blue-600 hover:text-blue-800"
-                  >
-                    Open Project →
-                  </button>
-
-                </div>
-
-              </div>
-            );
-          })}
+                Open Project
+              </button>
+            </div>
+          ))}
 
         </div>
 
       </section>
+
+      {showCreateModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/30 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Create New Project
+            </h2>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Create a project to start generating test cases.
+            </p>
+
+            <div className="mt-6">
+              <label className="text-sm font-medium text-gray-700">
+                Project Name
+              </label>
+
+              <input
+                type="text"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                placeholder="e.g. E-Commerce Website"
+                className="mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-gray-500"
+              />
+            </div>
+
+            <div className="mt-4">
+              <label className="text-sm font-medium text-gray-700">
+                Description
+              </label>
+
+              <textarea
+                value={projectDescription}
+                onChange={(e) => setProjectDescription(e.target.value)}
+                placeholder="Describe your project..."
+                rows={4}
+                className="mt-2 w-full resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-gray-500"
+              />
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="rounded-xl px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleCreateProject}
+                disabled={creating || !projectName.trim()}
+                className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {creating ? "Creating..." : "Create Project"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </main>
   );
