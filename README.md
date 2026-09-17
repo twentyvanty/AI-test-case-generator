@@ -1,127 +1,121 @@
 # AI Test Case Generator
 
-An intelligent web application that leverages AI to automatically generate comprehensive test cases from software requirements using various testing techniques.
+An intelligent web application that leverages AI to help testers generate comprehensive test cases from software requirements using various software testing techniques.
 
 ## 🚀 Project Overview
 
-The AI Test Case Generator is a modern web application designed to help QA engineers, developers, and students create high-quality test cases efficiently. By inputting software requirements as text, the system uses Google's Gemini AI to generate test cases following established testing methodologies.
+The AI Test Case Generator is a web application designed to help QA engineers, developers, and students create and manage test cases more efficiently.
+
+The application provides a project-based workflow where users can create projects, manage software requirements, select testing techniques, and generate structured test cases using AI.
+
+The system is designed to act as an intermediary between users and AI providers. It uses an AI Orchestrator to prepare prompts based on the selected testing technique and communicate with external AI provider APIs.
 
 ## ✨ Features
 
-### Testing Techniques Supported
-- **Equivalence Partitioning**: Divides input data into valid and invalid partitions
-- **Boundary Value Analysis**: Tests the boundaries of input ranges
-- **Decision Table Testing**: Creates comprehensive decision tables with conditions, actions, and rules
+### 🔐 User Authentication
 
-### Testing Process Generation
-- **TDD (Test-Driven Development)**: Generates RED (failing tests), GREEN (implementation), and REFACTOR (production code)
-- **BDD (Behavior-Driven Development)**: Creates Gherkin features and step definitions
+* **Keycloak Authentication**: Handles user registration, login, and authentication
+* **JWT Authentication**: Secures communication between the frontend and backend
+* **User Accounts**: Links authenticated Keycloak users with application data stored in MySQL
 
+### 📁 Project Management
+
+* **Dashboard**: View and manage the user's test case projects
+* **Create Projects**: Create projects with a name and description
+* **Project Ownership**: Each project belongs to the authenticated user
+* **Project-Based Workflow**: Organize requirements and test cases within individual projects
+
+### 🧪 Testing Techniques Supported
+
+* **Equivalence Partitioning (EP)**: Divides input data into valid and invalid partitions
+* **Boundary Value Analysis (BVA)**: Tests values at and around the boundaries of input ranges
+* **Decision Table Testing**: Creates test cases based on combinations of conditions and actions
+* **Test-Driven Development (TDD)**: Supports RED, GREEN, and REFACTOR development stages
+* **Behavior-Driven Development (BDD)**: Supports Gherkin-based scenarios and behavior specifications
+
+### 🤖 AI-Assisted Test Case Generation
+
+The application uses an AI Orchestrator to help prepare prompts and communicate with external AI providers.
+
+The planned workflow is:
+
+```text
+User Requirement
+       ↓
+Select Testing Technique
+       ↓
+AI Orchestrator
+       ↓
+Prepared AI Prompt
+       ↓
+AI Provider API
+       ↓
+Generated Test Cases
+```
+
+The architecture is designed to allow integration with different AI providers rather than depending on a single AI service.
+
+### 🌐 Multilingual Interface
+
+The web application supports:
+
+* **English**
+* **Thai**
+
+Internationalization is implemented using `i18next` and `react-i18next`.
+
+Users can switch between languages through the language switcher in the application interface.
 
 ## 🛠 Tech Stack
 
 ### Frontend
-- **React 19** - Modern React with hooks and concurrent features
-- **TypeScript** - Type-safe JavaScript
-- **Vite** - Fast build tool and development server
-- **React Router** - Client-side routing
-- **CSS Modules** - Scoped styling
+
+* **React 19** - Frontend UI library
+* **TypeScript** - Type-safe JavaScript
+* **Vite** - Fast build tool and development server
+* **Tailwind CSS** - Utility-first CSS framework
+* **i18next** - Internationalization framework
+* **react-i18next** - React integration for i18next
+* **Keycloak JavaScript Adapter** - Frontend authentication integration
 
 ### Backend
-- **Node.js** - JavaScript runtime
-- **Express.js** - Web framework
-- **Google Generative AI (Gemini)** - AI-powered test case generation
-- **CORS** - Cross-origin resource sharing
-- **dotenv** - Environment variable management
+
+* **Node.js** - JavaScript runtime
+* **Express.js** - Web framework
+* **Prisma** - ORM for database access
+* **jose** - JWT verification
+* **Google Generative AI (Gemini)** - AI integration
+* **OpenAI API** - AI provider integration
+* **CORS** - Cross-origin resource sharing
+* **dotenv** - Environment variable management
+
+### Database
+
+* **MySQL** - Relational database
+* **Prisma ORM** - Database schema and queries
+
+### Authentication
+
+* **Keycloak** - Identity and access management
+* **OpenID Connect** - Authentication protocol
+* **JWT** - Secure API authentication
+
+### Development Tools
+
+* **Docker** - Containerization
+* **Git / GitLab** - Version control
+* **Postman** - API testing
+* **MySQL Workbench** - Database management
+* **VS Code** - Development environment
 
 ## 📋 Prerequisites
 
 Before running this application, make sure you have the following installed:
 
-- **Node.js** (version 18 or higher)
-- **npm** (comes with Node.js)
-- **Google Gemini API Key** (get from [Google AI Studio](https://makersuite.google.com/app/apikey))
+* **Node.js** (version 18 or higher)
+* **npm** (comes with Node.js)
+* **MySQL**
+* **Docker Desktop**
+* **Git**
 
-## 🔧 Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd AI-test-case-generator
-   ```
-
-2. **Set up the backend**
-   ```bash
-   cd backend
-   npm install
-   ```
-
-3. **Set up the frontend**
-   ```bash
-   cd ../frontend
-   npm install
-   ```
-
-4. **Configure environment variables**
-
-   Create a `.env` file in the `backend` directory:
-   ```env
-   GEMINI_API_KEY=your_gemini_api_key_here
-   PORT=5000
-   ```
-
-## 🚀 Running the Application
-
-### Development Mode
-
-1. **Start the backend server**
-   ```bash
-   cd backend
-   npm run dev
-   ```
-   The backend will run on `http://localhost:5000`
-
-2. **Start the frontend development server**
-   ```bash
-   cd frontend
-   npm run dev
-   ```
-   The frontend will run on `http://localhost:5173`
-
-3. **Open your browser**
-   Navigate to `http://localhost:5173` to use the application
-
-### Production Build
-
-1. **Build the frontend**
-   ```bash
-   cd frontend
-   npm run build
-   ```
-
-2. **Start the backend**
-   ```bash
-   cd backend
-   npm run dev
-   ```
-
-## 📡 API Endpoints
-
-### Generate Test Cases
-- **POST** `/api/generate-test-cases`
-- **Body**: `{ "requirement": "string", "technique": "equivalence-partitioning|boundary-value-analysis|decision-table" }`
-- **Response**: JSON array of test cases or decision table object
-
-### Generate Testing Process
-- **POST** `/api/generate-testing-process`
-- **Body**: `{ "testCases": [...], "approach": "TDD|BDD" }`
-- **Response**: JSON object with test cases and implementation details
-
-## 🧪 Usage Example
-
-1. Open the application in your browser
-2. Select a testing technique (Equivalence Partitioning, Boundary Value Analysis, or Decision Table)
-3. Enter a software requirement (e.g., "Password must be between 8 and 20 characters.")
-4. Click "Generate Test Cases"
-5. View the generated test cases
-6. Optionally, generate TDD or BDD implementation
+Depending on the AI provider being used, an appropriate AI API key may also be required.
