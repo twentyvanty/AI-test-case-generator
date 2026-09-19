@@ -22,27 +22,19 @@ body {
     color: #30333b;
 
     background:
-        radial-gradient(
-            60% 60% at 12% 8%,
+        radial-gradient(60% 60% at 12% 8%,
             rgba(15, 157, 143, 0.28),
-            transparent 60%
-        ),
-        radial-gradient(
-            55% 55% at 88% 4%,
+            transparent 60%),
+        radial-gradient(55% 55% at 88% 4%,
             rgba(70, 110, 180, 0.26),
-            transparent 60%
-        ),
-        radial-gradient(
-            70% 70% at 78% 96%,
+            transparent 60%),
+        radial-gradient(70% 70% at 78% 96%,
             rgba(120, 90, 190, 0.16),
-            transparent 60%
-        ),
-        linear-gradient(
-            160deg,
+            transparent 60%),
+        linear-gradient(160deg,
             #eef2f7 0%,
             #e4e9f1 55%,
-            #eaeef4 100%
-        );
+            #eaeef4 100%);
 
     background-attachment: fixed;
 }
@@ -391,110 +383,342 @@ a:hover {
 
 
 /* =========================================================
-   19. REMEMBER ME
+   23. REMEMBER ME + FORGOT PASSWORD
    ========================================================= */
 
-.pf-v5-c-check {
-    color: #737984;
-    font-size: 12px;
-}
+.pf-v5-c-form__helper-text {
+    margin-top: 10px !important;
 
-
-.pf-v5-c-check__label {
     color: #737984;
 }
 
 
-/* =========================================================
-   20. SOCIAL LOGIN
-   ========================================================= */
+.pf-v5-c-helper-text {
+    display: flex !important;
 
-#kc-social-providers {
-    margin-top: 16px;
-}
-
-
-#kc-social-providers ul {
-    display: block;
-
-    margin: 0;
-    padding: 0;
-
-    list-style: none;
-}
-
-
-#kc-social-providers li {
-    margin: 0 0 8px 0;
-}
-
-
-/* Google / social buttons */
-
-#kc-social-providers a,
-#kc-social-providers .pf-v5-c-button {
-    display: flex;
+    align-items: center !important;
+    justify-content: space-between !important;
 
     width: 100%;
-    min-height: 42px;
+}
 
-    align-items: center;
-    justify-content: center;
 
-    box-sizing: border-box;
+/* Remember me */
 
-    padding: 9px 16px;
+.pf-v5-c-check {
+    margin: 0 !important;
+}
 
-    color: #30333b !important;
 
-    background: rgba(255, 255, 255, 0.60) !important;
+.pf-v5-c-check label {
+    display: flex !important;
 
-    border: 1px solid rgba(48, 51, 59, 0.10) !important;
-    border-radius: 12px !important;
+    align-items: center !important;
 
-    box-shadow: none !important;
+    margin: 0 !important;
+
+    line-height: 1 !important;
+
+    cursor: pointer;
+}
+
+
+#rememberMe {
+    display: block !important;
+
+    width: 14px !important;
+    height: 14px !important;
+
+    margin: 0 7px 0 0 !important;
+
+    accent-color: #2a9d8f;
+
+    cursor: pointer;
+}
+
+
+#rememberMe + .pf-v5-c-check__label {
+    display: block !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    color: #737984 !important;
+
+    font-family:
+        "IBM Plex Sans",
+        "Noto Sans Thai",
+        Arial,
+        sans-serif;
+
+    font-size: 12px !important;
+    font-weight: 400 !important;
+
+    line-height: 24px !important;
+
+    cursor: pointer;
+}
+
+
+/* Forgot password */
+
+.pf-v5-c-helper-text__item {
+    margin: 0 !important;
+}
+
+
+.pf-v5-c-helper-text__item-text {
+    display: block;
+}
+
+
+.pf-v5-c-helper-text__item-text a {
+    display: block;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    color: #2a9d8f !important;
+
+    font-family:
+        "IBM Plex Sans",
+        "Noto Sans Thai",
+        Arial,
+        sans-serif;
+
+    font-size: 12px !important;
+    font-weight: 500 !important;
+
+    line-height: 14px !important;
+
+    text-decoration: none !important;
+
+    transition: color 0.15s ease;
+}
+
+
+.pf-v5-c-helper-text__item-text a:hover {
+    color: #238276 !important;
+
+    text-decoration: underline !important;
+}
+
+/* =========================================================
+20. SOCIAL LOGIN
+========================================================= */
+
+#kc-social-providers {
+margin-top: 0;
+}
+
+/* Hide ONLY Keycloak's "Or sign in with" label */
+
+.pf-v5-c-login__main-footer
+.pf-v5-c-login__main-footer-band:first-child {
+display: none !important;
+}
+
+/* Google provider button */
+
+#kc-social-providers #social-google {
+display: flex !important;
+
+ 
+width: 100%;
+min-height: 42px;
+
+align-items: center !important;
+justify-content: center !important;
+
+gap: 9px;
+
+box-sizing: border-box;
+
+margin: 0 !important;
+padding: 9px 16px !important;
+
+color: #30333b !important;
+
+background: rgba(255, 255, 255, 0.60) !important;
+
+border: 1px solid rgba(48, 51, 59, 0.10) !important;
+border-radius: 12px !important;
+
+box-shadow: none !important;
+
+font-family:
+    "IBM Plex Sans",
+    "Noto Sans Thai",
+    Arial,
+    sans-serif;
+
+font-size: 14px !important;
+font-weight: 500 !important;
+
+text-decoration: none;
+
+transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+ 
+
+}
+
+/* Google icon */
+
+#kc-social-providers #social-google svg.google {
+display: block !important;
+
+ 
+width: 18px !important;
+height: 18px !important;
+
+min-width: 18px !important;
+min-height: 18px !important;
+
+max-width: 18px !important;
+max-height: 18px !important;
+
+margin: 0 !important;
+
+flex: 0 0 18px !important;
+ 
+
+}
+
+/* Google text */
+
+#kc-social-providers #social-google span {
+display: block !important;
+
+ 
+margin: 0 !important;
+padding: 0 !important;
+
+color: #30333b !important;
+
+font-family:
+    "IBM Plex Sans",
+    "Noto Sans Thai",
+    Arial,
+    sans-serif;
+
+font-size: 14px !important;
+font-weight: 500 !important;
+
+text-align: left;
+
+flex: 0 0 auto !important;
+ 
+/* Hide the original "Google" text */
+    font-size: 0 !important;
+
+}
+
+#kc-social-providers #social-google span::after {
+    content: "Continue with Google";
+
+    color: #30333b;
+
+    font-family:
+        "IBM Plex Sans",
+        "Noto Sans Thai",
+        Arial,
+        sans-serif;
 
     font-size: 14px;
     font-weight: 500;
 
-    text-decoration: none;
+    white-space: nowrap;
 }
 
+/* Hover */
 
-#kc-social-providers a:hover,
-#kc-social-providers .pf-v5-c-button:hover {
-    color: #30333b !important;
+#kc-social-providers #social-google:hover {
+color: #30333b !important;
 
-    background: rgba(255, 255, 255, 0.80) !important;
+ 
+background: rgba(255, 255, 255, 0.82) !important;
 
-    text-decoration: none;
+border-color: rgba(48, 51, 59, 0.14) !important;
+
+box-shadow: none !important;
+
+text-decoration: none;
+
+transform: translateY(-1px);
+ 
+
 }
 
+/* Active */
+
+#kc-social-providers #social-google:active {
+transform: translateY(0);
+}
+
+/* Remove PatternFly decorations */
+
+#kc-social-providers #social-google::before,
+#kc-social-providers #social-google::after {
+display: none !important;
+
+ 
+content: none !important;
+
+border: none !important;
+box-shadow: none !important;
+ 
+
+}
+
+/* Provider list */
+
+#kc-social-providers ul {
+display: block;
+
+ 
+margin: 0 !important;
+padding: 0 !important;
+
+list-style: none;
+ 
+
+}
+
+#kc-social-providers li {
+margin: 0 !important;
+padding: 0 !important;
+}
 
 /* =========================================================
-   21. SOCIAL LOGIN DIVIDER
-   ========================================================= */
+21. SOCIAL LOGIN DIVIDER
+========================================================= */
 
 #kc-social-providers::before {
-    content: "OR";
+content: "OR";
 
-    display: flex;
+ 
+display: flex;
 
-    align-items: center;
-    justify-content: center;
+align-items: center;
+justify-content: center;
 
-    height: 1px;
+height: 1px;
 
-    margin: 20px 0;
+margin: 20px 0;
 
-    color: #737984;
+color: #737984;
 
-    font-size: 10px;
-    font-weight: 500;
+font-size: 10px;
+font-weight: 500;
 
-    letter-spacing: 0.14em;
+letter-spacing: 0.14em;
 
-    border-top: 1px solid rgba(48, 51, 59, 0.10);
+border-top: 1px solid rgba(48, 51, 59, 0.10);
+ 
+
 }
 
 
@@ -808,4 +1032,90 @@ a:hover {
 
 #kc-register-form .pf-v5-c-form__group:has(.pf-v5-c-form-control[aria-invalid="true"]) {
     margin-bottom: 10px !important;
+}
+
+/* =========================================================
+   28. LANGUAGE SELECTOR
+   ========================================================= */
+
+.pf-v5-c-login__main-header-utilities {
+    position: absolute;
+
+    top: 20px;
+    right: 20px;
+
+    z-index: 10;
+}
+
+
+.pf-v5-c-login__main-header-utilities .pf-v5-c-form-control {
+    width: auto !important;
+
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+
+/* Language selector */
+
+#login-select-toggle {
+    width: auto !important;
+    min-width: 64px;
+    height: 32px;
+
+    padding: 5px 2px 5px 10px !important;
+
+    color: #555b66 !important;
+
+    background: rgba(255, 255, 255, 0.55) !important;
+
+    border: 1px solid rgba(48, 51, 59, 0.10) !important;
+    border-radius: 9px !important;
+
+    outline: none !important;
+
+    font-family:
+        "IBM Plex Sans",
+        "Noto Sans Thai",
+        Arial,
+        sans-serif;
+
+    font-size: 12px !important;
+    font-weight: 500 !important;
+
+    cursor: pointer;
+
+    box-shadow: none !important;
+
+    /* Keep the native dropdown arrow */
+    appearance: auto;
+    -webkit-appearance: auto;
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease;
+}
+
+
+#login-select-toggle:hover {
+    background: rgba(255, 255, 255, 0.82) !important;
+
+    border-color: rgba(48, 51, 59, 0.14) !important;
+}
+
+
+#login-select-toggle:focus {
+    outline: none !important;
+
+    border-color: rgba(42, 157, 143, 0.35) !important;
+
+    box-shadow:
+        0 0 0 3px rgba(42, 157, 143, 0.08) !important;
+}
+
+
+.pf-v5-c-login__main-header-utilities
+.pf-v5-c-form-control__utilities {
+    display: none !important;
 }
