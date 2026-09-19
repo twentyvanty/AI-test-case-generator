@@ -14,3 +14,9 @@ services:
     command: start-dev
     ports:
       - 8080:8080
+    volumes:
+      - ./keycloak/themes:/opt/keycloak/themes
+      - keycloak_data:/opt/keycloak/data
+
+volumes:
+  keycloak_data:
