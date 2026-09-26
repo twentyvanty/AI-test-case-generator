@@ -1,191 +1,134 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../auth/AuthContext";
-import { getProjects, createProject, type Project } from "../services/api";
-import Button from "../components/ui/Button";
+import {
+  getDashboardSummary,
+  getRecentRuns,
+  type DashboardSummary,
+  type RecentRun,
+} from "../services/dashboard";
+import BreakdownCard from "../components/dashboard/BreakdownCard";
+import CardTitle from "../components/ui/CardTitle";
+import QuickActions from "../components/dashboard/QuickActions";
+import RecentRunsList from "../components/dashboard/RecentRunsList";
+import StatCard from "../components/dashboard/StatCard";
+import WeeklyActivityChart from "../components/dashboard/WeeklyActivityChart";
 import Card from "../components/ui/Card";
-import Modal from "../components/ui/Modal";
 import Spinner from "../components/ui/Spinner";
-import { TextArea, TextInput } from "../components/ui/TextField";
+
+// 12 → "+12", -1 → "−1", 6 with "%" → "+6%"
+function formatDelta(delta: number, suffix = "") {
+  const sign = delta > 0 ? "+" : delta < 0 ? "−" : "±";
+
+  return `${sign}${Math.abs(delta)}${suffix}`;
+}
 
 function DashboardPage() {
-  const { username } = useAuth();
-  const navigate = useNavigate();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [projectName, setProjectName] = useState("");
-  const [projectDescription, setProjectDescription] = useState("");
-  const [creating, setCreating] = useState(false);
   const { t } = useTranslation();
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [recentRuns, setRecentRuns] = useState<RecentRun[]>([]);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    async function loadProjects() {
-      try {
-        const data = await getProjects();
-        setProjects(data);
-      } catch (error) {
-        console.error("Failed to load projects:", error);
-        setError(t("dashboard.loadError"));
-      } finally {
-        setLoading(false);
-      }
-    }
+    Promise.all([getDashboardSummary(), getRecentRuns()])
+      .then(([summaryData, runsData]) => {
+        setSummary(summaryData);
+        setRecentRuns(runsData);
+      })
+      .catch((error) => {
+        console.error("Failed to load dashboard:", error);
+        setError(true);
+      });
+  }, []);
 
-    loadProjects();
-  }, [t]);
-
-  const handleCreateProject = async () => {
-    if (!projectName.trim()) {
-      return;
-    }
-
-    try {
-      setCreating(true);
-
-      const newProject = await createProject(
-        projectName.trim(),
-        projectDescription.trim()
-      );
-
-      setProjects((currentProjects) => [
-        newProject,
-        ...currentProjects,
-      ]);
-
-      setProjectName("");
-      setProjectDescription("");
-      setShowCreateModal(false);
-    } catch (error) {
-      console.error("Failed to create project:", error);
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <main className="mx-auto max-w-7xl px-8 py-8">
-        <Spinner label={t("common.loading")} />
-      </main>
-    );
-  }
-
-  if (error) {
-    return (
-      <main className="mx-auto max-w-7xl px-8 py-8">
-        <p className="text-red-500">{error}</p>
-      </main>
-    );
-  }
+  const vsLastWeek = (delta: number, suffix?: string) =>
+    t("dashboard.vsLastWeek", { delta: formatDelta(delta, suffix) });
 
   return (
-    <main className="mx-auto max-w-7xl px-8 py-8">
+    <main className="space-y-4">
+      <div className="flex items-baseline justify-between gap-4">
+        <h1 className="font-heading text-2xl font-semibold tracking-tight text-ink">
+          {t("dashboard.title")}
+        </h1>
 
-      {/* Welcome Section */}
-      <section className="mb-10 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold text-gray-900">
-            {t("dashboard.welcome", { username })}
-          </h1>
+        <span className="font-mono text-xs text-gray-500">
+          {t("dashboard.period")}
+        </span>
+      </div>
 
-          <p className="mt-2 text-gray-500">
-            {t("dashboard.subtitle")}
-          </p>
-        </div>
+      {error && <p className="text-danger">{t("dashboard.loadError")}</p>}
 
-        <Button size="lg" onClick={() => setShowCreateModal(true)}>
-          {t("dashboard.newProject")}
-        </Button>
-      </section>
+      {!error && !summary && <Spinner label={t("common.loading")} />}
 
-      {/* Projects Section */}
-      <section>
+      {summary && (
+        <>
+          <section className="grid gap-4 md:grid-cols-2">
+            <StatCard
+              label={t("dashboard.stats.totalTestCases")}
+              value={String(summary.totalTestCases.value)}
+              delta={vsLastWeek(summary.totalTestCases.deltaVsLastWeek)}
+            />
 
-        <div className="mb-5 flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">
-              {t("dashboard.yourProjects")}
-            </h2>
+            <StatCard
+              label={t("dashboard.stats.passRate")}
+              value={`${summary.passRate.value}%`}
+              delta={vsLastWeek(summary.passRate.deltaVsLastWeek, "%")}
+              tone="success"
+            />
 
-            <p className="mt-1 text-sm text-gray-500">
-              {t("dashboard.projectsDescription")}
-            </p>
-          </div>
+            <StatCard
+              label={t("dashboard.stats.failingCases")}
+              value={String(summary.failingCases.value)}
+              delta={vsLastWeek(summary.failingCases.deltaVsLastWeek)}
+              tone="danger"
+            />
 
-          <span className="text-sm text-gray-400">
-            {t("dashboard.projectCount", { count: projects.length })}
-          </span>
-        </div>
+            <StatCard
+              label={t("dashboard.stats.runsThisWeek")}
+              value={String(summary.runsThisWeek.value)}
+              delta={vsLastWeek(summary.runsThisWeek.deltaVsLastWeek)}
+            />
+          </section>
 
-        {/* Project Cards */}
-        <div className="grid gap-5 md:grid-cols-2">
+          <WeeklyActivityChart data={summary.weeklyActivity} />
 
-          {projects.map((project) => (
-            <Card key={project.id}>
-              <h2 className="text-lg font-semibold text-gray-900">
-                {project.name}
-              </h2>
+          <BreakdownCard
+            title={t("dashboard.techniqueMix")}
+            rows={summary.techniqueMix.map((item) => ({
+              key: item.technique,
+              label: t(`techniques.${item.technique}`),
+              count: item.count,
+            }))}
+          />
 
-              <p className="mt-2 text-sm text-gray-500">
-                {project.description || t("dashboard.noDescription")}
-              </p>
+          <BreakdownCard
+            title={t("dashboard.failingByArea")}
+            tone="danger"
+            monoValues
+            rows={summary.failingByArea.map((item) => ({
+              key: item.area,
+              label: item.area,
+              count: item.failCount,
+              valueLabel: t("dashboard.failCount", { count: item.failCount }),
+            }))}
+          />
 
-              <Button
-                className="mt-4"
-                onClick={() => navigate(`/projects/${project.id}`)}
-              >
-                {t("common.open")}
-              </Button>
-            </Card>
-          ))}
+          <Card padding="md">
+            <CardTitle>{t("dashboard.quickActions")}</CardTitle>
 
-        </div>
+            <div className="mt-4">
+              <QuickActions />
+            </div>
 
-      </section>
+            <div className="mt-7">
+              <CardTitle>{t("dashboard.recentRuns")}</CardTitle>
 
-      <Modal
-        open={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        title={t("project.createTitle")}
-        description={t("project.createDescription")}
-        footer={
-          <>
-            <Button
-              variant="ghost"
-              onClick={() => setShowCreateModal(false)}
-            >
-              {t("common.cancel")}
-            </Button>
-
-            <Button
-              onClick={handleCreateProject}
-              disabled={creating || !projectName.trim()}
-            >
-              {creating ? t("project.creating") : t("project.createProject")}
-            </Button>
-          </>
-        }
-      >
-        <TextInput
-          label={t("project.projectName")}
-          value={projectName}
-          onChange={(e) => setProjectName(e.target.value)}
-          placeholder={t("project.projectNamePlaceholder")}
-        />
-
-        <TextArea
-          className="mt-4"
-          label={t("project.description")}
-          value={projectDescription}
-          onChange={(e) => setProjectDescription(e.target.value)}
-          placeholder={t("project.descriptionPlaceholder")}
-          rows={4}
-        />
-      </Modal>
-
+              <div className="mt-1">
+                <RecentRunsList runs={recentRuns} />
+              </div>
+            </div>
+          </Card>
+        </>
+      )}
     </main>
   );
 }

@@ -10,10 +10,10 @@ type BadgeProps = {
 };
 
 const toneClasses: Record<BadgeTone, string> = {
-  neutral: "bg-gray-100 text-gray-500",
-  info: "bg-blue-50 text-blue-600",
-  success: "bg-green-50 text-green-600",
-  danger: "bg-red-50 text-red-600",
+  neutral: "bg-track text-gray-500",
+  info: "bg-brand-soft text-brand-strong",
+  success: "bg-success/10 text-success",
+  danger: "bg-danger/10 text-danger",
 };
 
 function Badge({ tone = "neutral", className, children }: BadgeProps) {

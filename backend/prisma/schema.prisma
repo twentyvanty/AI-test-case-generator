@@ -13,23 +13,166 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Display codes (REQ-0001, SC-01, TC-0001) are not stored.
+// Each table stores a `number` and the app formats it.
+
+enum RequirementStatus {
+  DRAFT // text/techniques entered, nothing generated yet
+  SCENARIOS_READY // scenarios drafted (step 2 unlocked)
+  CASES_READY // test cases generated (step 3 unlocked)
+  REPORTED // report built (step 4 unlocked)
+}
+
+enum GenerationKind {
+  TECHNIQUE_SUGGESTION
+  SCENARIOS
+  TEST_CASES
+}
+
+enum GenerationStatus {
+  PASSED // output passed validation
+  NEEDS_REVIEW // failed validation 3 times — tester must check it manually
+  FAILED // provider/quota error, no usable output
+}
+
+enum ItemSource {
+  AI
+  MANUAL
+}
+
 model User {
-  id         Int       @id @default(autoincrement())
-  keycloakId String    @unique
+  id         Int     @id @default(autoincrement())
+  keycloakId String  @unique
   email      String?
   name       String?
 
   projects   Project[]
+  preference UserPreference?
 }
 
 model Project {
-  id          Int      @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   name        String
-  description String?
+  description String? @db.Text
 
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  requirements Requirement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Requirement {
+  id Int @id @default(autoincrement())
+
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  number         Int // shown as REQ-0001, unique per project
+  title          String            @db.VarChar(255)
+  text           String            @db.Text
+  sourceFileName String?           @db.VarChar(255)
+  techniques     Json // technique keys, e.g. ["boundaryValue"] — strings so new techniques need no migration
+  status         RequirementStatus @default(DRAFT)
+
+  scenarios Scenario[]
+  testCases TestCase[]
+  runs      GenerationRun[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, number])
+}
+
+// One row per AI generation (history + audit). The latest 10 per kind
+// are shown to the tester and can be restored from `output`.
+model GenerationRun {
+  id Int @id @default(autoincrement())
+
+  requirementId Int
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  kind           GenerationKind
+  status         GenerationStatus
+  attempts       Int // 1–3
+  generatorModel String           @db.VarChar(100)
+  validatorModel String           @db.VarChar(100)
+  input          Json // what was sent: text, techniques, selected scenarios
+  output         Json? // result snapshot, used for restore
+  validation     Json? // check results + issues per attempt
+  usage          Json? // token counts, for the future credit system
+  errorMessage   String?          @db.Text
+
+  scenarios Scenario[]
+
+  createdAt DateTime @default(now())
+
+  @@index([requirementId, kind, createdAt])
+}
+
+model Scenario {
+  id Int @id @default(autoincrement())
+
+  requirementId Int
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  // The generation that produced it (null for manual ones or if the run is deleted)
+  runId Int?
+  run   GenerationRun? @relation(fields: [runId], references: [id], onDelete: SetNull)
+
+  number         Int // shown as SC-01, unique per requirement
+  title          String     @db.VarChar(255)
+  description    String     @db.Text
+  technique      String?    @db.VarChar(50)
+  selected       Boolean    @default(true)
+  estimatedCases Int        @default(0)
+  source         ItemSource
+  position       Int
+
+  testCases TestCase[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([requirementId, number])
+}
+
+model TestCase {
+  id Int @id @default(autoincrement())
+
+  scenarioId Int
+  scenario   Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  // Also stored here so TC numbers are unique per requirement and reports stay simple
+  requirementId Int
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  number         Int // shown as TC-0001, unique per requirement
+  title          String     @db.VarChar(255)
+  description    String     @db.Text
+  precondition   String     @db.Text
+  steps          Json // string[]
+  expectedResult String     @db.Text
+  technique      String?    @db.VarChar(50)
+  source         ItemSource
+  position       Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([requirementId, number])
+}
+
+model UserPreference {
+  id Int @id @default(autoincrement())
+
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  exportColumns Json? // saved Excel/CSV column choice
+
+  updatedAt DateTime @updatedAt
 }

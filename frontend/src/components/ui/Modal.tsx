@@ -41,7 +41,7 @@ function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 px-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -51,7 +51,7 @@ function Modal({
         className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+        <h2 className="font-heading text-lg font-semibold text-ink">{title}</h2>
 
         {description && (
           <p className="mt-1 text-sm text-gray-500">{description}</p>

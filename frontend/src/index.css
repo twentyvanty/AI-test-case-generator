@@ -1,1 +1,34 @@
 @import "tailwindcss";
+
+/* Design tokens — every color/font used by the UI is defined here.
+   Use them as Tailwind classes, e.g. bg-ink, text-brand-strong, font-heading. */
+@theme {
+  --font-sans: "IBM Plex Sans", "IBM Plex Sans Thai", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Space Grotesk", "IBM Plex Sans Thai", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-ink: #1f232b;
+  --color-ink-soft: #3a3f4a;
+
+  --color-brand: #69a89f;
+  --color-brand-strong: #3f8f80;
+  --color-brand-soft: #d9ece8;
+
+  --color-success: #3f8f55;
+  --color-warning: #c08a3e;
+  --color-danger: #b5485a;
+
+  --color-track: #e9eaee;
+}
+
+body {
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background-color: #eceef3;
+  background-image:
+    radial-gradient(ellipse at 0% 0%, #c6e0dc 0%, transparent 45%),
+    radial-gradient(ellipse at 100% 100%, #dcd8ea 0%, transparent 50%),
+    linear-gradient(135deg, #e3ecef 0%, #e9ebf1 50%, #e6e4ef 100%);
+  background-attachment: fixed;
+}

@@ -43,6 +43,21 @@ export async function getProjects(): Promise<Project[]> {
   return response.json();
 }
 
+export async function getProject(projectId: number): Promise<Project> {
+  const headers = await getAuthHeaders();
+
+  const response = await fetch(`${API_URL}/api/projects/${projectId}`, {
+    method: "GET",
+    headers,
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch project");
+  }
+
+  return response.json();
+}
+
 export async function createProject(
   name: string,
   description: string

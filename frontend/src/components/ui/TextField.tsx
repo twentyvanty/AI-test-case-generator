@@ -6,7 +6,7 @@ import type {
 import { cn } from "../../utils/cn";
 
 const fieldClasses =
-  "mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-gray-500";
+  "mt-2 w-full rounded-xl border border-gray-200 bg-white/80 px-3.5 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft";
 
 const labelClasses = "text-sm font-medium text-gray-700";
 

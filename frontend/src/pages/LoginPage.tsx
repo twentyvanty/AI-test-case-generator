@@ -8,9 +8,9 @@ function LoginPage() {
   const { login } = useAuth();
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100">
+    <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="p-8 text-center" padding="none">
-        <h1 className="text-2xl font-semibold text-gray-900">
+        <h1 className="font-heading text-2xl font-semibold text-ink">
           {t("login.title")}
         </h1>
 

@@ -15,12 +15,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const username = keycloak.tokenParsed?.preferred_username;
+  const displayName = keycloak.tokenParsed?.name ?? username;
+  const email = keycloak.tokenParsed?.email;
 
   return (
     <AuthContext.Provider
       value={{
         isAuthenticated,
         username,
+        displayName,
+        email,
         login,
         logout,
       }}

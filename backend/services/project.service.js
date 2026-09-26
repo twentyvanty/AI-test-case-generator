@@ -25,3 +25,15 @@ export async function createProject(keycloakUser, data) {
     },
   });
 }
+
+// Returns the project only if it belongs to the current user
+export async function getProjectById(keycloakUser, projectId) {
+  const user = await getOrCreateUser(keycloakUser);
+
+  return prisma.project.findFirst({
+    where: {
+      id: projectId,
+      userId: user.id,
+    },
+  });
+}

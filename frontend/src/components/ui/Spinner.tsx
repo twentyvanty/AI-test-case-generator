@@ -11,7 +11,7 @@ function Spinner({ label, className }: SpinnerProps) {
       role="status"
       className={cn("flex items-center gap-3 text-gray-500", className)}
     >
-      <span className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
+      <span className="h-5 w-5 animate-spin rounded-full border-2 border-brand-soft border-t-brand-strong" />
 
       {label && <span className="text-sm">{label}</span>}
     </div>

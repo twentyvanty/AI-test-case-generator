@@ -17,7 +17,7 @@ function Card({ padding = "lg", className, ...props }: CardProps) {
   return (
     <div
       className={cn(
-        "rounded-2xl border border-gray-200 bg-white shadow-sm",
+        "rounded-2xl border border-white/80 bg-white/60 shadow-sm backdrop-blur-md",
         paddingClasses[padding],
         className
       )}

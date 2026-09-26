@@ -1,31 +1,23 @@
-import { Link, Outlet } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import { useAuth } from "../../auth/AuthContext";
-import LanguageSwitcher from "../common/LanguageSwitcher";
-import Button from "../ui/Button";
+import { Outlet } from "react-router-dom";
+import Sidebar from "./Sidebar";
+import TopNav from "./TopNav";
 
-// Shared shell for every signed-in page: header on top, page content below.
+// Shared shell for every signed-in page:
+// sticky top nav, then sidebar (desktop only) + page content.
 function AppLayout() {
-  const { t } = useTranslation();
-  const { logout } = useAuth();
-
   return (
-    <div className="min-h-screen bg-slate-100">
-      <header className="flex items-center justify-between border-b bg-white px-8 py-4">
-        <Link to="/" className="font-semibold text-gray-900">
-          {t("app.name")}
-        </Link>
+    <div className="min-h-screen">
+      <TopNav />
 
-        <div className="flex items-center gap-2">
-          <LanguageSwitcher />
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-6 lg:px-8 lg:py-8">
+        <aside className="hidden self-start lg:block">
+          <Sidebar />
+        </aside>
 
-          <Button variant="ghost" size="sm" onClick={logout}>
-            {t("common.logout")}
-          </Button>
+        <div className="min-w-0">
+          <Outlet />
         </div>
-      </header>
-
-      <Outlet />
+      </div>
     </div>
   );
 }
