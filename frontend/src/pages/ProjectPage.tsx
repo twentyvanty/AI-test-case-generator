@@ -1,4 +1,9 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import Badge, { type BadgeTone } from "../components/ui/Badge";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import { cn } from "../utils/cn";
 
 type TestCase = {
   id: string;
@@ -26,29 +31,30 @@ const testCases: TestCase[] = [
 
 type Tab = "overview" | "requirements" | "testCases" | "generate";
 
-type ProjectPageProps = {
-  projectId: number;
-  onBack: () => void;
+const statusTones: Record<TestCase["status"], BadgeTone> = {
+  Passed: "success",
+  Failed: "danger",
+  "Not Tested": "neutral",
 };
 
-function ProjectPage({ projectId, onBack }: ProjectPageProps) {
+// TODO: load the real project with useParams().projectId once the
+// project detail API exists. Everything below is still mock data.
+function ProjectPage() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
-
-  console.log("Current project:", projectId);
 
   return (
     <main className="mx-auto max-w-7xl px-8 py-8">
 
       {/* Back */}
-      <button
-        onClick={onBack}
-        className="mb-6 text-sm font-medium text-gray-500 hover:text-gray-900"
+      <Link
+        to="/"
+        className="mb-6 inline-block text-sm font-medium text-gray-500 hover:text-gray-900"
       >
         ← Back to Projects
-      </button>
+      </Link>
 
       {/* Project Header */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <Card>
         <div className="flex items-start justify-between">
           <div>
             <p className="text-sm text-gray-400">
@@ -64,11 +70,11 @@ function ProjectPage({ projectId, onBack }: ProjectPageProps) {
             </p>
           </div>
 
-          <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600">
+          <Badge tone="info" className="text-sm">
             In Progress
-          </span>
+          </Badge>
         </div>
-      </section>
+      </Card>
 
       {/* Tabs */}
       <div className="mt-6 flex gap-2 border-b border-gray-200">
@@ -138,11 +144,12 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`border-b-2 px-4 py-3 text-sm font-medium transition ${
+      className={cn(
+        "border-b-2 px-4 py-3 text-sm font-medium transition",
         active
           ? "border-gray-900 text-gray-900"
           : "border-transparent text-gray-500 hover:text-gray-900"
-      }`}
+      )}
     >
       {label}
     </button>
@@ -213,7 +220,7 @@ function StatCard({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+    <Card padding="md">
       <p className="text-sm text-gray-500">
         {label}
       </p>
@@ -221,7 +228,7 @@ function StatCard({
       <p className="mt-2 text-3xl font-semibold text-gray-900">
         {value}
       </p>
-    </div>
+    </Card>
   );
 }
 
@@ -241,15 +248,15 @@ function RequirementsTab() {
           </p>
         </div>
 
-        <button className="rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-700">
+        <Button>
           + Add Requirement
-        </button>
+        </Button>
 
       </div>
 
       <div className="space-y-4">
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <Card>
 
           <div className="flex items-start justify-between">
 
@@ -263,9 +270,9 @@ function RequirementsTab() {
               </h3>
             </div>
 
-            <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-600">
+            <Badge tone="success">
               Ready
-            </span>
+            </Badge>
 
           </div>
 
@@ -274,9 +281,9 @@ function RequirementsTab() {
             address and password.
           </p>
 
-        </div>
+        </Card>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <Card>
 
           <div className="flex items-start justify-between">
 
@@ -290,9 +297,9 @@ function RequirementsTab() {
               </h3>
             </div>
 
-            <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-600">
+            <Badge tone="success">
               Ready
-            </span>
+            </Badge>
 
           </div>
 
@@ -301,7 +308,7 @@ function RequirementsTab() {
             keywords and view matching results.
           </p>
 
-        </div>
+        </Card>
 
       </div>
 
@@ -329,13 +336,13 @@ function TestCasesTab({
           </p>
         </div>
 
-        <button className="rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-700">
+        <Button>
           + Generate Test Cases
-        </button>
+        </Button>
 
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+      <Card padding="none" className="overflow-hidden">
 
         {testCases.map((testCase) => (
           <div
@@ -355,22 +362,14 @@ function TestCasesTab({
 
             </div>
 
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-medium ${
-                testCase.status === "Passed"
-                  ? "bg-green-50 text-green-600"
-                  : testCase.status === "Failed"
-                  ? "bg-red-50 text-red-600"
-                  : "bg-gray-100 text-gray-500"
-              }`}
-            >
+            <Badge tone={statusTones[testCase.status]}>
               {testCase.status}
-            </span>
+            </Badge>
 
           </div>
         ))}
 
-      </div>
+      </Card>
 
     </div>
   );
@@ -401,9 +400,9 @@ function GenerateTab() {
           generate test cases using AI.
         </p>
 
-        <button className="mt-6 rounded-xl bg-gray-900 px-5 py-3 text-sm font-medium text-white hover:bg-gray-700">
+        <Button size="lg" className="mt-6">
           Start Generation
-        </button>
+        </Button>
 
       </div>
 

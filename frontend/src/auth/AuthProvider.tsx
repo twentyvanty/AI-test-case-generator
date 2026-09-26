@@ -1,23 +1,10 @@
-import { createContext, useContext, useEffect, useState } from "react";
 import keycloak from "./keycloak";
-
-type AuthContextType = {
-  isAuthenticated: boolean;
-  username?: string;
-  login: () => void;
-  logout: () => void;
-};
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { AuthContext } from "./AuthContext";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    keycloak.authenticated ?? false
-  );
-
-  useEffect(() => {
-    setIsAuthenticated(keycloak.authenticated ?? false);
-  }, []);
+  // keycloak.init() finishes before the app renders (see main.tsx),
+  // and login/logout redirect the whole page, so this value is always current.
+  const isAuthenticated = keycloak.authenticated ?? false;
 
   const login = () => {
     keycloak.login();
@@ -41,14 +28,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth must be used inside AuthProvider");
-  }
-
-  return context;
 }

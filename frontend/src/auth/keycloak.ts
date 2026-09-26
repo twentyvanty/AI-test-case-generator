@@ -1,9 +1,10 @@
 import Keycloak from "keycloak-js";
+import config from "../config";
 
 const keycloak = new Keycloak({
-  url: "http://localhost:8080",
-  realm: "ai-test-case-generator",
-  clientId: "ai-test-case-frontend",
+  url: config.keycloak.url,
+  realm: config.keycloak.realm,
+  clientId: config.keycloak.clientId,
 });
 
 export default keycloak;

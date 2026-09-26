@@ -1,6 +1,7 @@
 import keycloak from "../auth/keycloak";
+import config from "../config";
 
-const API_URL = "http://localhost:5001";
+const API_URL = config.apiUrl;
 
 export type Project = {
   id: number;
@@ -12,6 +13,9 @@ export type Project = {
 };
 
 async function getAuthHeaders() {
+  // Refresh the access token if it expires within the next 30 seconds
+  await keycloak.updateToken(30);
+
   const token = keycloak.token;
 
   if (!token) {

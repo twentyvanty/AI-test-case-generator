@@ -1,7 +1,7 @@
 import { jwtVerify, createRemoteJWKSet } from "jose";
 
-const keycloakUrl = "http://localhost:8080";
-const realm = "ai-test-case-generator";
+const keycloakUrl = process.env.KEYCLOAK_URL ?? "http://localhost:8080";
+const realm = process.env.KEYCLOAK_REALM ?? "ai-test-case-generator";
 
 const issuer = `${keycloakUrl}/realms/${realm}`;
 

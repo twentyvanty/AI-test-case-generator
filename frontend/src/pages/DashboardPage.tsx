@@ -1,14 +1,17 @@
-import { useAuth } from "../auth/AuthProvider";
 import { useEffect, useState } from "react";
-import { getProjects, createProject, type Project } from "../services/api";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../auth/AuthContext";
+import { getProjects, createProject, type Project } from "../services/api";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import Modal from "../components/ui/Modal";
+import Spinner from "../components/ui/Spinner";
+import { TextArea, TextInput } from "../components/ui/TextField";
 
-type DashboardPageProps = {
-  onOpenProject: (projectId: number) => void;
-};
-
-function DashboardPage({ onOpenProject }: DashboardPageProps) {
+function DashboardPage() {
   const { username } = useAuth();
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,18 +28,14 @@ function DashboardPage({ onOpenProject }: DashboardPageProps) {
         setProjects(data);
       } catch (error) {
         console.error("Failed to load projects:", error);
-        setError("Failed to load projects.");
+        setError(t("dashboard.loadError"));
       } finally {
         setLoading(false);
       }
     }
 
     loadProjects();
-  }, []);
-
-  const handleNewProject = () => {
-    setShowCreateModal(true);
-  };
+  }, [t]);
 
   const handleCreateProject = async () => {
     if (!projectName.trim()) {
@@ -69,7 +68,7 @@ function DashboardPage({ onOpenProject }: DashboardPageProps) {
   if (loading) {
     return (
       <main className="mx-auto max-w-7xl px-8 py-8">
-        <p className="text-gray-500">{t("common.loading")}</p>
+        <Spinner label={t("common.loading")} />
       </main>
     );
   }
@@ -97,12 +96,9 @@ function DashboardPage({ onOpenProject }: DashboardPageProps) {
           </p>
         </div>
 
-        <button
-          onClick={handleNewProject}
-          className="rounded-xl bg-gray-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-700"
-        >
+        <Button size="lg" onClick={() => setShowCreateModal(true)}>
           {t("dashboard.newProject")}
-        </button>
+        </Button>
       </section>
 
       {/* Projects Section */}
@@ -128,10 +124,7 @@ function DashboardPage({ onOpenProject }: DashboardPageProps) {
         <div className="grid gap-5 md:grid-cols-2">
 
           {projects.map((project) => (
-            <div
-              key={project.id}
-              className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
-            >
+            <Card key={project.id}>
               <h2 className="text-lg font-semibold text-gray-900">
                 {project.name}
               </h2>
@@ -140,77 +133,58 @@ function DashboardPage({ onOpenProject }: DashboardPageProps) {
                 {project.description || t("dashboard.noDescription")}
               </p>
 
-              <button
-                onClick={() => onOpenProject(project.id)}
-                className="mt-4 rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white"
+              <Button
+                className="mt-4"
+                onClick={() => navigate(`/projects/${project.id}`)}
               >
                 {t("common.open")}
-              </button>
-            </div>
+              </Button>
+            </Card>
           ))}
 
         </div>
 
       </section>
 
-      {showCreateModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/30 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h2 className="text-xl font-semibold text-gray-900">
-              {t("project.createTitle")}
-            </h2>
+      <Modal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title={t("project.createTitle")}
+        description={t("project.createDescription")}
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => setShowCreateModal(false)}
+            >
+              {t("common.cancel")}
+            </Button>
 
-            <p className="mt-1 text-sm text-gray-500">
-              {t("project.createDescription")}
-            </p>
+            <Button
+              onClick={handleCreateProject}
+              disabled={creating || !projectName.trim()}
+            >
+              {creating ? t("project.creating") : t("project.createProject")}
+            </Button>
+          </>
+        }
+      >
+        <TextInput
+          label={t("project.projectName")}
+          value={projectName}
+          onChange={(e) => setProjectName(e.target.value)}
+          placeholder={t("project.projectNamePlaceholder")}
+        />
 
-            <div className="mt-6">
-              <label className="text-sm font-medium text-gray-700">
-                {t("project.projectName")}
-              </label>
-
-              <input
-                type="text"
-                value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
-                placeholder={t("project.projectNamePlaceholder")}
-                className="mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-gray-500"
-              />
-            </div>
-
-            <div className="mt-4">
-              <label className="text-sm font-medium text-gray-700">
-                {t("project.description")}
-              </label>
-
-              <textarea
-                value={projectDescription}
-                onChange={(e) => setProjectDescription(e.target.value)}
-                placeholder={t("project.descriptionPlaceholder")}
-                rows={4}
-                className="mt-2 w-full resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-gray-500"
-              />
-            </div>
-
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="rounded-xl px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
-              >
-                {t("common.cancel")}
-              </button>
-
-              <button
-                onClick={handleCreateProject}
-                disabled={creating || !projectName.trim()}
-                className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {creating ? t("project.creating") : t("project.createProject")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        <TextArea
+          className="mt-4"
+          label={t("project.description")}
+          value={projectDescription}
+          onChange={(e) => setProjectDescription(e.target.value)}
+          placeholder={t("project.descriptionPlaceholder")}
+          rows={4}
+        />
+      </Modal>
 
     </main>
   );
