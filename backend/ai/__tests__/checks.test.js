@@ -80,11 +80,12 @@ test("similarity works for Thai text (no spaces between words)", () => {
 // ---- sensitive data ----
 
 test("real-looking secrets fail", () => {
+  // Fake keys, built from pieces so GitHub's secret scanner doesn't flag this file
   for (const secret of [
-    "AIzaSyA1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q",
-    "sk-proj-abcdefghijklmnopqrstuvwxyz123456",
-    "AKIAABCDEFGHIJKLMNOP",
-    "-----BEGIN RSA PRIVATE KEY-----",
+    "AI" + "zaSyA1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q",
+    "sk-" + "proj-abcdefghijklmnopqrstuvwxyz123456",
+    "AK" + "IAABCDEFGHIJKLMNOP",
+    "-----BEGIN RSA " + "PRIVATE KEY-----",
   ]) {
     const result = checkSensitiveData({ steps: [`Use ${secret}`] });
     assert.equal(result.status, "fail", secret);
