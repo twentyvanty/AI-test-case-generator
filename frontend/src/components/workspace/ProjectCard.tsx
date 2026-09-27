@@ -7,7 +7,8 @@ import Card from "../ui/Card";
 type ProjectCardProps = {
   project: Project;
   requirementCount: number;
-  coveragePercent: number;
+  // null = no test results yet
+  coveragePercent: number | null;
 };
 
 function ProjectCard({ project, requirementCount, coveragePercent }: ProjectCardProps) {
@@ -27,7 +28,7 @@ function ProjectCard({ project, requirementCount, coveragePercent }: ProjectCard
         </div>
 
         <span className="font-heading text-xl font-semibold text-brand-strong">
-          {coveragePercent}%
+          {coveragePercent === null ? "—" : `${coveragePercent}%`}
         </span>
       </div>
 

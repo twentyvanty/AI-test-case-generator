@@ -4,6 +4,66 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-09-27 — Slice 3: Requirements API + Step 1 page
+
+**Goal.** Make requirements real (saved in MySQL) and build Step 1 of the tester flow: write the requirement (or attach documents), choose techniques, and draft scenarios with the AI.
+
+**Design input.** The team had two drafts of this page: an older white design (requirements added in a small form on the project page, then a 3-tab page with an "AI module" picker) and a newer black design (one page with **4 steps**: Requirement → Scenarios → Test cases → Report). We kept the **flow of the black design** and the **look of the white design**. The black design's "API key" card was dropped: the server's own key is used (D-020). Step 1 is one column, read top to bottom, so it's easy for anyone to follow.
+
+**What was built**
+- **Backend** (`routes` → `controllers` → `dto` → `services`, like projects):
+  - `requirement.routes.js`: list, create, get, edit, delete requirements under `/api/projects/:projectId/requirements`. Requirements are addressed by their number in the project (REQ-0001 = number 1).
+  - Two AI endpoints: `…/:number/technique-suggestions` and `…/:number/scenario-drafts`. Each runs the Slice 2 pipeline and saves a `GenerationRun`. A successful draft replaces the scenarios and sets the status to `SCENARIOS_READY`.
+  - `document.routes.js`: `POST /api/documents/extract-text` reads PDF (`unpdf`), DOCX (`mammoth`), Markdown and TXT, via `multer` in memory. Nothing is stored.
+  - Swagger comments and schemas for all 8 new operations.
+  - Node's request timeout raised to 10 minutes, for long AI runs.
+- **Frontend**:
+  - `RequirementPage` handles `/requirements/new` and `/requirements/:number`, with the 4-step tabs. Steps unlock by status.
+  - Step 1 (`RequirementStep`) has three numbered cards:
+    1. describe (title + details)
+    2. attach files; their text is added to the details, and removing a file takes its text out again
+    3. choose techniques: option cards, "Let AI choose", and "Suggest with AI", which shows the AI's reason under each card
+  - "Draft scenarios" saves first, then drafts.
+    - FAILED → a red message, and the page stays on Step 1.
+    - NEEDS_REVIEW → Step 2 with a yellow note listing the issues.
+  - Step 2 is a temporary read-only scenario list (Slice 4 builds the real one).
+  - The project page lists real requirements with a status badge. "Add requirement" opens the new page.
+  - A small `request()` helper (`services/http.ts`) is used for every API call and shows the backend's own error messages.
+- **Removed** (no longer used): `mocks/requirements.ts`, the old Setup/Review/Validate step components, `AddRequirementForm`, `EditableTitle`, `ScenarioCard`, `utils/exporters.ts`, and their text strings. They're still in git history; Slices 4–6 rebuild those steps on real data.
+
+**Bug found and fixed on the way.** A brand-new user's first page load sends several requests at once. On MySQL, Prisma's `upsert` is "find, then create", so two requests both tried to create the user, and one failed with 500 "Failed to load projects". `getOrCreateUser` now retries once on that unique-constraint error.
+
+**Decisions:** D-017 (one requirement page with 4 steps), D-018 (file text merged into the editable details; files not stored), D-019 (AI endpoints answer 201 with the run's status), D-020 (no user API key).
+
+**How it was checked**
+- `npm test`: **53 tests** pass: the 42 from Slice 2, plus requirement validation (DTO) tests and document-reading tests (a hand-built PDF, a DOCX fixture, Thai Markdown/TXT, a damaged file).
+- The services were run against the real database with the mock AI:
+  - numbering 1, 2
+  - other users get nothing
+  - edit, delete (the scenarios go with it)
+  - suggestion saved
+  - a draft saves scenarios and sets the status
+  - `MOCK_FAIL_MODE=busy` keeps the old scenarios
+  - `always` → NEEDS_REVIEW
+- Swagger spec: valid (`redocly lint`).
+- **Browser test** (headless Chrome, a temporary Keycloak user, mock AI), end to end:
+  - create a project and a requirement
+  - attach MD + DOCX + a Thai-named TXT; remove one file
+  - suggest techniques; draft scenarios
+  - reload, edit, save
+  - busy AI, needs review
+  - project list, phone width (no sideways scrolling), Thai, delete
+
+  No errors in the page. The temporary user and its data were deleted afterwards.
+- Frontend `npm run lint` and `npm run build` pass.
+
+**Follow-ups**
+- Team checkpoint: try it with the real Gemini key (English and Thai requirements).
+- Slice 4: the real Step 2 (select, edit, add, redraft, history of the last 10 runs with restore).
+- Scanned PDFs (images only) give no text; OCR isn't planned for M1.
+
+---
+
 ## 2026-09-27 — Slice 2 fixes from the first real Gemini runs
 
 **Goal.** The team's first real run with a Gemini key failed. Make the pipeline robust against a slow or overloaded free-tier service.

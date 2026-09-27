@@ -1,163 +1,162 @@
 import type { Technique } from "./dashboard";
-import {
-  mockGenerateMore,
-  mockGenerateScenarios,
-  mockGetRequirements,
-  mockSaveRequirement,
-} from "../mocks/requirements";
+import { request } from "./http";
 
-export type TestCaseStatus = "pass" | "fail" | "open";
+// The value is also the i18n key under "techniques.*"
+export type TechniqueKey = Technique;
 
-export type TestCase = {
-  id: string; // e.g. "TC-0421"
+export const TECHNIQUE_KEYS: TechniqueKey[] = [
+  "equivalencePartitioning",
+  "boundaryValue",
+  "decisionTable",
+  "stateTransition",
+];
+
+// Which steps are unlocked: DRAFT → SCENARIOS_READY → CASES_READY → REPORTED
+export type RequirementStatus = "DRAFT" | "SCENARIOS_READY" | "CASES_READY" | "REPORTED";
+
+export type GenerationStatus = "PASSED" | "NEEDS_REVIEW" | "FAILED";
+
+export type Requirement = {
+  id: number;
+  projectId: number;
+  number: number; // shown as REQ-0001
   title: string;
-  precondition: string;
-  steps: string[];
-  expectedResult: string;
-  status: TestCaseStatus;
+  techniques: TechniqueKey[]; // empty = let the AI choose
+  status: RequirementStatus;
+  sourceFileName: string | null;
+  scenarioCount: number;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type Scenario = {
-  id: string; // e.g. "SC-01"
+  id: number;
+  number: number; // shown as SC-01
   title: string;
-  cases: TestCase[];
+  description: string;
+  technique: TechniqueKey | null;
+  selected: boolean;
+  estimatedCases: number;
+  source: "AI" | "MANUAL";
 };
 
-// "aiChoose" lets the AI pick the technique
-export type TechniqueChoice = Technique | "aiChoose";
+export type CheckResult = {
+  status: "pass" | "warn" | "fail";
+  issues: string[];
+};
 
-// The value is also the i18n key under "aiModules.*"
-export type AiModule = "local" | "cloud" | "auto";
+// { format, requirementCoverage, techniqueCompliance, rules, … }
+export type CheckResults = Record<string, CheckResult>;
 
-export type GenerationStatus = "notGenerated" | "success";
-
-export type Requirement = {
-  id: string; // e.g. "REQ-0042"
-  projectId: number;
-  title: string;
-  text: string;
+export type RunSummary = {
+  id: number;
   status: GenerationStatus;
-  techniques: TechniqueChoice[];
-  aiModule: AiModule;
-  scenarios: Scenario[];
+  attempts: number;
+  validation: { final: CheckResults | null } | null;
+  errorMessage: string | null;
+  createdAt: string;
 };
 
-export type GenerateOptions = {
+export type RequirementDetail = Requirement & {
   text: string;
-  techniques: TechniqueChoice[];
-  aiModule: AiModule;
+  scenarios: Scenario[];
+  latestScenarioRun: RunSummary | null;
 };
 
-// ---------------------------------------------------------------------------
-// TODO: replace the mock calls with real API requests once the backend has
-// requirement / scenario / test case tables. Pages only use these functions.
-// ---------------------------------------------------------------------------
+export type TechniqueSuggestion = {
+  technique: TechniqueKey;
+  reason: string;
+};
 
-export async function getRequirements(projectId: number): Promise<Requirement[]> {
-  return mockGetRequirements(projectId);
+export type SuggestionRun = RunSummary & {
+  output: { suggestions: TechniqueSuggestion[] } | null;
+};
+
+export type RequirementInput = {
+  title: string;
+  text: string;
+  techniques: TechniqueKey[];
+  sourceFileName: string | null;
+};
+
+export type ExtractedDocument = {
+  fileName: string;
+  size: number;
+  text: string;
+};
+
+const base = (projectId: number) => `/api/projects/${projectId}/requirements`;
+
+export function getRequirements(projectId: number) {
+  return request<Requirement[]>(base(projectId));
 }
 
-export async function getRequirement(
+export function getRequirement(projectId: number, number: number) {
+  return request<RequirementDetail>(`${base(projectId)}/${number}`);
+}
+
+export function createRequirement(projectId: number, input: RequirementInput) {
+  return request<Requirement>(base(projectId), { method: "POST", body: input });
+}
+
+export function updateRequirement(
   projectId: number,
-  requirementId: string
-): Promise<Requirement | null> {
-  const requirements = await getRequirements(projectId);
-
-  return requirements.find((item) => item.id === requirementId) ?? null;
+  number: number,
+  changes: Partial<RequirementInput>
+) {
+  return request<Requirement>(`${base(projectId)}/${number}`, {
+    method: "PATCH",
+    body: changes,
+  });
 }
 
-export async function addRequirement(
-  projectId: number,
-  text: string
-): Promise<Requirement> {
-  const requirements = await getRequirements(projectId);
-  const trimmed = text.trim();
-
-  const requirement: Requirement = {
-    id: nextId("REQ-", requirements.map((item) => item.id), 4),
-    projectId,
-    // Use the first sentence (max 80 chars) as the title
-    title: trimmed.split(/[.\n]/)[0].slice(0, 80),
-    text: trimmed,
-    status: "notGenerated",
-    techniques: ["aiChoose"],
-    aiModule: "auto",
-    scenarios: [],
-  };
-
-  return mockSaveRequirement(requirement);
+export function deleteRequirement(projectId: number, number: number) {
+  return request<void>(`${base(projectId)}/${number}`, { method: "DELETE" });
 }
 
-export async function saveRequirement(requirement: Requirement): Promise<Requirement> {
-  return mockSaveRequirement(requirement);
+// "Suggest with AI". Can take up to a minute. A busy AI → status FAILED + errorMessage.
+export function suggestTechniques(projectId: number, number: number) {
+  return request<SuggestionRun>(`${base(projectId)}/${number}/technique-suggestions`, {
+    method: "POST",
+  });
 }
 
-// Asks the AI to generate scenarios + test cases (replaces existing ones)
-export async function generateScenarios(
-  requirement: Requirement,
-  options: GenerateOptions
-): Promise<Requirement> {
-  return mockGenerateScenarios(requirement, options);
+// Step 1 → 2. Can take a minute or more. A busy AI → run.status FAILED + errorMessage.
+export function draftScenarios(projectId: number, number: number) {
+  return request<{ run: RunSummary; scenarios: Scenario[] }>(
+    `${base(projectId)}/${number}/scenario-drafts`,
+    { method: "POST" }
+  );
 }
 
-// Asks the AI for extra scenarios, keeping the existing ones
-export async function generateMoreScenarios(
-  requirement: Requirement
-): Promise<Requirement> {
-  return mockGenerateMore(requirement);
+// Reads the text out of PDF / DOCX / Markdown / TXT files (nothing is stored)
+export function extractText(files: File[]) {
+  const form = new FormData();
+  files.forEach((file) => form.append("files", file));
+
+  return request<ExtractedDocument[]>("/api/documents/extract-text", {
+    method: "POST",
+    body: form,
+  });
 }
 
 // ---------------------------------------------------------------------------
-// Helpers (pure functions — these stay when the mocks are removed)
+// Helpers
 // ---------------------------------------------------------------------------
 
-// nextId("SC-", ["SC-01", "SC-02"], 2) → "SC-03"
-export function nextId(prefix: string, existingIds: string[], padding: number) {
-  const numbers = existingIds
-    .filter((id) => id.startsWith(prefix))
-    .map((id) => Number(id.slice(prefix.length)))
-    .filter((value) => Number.isFinite(value));
-
-  const next = numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
-
-  return `${prefix}${String(next).padStart(padding, "0")}`;
+// 1 → "REQ-0001"
+export function formatRequirementCode(number: number) {
+  return `REQ-${String(number).padStart(4, "0")}`;
 }
 
-export function allCases(scenarios: Scenario[]): TestCase[] {
-  return scenarios.flatMap((scenario) => scenario.cases);
+// 1 → "SC-01"
+export function formatScenarioCode(number: number) {
+  return `SC-${String(number).padStart(2, "0")}`;
 }
 
-export type CoverageArea = {
-  key: string;
-  label: string;
-  passed: number;
-  total: number;
-};
-
-export type CoverageSummary = {
-  percent: number; // passed cases / all cases, 0–100
-  areas: CoverageArea[]; // one per scenario
-  passedCases: number;
-  failingCases: number;
-  mappedCases: number;
-};
-
-export function summarizeCoverage(scenarios: Scenario[]): CoverageSummary {
-  const cases = allCases(scenarios);
-  const passedCases = cases.filter((item) => item.status === "pass").length;
-
-  return {
-    percent: cases.length > 0 ? Math.round((passedCases / cases.length) * 100) : 0,
-    areas: scenarios
-      .filter((scenario) => scenario.cases.length > 0)
-      .map((scenario) => ({
-        key: scenario.id,
-        label: scenario.title,
-        passed: scenario.cases.filter((item) => item.status === "pass").length,
-        total: scenario.cases.length,
-      })),
-    passedCases,
-    failingCases: cases.filter((item) => item.status === "fail").length,
-    mappedCases: cases.length,
-  };
+// Every issue from failed or warning checks, e.g. for the "needs review" note
+export function issuesOf(checks: CheckResults | null | undefined) {
+  return Object.values(checks ?? {}).flatMap((check) =>
+    check.status === "pass" ? [] : check.issues
+  );
 }

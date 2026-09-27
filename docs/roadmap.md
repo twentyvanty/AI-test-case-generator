@@ -1,6 +1,6 @@
 # Roadmap
 
-_Last updated: 2026-09-26_
+_Last updated: 2026-09-27_
 
 ## Milestone 1 — Main tester flow, end to end (before the demo)
 
@@ -11,9 +11,9 @@ Goal: a tester can go **Requirement → Scenarios → Test cases → Report** on
 | 1 | Database schema (Requirement, GenerationRun, Scenario, TestCase, UserPreference) | ✅ Done 2026-09-26 |
 | — | Project documentation (`docs/`) | ✅ Done 2026-09-26 |
 | — | Swagger API docs (`/api/docs`) | ✅ Done 2026-09-26 |
-| 2 | AI pipeline: providers (Gemini + mock), output schemas, rule checks, generate → validate → retry ×3, provider guide | ✅ Built 2026-09-26, awaiting a real-key check by the team |
-| 3 | Requirements API + Step 1 page: text or document upload (PDF/DOCX/MD/TXT), technique selection, "let AI suggest", 4-step stepper | ⏳ Next |
-| 4 | Scenarios API + Step 2 page: draft/redraft, select, edit, add, history of last 10 with restore, "needs review" warning | ⏳ |
+| 2 | AI pipeline: providers (Gemini + mock), output schemas, rule checks, generate → validate → retry ×3, provider guide | ✅ Done 2026-09-27 (checked with a real Gemini key) |
+| 3 | Requirements API + Step 1 page: text or document upload (PDF/DOCX/MD/TXT), technique selection, "let AI suggest", 4-step stepper, draft scenarios | ✅ Built 2026-09-27, awaiting a check by the team with the real key |
+| 4 | Scenarios API + Step 2 page: draft/redraft, select, edit, add, history of last 10 with restore, "needs review" warning | ⏳ Next |
 | 5 | Test cases API + Step 3 page: validation results (4 checks), tabs per scenario, full test-case editor, regenerate | ⏳ |
 | 6 | Report + export: coverage and traceability, Excel/CSV export with column picker, real project stats, remove mocks | ⏳ |
 
@@ -27,6 +27,6 @@ Goal: a tester can go **Requirement → Scenarios → Test cases → Report** on
 | **M5 — Credits & scale** | Credit system (token usage is already recorded per generation); background jobs for long generations |
 
 ## Ideas collected (not yet scheduled)
-- AI analyses a requirement and suggests suitable techniques (planned in Slice 3).
+- Read scanned PDFs with OCR (not planned for M1).
 - Regenerate test cases after they've been generated (Slice 5).
 - Add scenarios and test cases by hand, in addition to the generated ones (Slices 4–5).

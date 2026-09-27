@@ -67,7 +67,14 @@ const th = {
       equivalencePartitioning: "Equivalence partitioning",
       decisionTable: "Decision table",
       stateTransition: "State transition",
-      aiChoose: "ให้ AI เลือก",
+    },
+
+    techniqueDescriptions: {
+      equivalencePartitioning:
+        "แบ่งข้อมูลเข้าเป็นกลุ่มที่ถูกต้องและไม่ถูกต้อง แล้วทดสอบค่าหนึ่งค่าจากแต่ละกลุ่ม",
+      boundaryValue: "ทดสอบค่าที่ขอบของทุกช่วง: ต่ำกว่า เท่ากับ และสูงกว่าขีดจำกัดเล็กน้อย",
+      decisionTable: "ทดสอบแต่ละชุดเงื่อนไขและผลลัพธ์ที่ควรได้",
+      stateTransition: "ทดสอบการเปลี่ยนสถานะที่อนุญาตและที่ต้องถูกปฏิเสธ",
     },
 
     days: {
@@ -95,110 +102,105 @@ const th = {
     requirements: {
       title: "ข้อกำหนด (Requirements)",
       addTitle: "เพิ่มข้อกำหนด",
-      add: "เพิ่มข้อกำหนด",
-      text: "รายละเอียดข้อกำหนด",
-      textPlaceholder: "เช่น ผู้ใช้ต้องสามารถรีเซ็ตรหัสผ่านผ่านลิงก์ทางอีเมลได้…",
       empty: "ยังไม่มีข้อกำหนด เพิ่มข้อกำหนดเพื่อเริ่มสร้าง Test Case",
-      caseCount_other: "{{count}} เคส",
-      coverage: "ครอบคลุม {{percent}}%",
+      scenarioCount_other: "{{count}} สถานการณ์",
       open: "เปิดข้อกำหนด",
     },
 
     coverage: {
       title: "ความครอบคลุมและการติดตาม",
-      reportTitle: "รายงานความครอบคลุมและการติดตาม",
       empty: "ยังไม่มี Test Case",
       failingCases: "เคสที่ไม่ผ่าน",
       mappedCases: "เคสที่เชื่อมโยงแล้ว",
     },
 
     dropzone: {
-      title: "วางไฟล์ข้อกำหนดที่นี่",
-      hint: "PDF, DOCX, Markdown — ไม่เกิน 20 MB",
-      remove: "ลบไฟล์",
-      tooLarge: "ไฟล์มีขนาดเกิน 20 MB",
+      title: "วางไฟล์ที่นี่ หรือคลิกเพื่อเลือกไฟล์",
+      hint: "PDF, DOCX, Markdown หรือ TXT — ไม่เกิน 20 MB ต่อไฟล์ ครั้งละ 5 ไฟล์",
+      tooLarge: "{{name}} มีขนาดเกิน 20 MB",
+      unsupported: "{{name}} ไม่ใช่ไฟล์ PDF, DOCX, Markdown หรือ TXT",
     },
 
     requirementPage: {
       backToProject: "กลับไปที่โปรเจกต์",
       notFound: "ไม่พบข้อกำหนดนี้",
+      newEyebrow: "ใหม่",
+      newTitle: "ข้อกำหนดใหม่",
+      description:
+        "อธิบายสิ่งที่ระบบต้องทำ แนบเอกสารถ้ามี แล้วเลือกวิธีออกแบบ Test Case",
+      working: "AI กำลังทำงาน…",
+      aiFailed: "AI ทำงานไม่สำเร็จ: {{message}}",
+      delete: "ลบ",
+      deleting: "กำลังลบ…",
+      deleteTitle: "ลบข้อกำหนดนี้หรือไม่?",
+      deleteDescription:
+        "{{code}} รวมถึงสถานการณ์ Test Case และประวัติการสร้างทั้งหมดจะถูกลบ และไม่สามารถกู้คืนได้",
     },
 
     requirementStatus: {
-      success: "สำเร็จ",
-      notGenerated: "ยังไม่ได้สร้าง",
-      generating: "กำลังสร้าง…",
+      DRAFT: "ฉบับร่าง",
+      SCENARIOS_READY: "สถานการณ์พร้อมแล้ว",
+      CASES_READY: "Test Case พร้อมแล้ว",
+      REPORTED: "ออกรายงานแล้ว",
     },
 
     steps: {
-      setup: "ตั้งค่า",
-      review: "ตรวจสอบสถานการณ์",
-      validate: "ยืนยันผลและรายงาน",
+      requirement: "ข้อกำหนด",
+      scenarios: "สถานการณ์",
+      testCases: "Test Case",
+      report: "รายงาน",
     },
 
-    setup: {
-      hint: "เลือกเทคนิคและโมดูล AI ก่อนสร้าง Test Case",
-      technique: "เทคนิค",
-      aiModule: "โมดูล AI",
-      generate: "สร้าง Test Case",
-      generating: "กำลังสร้าง…",
+    requirementStep: {
+      describeTitle: "อธิบายข้อกำหนด",
+      titleLabel: "ชื่อ",
+      titlePlaceholder: "เช่น รีเซ็ตรหัสผ่านทางอีเมล",
+      detailsLabel: "รายละเอียด",
+      detailsPlaceholder:
+        "ระบบต้องทำอะไร? ใส่กฎ ขีดจำกัด และกรณีข้อผิดพลาด เช่น “ผู้ใช้สามารถรีเซ็ตรหัสผ่านผ่านลิงก์ทางอีเมล ลิงก์หมดอายุหลัง 30 นาที”",
+      characters_other: "{{count}} ตัวอักษร",
+      textChanged: "รายละเอียดถูกแก้ไขหลังจากร่างสถานการณ์แล้ว ร่างใหม่อีกครั้งเพื่ออัปเดตสถานการณ์",
+      filesTitle: "แนบไฟล์ข้อกำหนด (ไม่บังคับ)",
+      filesHint: "มีข้อกำหนดอยู่ในเอกสารแล้ว? แนบไฟล์ที่นี่แทนการพิมพ์",
+      techniquesTitle: "เลือกเทคนิคการทดสอบ",
+      techniquesHint: "เลือกได้หนึ่งหรือหลายเทคนิค หรือให้ AI เลือกให้",
+      save: "บันทึกฉบับร่าง",
+      saving: "กำลังบันทึก…",
+      saved: "บันทึกแล้ว",
+      delete: "ลบข้อกำหนด",
+      draft: "ร่างสถานการณ์",
+      redraft: "ร่างสถานการณ์ใหม่",
+      drafting: "กำลังร่างสถานการณ์… ปกติใช้เวลาไม่ถึงหนึ่งนาที แต่อาจนานกว่านั้นเมื่อ AI มีผู้ใช้งานมาก",
+      suggesting: "กำลังถาม AI ว่าเทคนิคใดเหมาะสม…",
+      missing: "ใส่ชื่อและรายละเอียดก่อนดำเนินการต่อ",
+      redraftNote: "การร่างใหม่จะแทนที่สถานการณ์ปัจจุบัน",
     },
 
-    aiModules: {
-      local: {
-        name: "Qwen 3 (ในเครื่อง)",
-        description: "ทำงานบนเครื่องของคุณ ข้อมูลไม่ถูกส่งออก",
-      },
-      cloud: {
-        name: "โมเดลบนคลาวด์",
-        description: "ครอบคลุมดีที่สุดสำหรับข้อกำหนดยาว",
-      },
-      auto: {
-        name: "เลือกอัตโนมัติ",
-        description: "เลือกโมดูลตามขนาดของข้อกำหนด",
-      },
+    specificationFiles: {
+      reading: "กำลังอ่าน {{name}}…",
+      remove: "ลบ {{name}}",
+      noText: "ไม่พบข้อความใน {{name}} หากเป็นไฟล์ภาพสแกน กรุณาพิมพ์ข้อกำหนดแทน",
+      hint: "ข้อความของแต่ละไฟล์จะถูกเพิ่มลงในรายละเอียดด้านบน เพื่อให้คุณตรวจสอบและแก้ไขสิ่งที่ AI จะอ่านได้",
     },
 
-    review: {
-      title: "ตรวจสอบสถานการณ์ที่สร้างขึ้น",
-      description:
-        "ตรวจสอบสถานการณ์และจำนวนเคส สร้างเพิ่ม แก้ไข หรือลบ ก่อนยืนยันผล",
-      addScenario: "เพิ่มสถานการณ์",
-      generateMore: "สร้างเพิ่ม",
-      continue: "ไปยืนยันผล",
-      scenarioCount_other: "{{count}} สถานการณ์",
-      edit: "แก้ไข",
-      addCase: "เพิ่มเคส",
-      delete: "ลบ",
-      newScenario: "สถานการณ์ใหม่",
-      newCase: "Test Case ใหม่",
-      confirmDeleteScenario: 'ลบสถานการณ์ "{{title}}" และ Test Case ทั้งหมดในนั้นหรือไม่?',
+    techniquePicker: {
+      selected: "เลือกแล้ว",
+      aiChooseName: "ให้ AI เลือก",
+      aiChooseDescription: "AI จะเลือกเทคนิคที่เหมาะกับข้อกำหนดนี้",
+      suggest: "ให้ AI แนะนำ",
+      suggesting: "กำลังแนะนำ…",
+      suggestHint: "AI จะเลือกเทคนิคที่เหมาะสมและอธิบายเหตุผล",
+      aiReason: "AI: {{reason}}",
     },
 
-    validate: {
-      title: "Test Case และการยืนยันผล",
-      passCount_other: "ผ่าน {{count}}",
-      failCount_other: "ไม่ผ่าน {{count}}",
-      backToScenarios: "กลับไปที่สถานการณ์",
-      downloadTable: "ดาวน์โหลดตาราง Test Case",
-      downloadReport: "ดาวน์โหลดรายงาน",
-      exportNote: "ไฟล์ที่ส่งออกมีเฉพาะ Test Case ของข้อกำหนดนี้",
-      scenarioLabel: "สถานการณ์: {{title}}",
-      markPassed: "ทำเครื่องหมายว่า {{id}} ผ่าน",
-      columns: {
-        id: "รหัส",
-        title: "ชื่อ",
-        precondition: "เงื่อนไขก่อนทดสอบ",
-        steps: "ขั้นตอน",
-        expected: "ผลลัพธ์ที่คาดหวัง",
-        status: "สถานะ",
-      },
-    },
-
-    testStatus: {
-      pass: "ผ่าน",
-      fail: "ไม่ผ่าน",
-      open: "ยังไม่ทดสอบ",
+    scenarioPreview: {
+      title: "สถานการณ์ที่ร่างไว้",
+      count_other: "{{count}} สถานการณ์",
+      note: "การแก้ไข เลือก และเพิ่มสถานการณ์จะมาในอัปเดตถัดไป",
+      noTechnique: "ไม่ระบุเทคนิค",
+      estimatedCases_other: "~{{count}} Test Case",
+      needsReviewTitle: "กรุณาตรวจสอบสถานการณ์เหล่านี้",
+      needsReviewText: "การตรวจสอบของ AI ยังพบปัญหาหลังจากลอง 3 ครั้ง กรุณาตรวจสอบสถานการณ์ด้านล่างอย่างละเอียด:",
     },
 
     comingSoon: {

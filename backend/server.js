@@ -7,6 +7,8 @@ import swaggerUi from "swagger-ui-express";
 
 import userRoutes from "./routes/user.routes.js";
 import projectRoutes from "./routes/project.routes.js";
+import requirementRoutes from "./routes/requirement.routes.js";
+import documentRoutes from "./routes/document.routes.js";
 import { openapiSpec } from "./docs/openapi.js";
 import { keycloakClientId } from "./config/keycloak.js";
 
@@ -36,9 +38,15 @@ app.use(
 
 app.use("/api", userRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/projects/:projectId/requirements", requirementRoutes);
+app.use("/api/documents", documentRoutes);
 
 const PORT = process.env.PORT || 5001;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
+
+// An AI generation with retries can take several minutes; Node's default
+// (5 min) would cut it off, so allow up to 10 min per request.
+server.requestTimeout = 10 * 60 * 1000;

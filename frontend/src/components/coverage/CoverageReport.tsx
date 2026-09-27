@@ -1,8 +1,23 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import type { CoverageSummary } from "../../services/requirements";
 import Card from "../ui/Card";
 import ProgressBar, { type ProgressTone } from "../ui/ProgressBar";
+
+// Filled with real test results in Slice 6 (report step)
+export type CoverageArea = {
+  key: string;
+  label: string;
+  passed: number;
+  total: number;
+};
+
+export type CoverageSummary = {
+  percent: number; // passed cases / all cases, 0–100
+  areas: CoverageArea[]; // one per scenario
+  passedCases: number;
+  failingCases: number;
+  mappedCases: number;
+};
 
 // Green when mostly passing, amber when partly, red when mostly not
 function toneFor(passed: number, total: number): ProgressTone {

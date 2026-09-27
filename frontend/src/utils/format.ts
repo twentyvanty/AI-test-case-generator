@@ -32,3 +32,12 @@ export function formatRelativeTime(date: string | Date, language: string) {
 
   return formatter.format(0, "minute");
 }
+
+// 86016 → "84 KB", 1258291 → "1.2 MB"
+export function formatFileSize(bytes: number) {
+  if (bytes < 1024 * 1024) {
+    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  }
+
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}

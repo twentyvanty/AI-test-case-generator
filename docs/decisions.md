@@ -102,3 +102,24 @@ Separately, the `gemini-2.5-*` models turned out to be unavailable to new keys, 
 **Context.** In a real run, two boundary cases ("link used at 29:59" and "at exactly 30:00") had identical steps and expected results and differed only in their precondition, and were wrongly flagged as duplicates (a refinement of D-013).
 **Decision.** Two test cases are exact duplicates only if their precondition, steps and expected result are all the same (or their titles are).
 **Consequences.** Legitimate boundary cases pass. Real duplicates are still caught.
+
+### D-017 — One requirement page with 4 steps
+**Context.** The first UI draft split the flow: requirements were added in a small form on the project page, then a 3-tab page (Setup / Review / Validate). A later design put everything on one page with 4 steps.
+**Decision.** One page per requirement with the steps **01 Requirement · 02 Scenarios · 03 Test cases · 04 Report**. The same page creates a new requirement (`/requirements/new`). A step unlocks when the requirement's status reaches it (`DRAFT` → `SCENARIOS_READY` → `CASES_READY` → `REPORTED`), and the step is kept in the URL (`?step=`). Step 1 is a single column of numbered cards (describe → attach files → choose techniques), so first-time users read it top to bottom.
+**Consequences.** Slices 4–6 fill in steps 2–4 on this page. The project page only lists requirements.
+
+### D-018 — Document text goes into the editable details; files aren't stored
+**Context.** Testers can attach PDF, DOCX, Markdown or TXT files. The AI can only use text, and testers should see exactly what the AI reads.
+**Decision.** The backend extracts the text (`POST /api/documents/extract-text`) and returns it without storing the file. The page adds each file's text to the requirement details under a `--- from <file> ---` line, where the tester can check and edit it. Only the file names are saved (`sourceFileName`).
+**Consequences.** No file storage is needed, and the text sent to the AI is always visible. The original files can't be downloaded again later. Scanned PDFs (images only) give no text; the page says so.
+
+### D-019 — AI endpoints answer 201 with the run's status
+**Context.** An AI run can fail for reasons that aren't server errors (busy service, free-tier limit), and even then it's saved in the history.
+**Decision.** The technique-suggestion and scenario-draft endpoints always answer **201** with the saved `GenerationRun`. The page reads `status` (PASSED / NEEDS_REVIEW / FAILED) and `errorMessage`. HTTP errors (4xx/5xx) are kept for real problems: bad input, not found, bugs.
+**Consequences.** The page shows AI problems as normal messages, and every attempt appears in the history. Node's request timeout is raised to 10 minutes because generation is synchronous (D-011).
+
+### D-020 — No user API key; the server's key is used
+**Context.** One design had a card where each tester pastes their own AI provider key.
+**Decision.** Not built. Every request uses the server's key (`GEMINI_API_KEY` in `backend/.env`), as in Slice 2.
+**Consequences.** It's simpler and safer: keys are never sent from browsers or stored per user. If the project later lets users bring their own key, it belongs with the credit system (M5).
+

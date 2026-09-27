@@ -7,26 +7,39 @@ export async function getOrCreateUser(keycloakUser) {
     throw new Error("Keycloak user ID is missing");
   }
 
-  return prisma.user.upsert({
-    where: {
-      keycloakId,
-    },
+  const profile = {
+    email: keycloakUser.email ?? null,
+    name:
+      keycloakUser.name ??
+      keycloakUser.preferred_username ??
+      null,
+  };
 
-    update: {
-      email: keycloakUser.email ?? null,
-      name:
-        keycloakUser.name ??
-        keycloakUser.preferred_username ??
-        null,
-    },
+  const upsert = () =>
+    prisma.user.upsert({
+      where: {
+        keycloakId,
+      },
 
-    create: {
-      keycloakId,
-      email: keycloakUser.email ?? null,
-      name:
-        keycloakUser.name ??
-        keycloakUser.preferred_username ??
-        null,
-    },
-  });
+      update: profile,
+
+      create: {
+        keycloakId,
+        ...profile,
+      },
+    });
+
+  try {
+    return await upsert();
+  } catch (error) {
+    // A new user's first page load sends several requests at once. On MySQL,
+    // upsert = "find, then create", so two of them can both try to create the
+    // user; the loser gets a unique-constraint error (P2002). The user exists
+    // by then, so running the upsert again just updates it.
+    if (error.code === "P2002") {
+      return upsert();
+    }
+
+    throw error;
+  }
 }

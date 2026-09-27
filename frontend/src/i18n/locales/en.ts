@@ -68,7 +68,14 @@ const en = {
       equivalencePartitioning: "Equivalence partitioning",
       decisionTable: "Decision table",
       stateTransition: "State transition",
-      aiChoose: "AI-choose",
+    },
+
+    techniqueDescriptions: {
+      equivalencePartitioning:
+        "Group inputs into valid and invalid classes, and test one value from each.",
+      boundaryValue: "Test the edges of every range: just below, on and just above each limit.",
+      decisionTable: "Test each combination of conditions and the outcome it should give.",
+      stateTransition: "Test the allowed and forbidden moves between the system's states.",
     },
 
     days: {
@@ -97,114 +104,113 @@ const en = {
     requirements: {
       title: "Requirements",
       addTitle: "Add requirement",
-      add: "Add requirement",
-      text: "Requirement text",
-      textPlaceholder: "e.g. Users must be able to reset their password via email link…",
       empty: "No requirements yet. Add one to start generating test cases.",
-      caseCount_one: "{{count}} case",
-      caseCount_other: "{{count}} cases",
-      coverage: "{{percent}}% coverage",
+      scenarioCount_one: "{{count}} scenario",
+      scenarioCount_other: "{{count}} scenarios",
       open: "Open requirement",
     },
 
     coverage: {
       title: "Coverage & traceability",
-      reportTitle: "Coverage & traceability report",
       empty: "No test cases yet.",
       failingCases: "failing cases",
       mappedCases: "mapped cases",
     },
 
     dropzone: {
-      title: "Drop requirement files",
-      hint: "PDF, DOCX, Markdown — up to 20 MB",
-      remove: "Remove file",
-      tooLarge: "File is larger than 20 MB.",
+      title: "Drop files here, or click to choose",
+      hint: "PDF, DOCX, Markdown or TXT — up to 20 MB each, 5 at a time",
+      tooLarge: "{{name}} is larger than 20 MB.",
+      unsupported: "{{name}} isn't a PDF, DOCX, Markdown or TXT file.",
     },
 
     requirementPage: {
       backToProject: "Back to project",
       notFound: "Requirement not found.",
+      newEyebrow: "New",
+      newTitle: "New requirement",
+      description:
+        "Describe what the system must do, attach documents if you have them, then choose how the test cases should be designed.",
+      working: "AI working…",
+      aiFailed: "The AI couldn't finish: {{message}}",
+      delete: "Delete",
+      deleting: "Deleting…",
+      deleteTitle: "Delete this requirement?",
+      deleteDescription:
+        "{{code}} and all its scenarios, test cases and generation history will be deleted. This can't be undone.",
     },
 
     requirementStatus: {
-      success: "Success",
-      notGenerated: "Not generated",
-      generating: "Generating…",
+      DRAFT: "Draft",
+      SCENARIOS_READY: "Scenarios ready",
+      CASES_READY: "Test cases ready",
+      REPORTED: "Reported",
     },
 
     steps: {
-      setup: "Setup",
-      review: "Review scenarios",
-      validate: "Validate & report",
+      requirement: "Requirement",
+      scenarios: "Scenarios",
+      testCases: "Test cases",
+      report: "Report",
     },
 
-    setup: {
-      hint: "Pick the technique(s) and an AI module before generating.",
-      technique: "Technique",
-      aiModule: "AI module",
-      generate: "Generate test cases",
-      generating: "Generating…",
+    requirementStep: {
+      describeTitle: "Describe the requirement",
+      titleLabel: "Title",
+      titlePlaceholder: "e.g. Password reset by email",
+      detailsLabel: "Details",
+      detailsPlaceholder:
+        "What must the system do? Include rules, limits and error cases, e.g. “Users can reset their password via an email link. The link expires after 30 minutes.”",
+      characters_one: "{{count}} character",
+      characters_other: "{{count}} characters",
+      textChanged:
+        "The details changed after the scenarios were drafted. Draft again to update the scenarios.",
+      filesTitle: "Attach specification files (optional)",
+      filesHint: "Have the requirement in a document? Add it here instead of typing it.",
+      techniquesTitle: "Choose testing techniques",
+      techniquesHint: "Pick one or more, or let the AI choose for you.",
+      save: "Save draft",
+      saving: "Saving…",
+      saved: "Saved",
+      delete: "Delete requirement",
+      draft: "Draft scenarios",
+      redraft: "Draft scenarios again",
+      drafting:
+        "Drafting scenarios… this usually takes under a minute, but can take longer when the AI is busy.",
+      suggesting: "Asking the AI which techniques fit…",
+      missing: "Add a title and details to continue.",
+      redraftNote: "Drafting again replaces the current scenarios.",
     },
 
-    aiModules: {
-      local: {
-        name: "Qwen 3 (local)",
-        description: "Runs on your machine, no data leaves",
-      },
-      cloud: {
-        name: "Cloud model",
-        description: "Best coverage on long requirements",
-      },
-      auto: {
-        name: "Auto-select",
-        description: "Picks a module per requirement size",
-      },
+    specificationFiles: {
+      reading: "Reading {{name}}…",
+      remove: "Remove {{name}}",
+      noText:
+        "No text found in {{name}}. If it's a scanned image, please type the requirement instead.",
+      hint: "The text of each file is added to the details above, so you can check and edit what the AI will read.",
     },
 
-    review: {
-      title: "Review generated scenarios",
-      description:
-        "Check the scenarios and case counts. Generate more, edit or delete before validating.",
-      addScenario: "Add scenario",
-      generateMore: "Generate more",
-      continue: "Continue to validation",
-      scenarioCount_one: "{{count}} scenario",
-      scenarioCount_other: "{{count}} scenarios",
-      edit: "Edit",
-      addCase: "Add case",
-      delete: "Delete",
-      newScenario: "New scenario",
-      newCase: "New test case",
-      confirmDeleteScenario: 'Delete scenario "{{title}}" and its test cases?',
+    techniquePicker: {
+      selected: "Selected",
+      aiChooseName: "Let AI choose",
+      aiChooseDescription: "The AI picks the techniques that fit this requirement.",
+      suggest: "Suggest with AI",
+      suggesting: "Suggesting…",
+      suggestHint: "The AI selects the techniques that fit and explains why.",
+      aiReason: "AI: {{reason}}",
     },
 
-    validate: {
-      title: "Test case & validation",
-      passCount_one: "{{count}} Pass",
-      passCount_other: "{{count}} Pass",
-      failCount_one: "{{count}} Fail",
-      failCount_other: "{{count}} Fail",
-      backToScenarios: "Back to scenarios",
-      downloadTable: "Download test case table",
-      downloadReport: "Download report",
-      exportNote: "Export includes test cases from this requirement only.",
-      scenarioLabel: "Scenario: {{title}}",
-      markPassed: "Mark {{id}} as passed",
-      columns: {
-        id: "ID",
-        title: "Title",
-        precondition: "Precondition",
-        steps: "Steps",
-        expected: "Expected result",
-        status: "Status",
-      },
-    },
-
-    testStatus: {
-      pass: "Pass",
-      fail: "Fail",
-      open: "Open",
+    scenarioPreview: {
+      title: "Drafted scenarios",
+      count_one: "{{count}} scenario",
+      count_other: "{{count}} scenarios",
+      note: "Editing, selecting and adding scenarios is coming in the next update.",
+      noTechnique: "No technique",
+      estimatedCases_one: "~{{count}} test case",
+      estimatedCases_other: "~{{count}} test cases",
+      needsReviewTitle: "Please review these scenarios",
+      needsReviewText:
+        "The AI checks still found problems after 3 attempts. Check the scenarios below carefully:",
     },
 
     comingSoon: {

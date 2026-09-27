@@ -1,6 +1,6 @@
 # Architecture
 
-_Last updated: 2026-09-26_
+_Last updated: 2026-09-27_
 
 ## Overview
 
@@ -87,6 +87,16 @@ Current endpoints (all require login):
 | GET | `/api/projects` | List the user's projects |
 | POST | `/api/projects` | Create a project |
 | GET | `/api/projects/:id` | Get one project (404 if it isn't the user's) |
+| GET | `/api/projects/:projectId/requirements` | List the project's requirements (status, scenario count) |
+| POST | `/api/projects/:projectId/requirements` | Create a requirement (gets the next number: REQ-0001, REQ-0002, …) |
+| GET | `/api/projects/:projectId/requirements/:number` | One requirement with its scenarios and latest scenario draft |
+| PATCH | `/api/projects/:projectId/requirements/:number` | Edit title, details, techniques, file names |
+| DELETE | `/api/projects/:projectId/requirements/:number` | Delete it (with its runs, scenarios and test cases) |
+| POST | `/api/projects/:projectId/requirements/:number/technique-suggestions` | AI suggests techniques (saved as a `GenerationRun`) |
+| POST | `/api/projects/:projectId/requirements/:number/scenario-drafts` | AI drafts scenarios (saved as a `GenerationRun`; replaces the scenarios) |
+| POST | `/api/documents/extract-text` | Read the text of PDF / DOCX / Markdown / TXT files (not stored) |
+
+Requirements are addressed by their **number inside the project**, the same number shown as REQ-0001. Ownership is checked through the project on every request. The AI endpoints always answer `201` with the saved run; an AI problem shows up as `status: "FAILED"` plus `errorMessage` (D-019). They can take a minute or more, so the server allows requests up to 10 minutes.
 
 ### API docs (Swagger)
 
@@ -196,6 +206,8 @@ flowchart LR
     T --> P["4. Report<br/>coverage, traceability,<br/>Excel/CSV export"]
 ```
 
+Status: Step 1 is built (Slice 3); Step 2 shows the drafted scenarios read-only until Slice 4.
+
 Each AI step goes through the same pipeline: **generate → format check → rule checks → AI validation (a different model) → retry up to 3 times**. If it still fails, the result is marked *needs review* for the tester to fix by hand. Every generation is stored as a `GenerationRun`, so the tester can restore any of the last 10.
 
 ## AI module (`backend/ai/`)
@@ -212,8 +224,9 @@ Each returns an object shaped like a `GenerationRun` row: status, attempts, outp
 
 ## Frontend structure
 
-- **Routing** ([frontend/src/App.tsx](../frontend/src/App.tsx)): `/` Dashboard, `/workspace` Projects, `/projects/:projectId`, `/projects/:projectId/requirements/:requirementId`, `/history` and `/account` (coming soon). All pages share `AppLayout` (top nav + sidebar).
-- **Data access:** pages only call functions in `src/services/`. Where the backend isn't ready yet, those functions return data from `src/mocks/`. Swapping to the real API changes only the service function.
+- **Routing** ([frontend/src/App.tsx](../frontend/src/App.tsx)): `/` Dashboard, `/workspace` Projects, `/projects/:projectId`, `/projects/:projectId/requirements/new` and `/projects/:projectId/requirements/:requirementNumber` (the requirement page, step in `?step=`), `/history` and `/account` (coming soon). All pages share `AppLayout` (top nav + sidebar).
+- **Data access:** pages only call functions in `src/services/`, which use one `request()` helper ([services/http.ts](../frontend/src/services/http.ts)). It adds the login token, sends JSON or files, and turns error answers into an `ApiError` carrying the backend's own message. Projects and requirements use the real API. Only the Dashboard still reads `src/mocks/dashboard.ts` (until M2).
+- **Requirement page** ([pages/RequirementPage.tsx](../frontend/src/pages/RequirementPage.tsx)): one page with the 4 steps (01 Requirement · 02 Scenarios · 03 Test cases · 04 Report). A step unlocks when the requirement's status reaches it (see `components/requirement/steps.ts`). Step 1 (`RequirementStep`) is three numbered cards: describe, attach files (`SpecificationFiles`), choose techniques (`TechniquePicker`). Step 2 is currently a read-only list (`ScenarioPreview`), which Slice 4 replaces.
 - **Design system:** colors and fonts are Tailwind tokens in [frontend/src/index.css](../frontend/src/index.css) (`ink`, `brand`, `success`, `warning`, `danger`; Space Grotesk / IBM Plex Sans / IBM Plex Sans Thai / IBM Plex Mono). The shared pieces live in `components/ui/`.
 - **Languages:** every UI string comes from `i18n/locales/en.ts` and `th.ts`. The chosen language is remembered in the browser.
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getProjects, createProject, type Project } from "../services/api";
-import { getRequirements, summarizeCoverage } from "../services/requirements";
+import { getRequirements } from "../services/requirements";
 import ProjectCard from "../components/workspace/ProjectCard";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
@@ -12,7 +12,8 @@ import { TextArea, TextInput } from "../components/ui/TextField";
 
 type ProjectStats = {
   requirementCount: number;
-  coveragePercent: number;
+  // null until test results exist (report step, Slice 6)
+  coveragePercent: number | null;
 };
 
 async function loadStats(project: Project): Promise<ProjectStats> {
@@ -20,9 +21,7 @@ async function loadStats(project: Project): Promise<ProjectStats> {
 
   return {
     requirementCount: requirements.length,
-    coveragePercent: summarizeCoverage(
-      requirements.flatMap((requirement) => requirement.scenarios)
-    ).percent,
+    coveragePercent: null,
   };
 }
 
@@ -81,7 +80,7 @@ function WorkspacePage() {
       setProjects((current) => [newProject, ...current]);
       setStats((current) => ({
         ...current,
-        [newProject.id]: { requirementCount: 0, coveragePercent: 0 },
+        [newProject.id]: { requirementCount: 0, coveragePercent: null },
       }));
 
       setProjectName("");
@@ -129,7 +128,7 @@ function WorkspacePage() {
               key={project.id}
               project={project}
               requirementCount={stats[project.id]?.requirementCount ?? 0}
-              coveragePercent={stats[project.id]?.coveragePercent ?? 0}
+              coveragePercent={stats[project.id]?.coveragePercent ?? null}
             />
           ))}
         </div>

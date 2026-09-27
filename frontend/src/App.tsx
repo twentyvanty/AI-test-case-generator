@@ -31,7 +31,7 @@ function App() {
           />
           <Route path="/projects/:projectId" element={<ProjectPage />} />
           <Route
-            path="/projects/:projectId/requirements/:requirementId"
+            path="/projects/:projectId/requirements/:requirementNumber"
             element={<RequirementPage />}
           />
         </Route>
