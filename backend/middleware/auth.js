@@ -1,9 +1,5 @@
 import { jwtVerify, createRemoteJWKSet } from "jose";
-
-const keycloakUrl = process.env.KEYCLOAK_URL ?? "http://localhost:8080";
-const realm = process.env.KEYCLOAK_REALM ?? "ai-test-case-generator";
-
-const issuer = `${keycloakUrl}/realms/${realm}`;
+import { keycloakIssuer as issuer } from "../config/keycloak.js";
 
 const JWKS = createRemoteJWKSet(
   new URL(`${issuer}/protocol/openid-connect/certs`)

@@ -1,5 +1,7 @@
 # AI Test Case Generator
 
+> 📚 Architecture, development log, decisions and roadmap: see [docs/](docs/README.md). API reference: `http://localhost:5001/api/docs` (Swagger) while the backend is running.
+
 An intelligent web application that leverages AI to help testers generate comprehensive test cases from software requirements using various software testing techniques.
 
 ## 🚀 Project Overview
