@@ -137,7 +137,7 @@ const en = {
       deleting: "Deleting…",
       deleteTitle: "Delete this requirement?",
       deleteDescription:
-        "{{code}} and all its scenarios, test cases and generation history will be deleted. This can't be undone.",
+        "{{code}} and its scenarios, test cases and generation history move to History → Recently deleted, where you can restore them for 7 days.",
     },
 
     requirementStatus: {
@@ -200,17 +200,109 @@ const en = {
       aiReason: "AI: {{reason}}",
     },
 
-    scenarioPreview: {
-      title: "Drafted scenarios",
-      count_one: "{{count}} scenario",
-      count_other: "{{count}} scenarios",
-      note: "Editing, selecting and adding scenarios is coming in the next update.",
-      noTechnique: "No technique",
+    scenariosStep: {
+      title: "Review generated scenarios",
+      description:
+        "Check the scenarios and their priority. Edit, add, delete or generate more before creating test cases.",
+      add: "Add scenario",
+      generateMore: "Generate more",
+      redraft: "Redraft",
+      history: "History",
+      generateCases_one: "Generate {{count}} test case",
+      generateCases_other: "Generate {{count}} test cases",
+      generateCasesSoon: "Test case generation comes in the next update",
+      scenarioCount_one: "{{count}} scenario",
+      scenarioCount_other: "{{count}} scenarios",
+      caseCount_one: "~{{count}} test case",
+      caseCount_other: "~{{count}} test cases",
       estimatedCases_one: "~{{count}} test case",
       estimatedCases_other: "~{{count}} test cases",
+      manual: "added by you",
+      priorityOf: "Priority of {{code}}",
+      edit: "Edit",
+      delete: "Delete",
+      newScenario: "New scenario",
+      generatingMore: "Asking the AI for more scenarios… this can take a minute or two.",
+      restoring: "Restoring…",
+      restored: "The earlier draft is back.",
+      deleted: "{{code}} moved to Recently deleted. You can restore it for 7 days.",
+      openHistory: "Open History",
       needsReviewTitle: "Please review these scenarios",
       needsReviewText:
         "The AI checks still found problems after 3 attempts. Check the scenarios below carefully:",
+      confirmDeleteTitle: "Delete {{code}}?",
+      confirmDeleteText:
+        "It moves to History → Recently deleted, where you can restore it for 7 days.",
+      confirmRedraftTitle: "Redraft all scenarios?",
+      confirmRestoreTitle: "Restore this draft?",
+      confirmReplaceText:
+        "Your current scenarios, including your edits, will be replaced. Earlier drafts stay in History.",
+    },
+
+    scenarioForm: {
+      title: "Title",
+      description: "Description",
+      technique: "Technique",
+      noTechnique: "No technique",
+      priority: "Priority",
+      estimatedCases: "Estimated test cases",
+      save: "Save",
+      saving: "Saving…",
+    },
+
+    scenarioHistory: {
+      title: "Draft history",
+      description: "The last 10 scenario drafts. Restore one to get its scenarios back.",
+      empty: "No drafts yet.",
+      latest: "(latest)",
+      count_one: "{{count}} scenario",
+      count_other: "{{count}} scenarios",
+      restore: "Restore",
+      close: "Close",
+      mode: {
+        replace: "Draft",
+        more: "Generate more",
+      },
+    },
+
+    priority: {
+      HIGH: "High",
+      MEDIUM: "Medium",
+      LOW: "Low",
+    },
+
+    runStatus: {
+      PASSED: "Passed",
+      NEEDS_REVIEW: "Needs review",
+      FAILED: "Failed",
+    },
+
+    historyPage: {
+      title: "History",
+      moreSoon: "The full history of AI generations across your projects is coming in a later update.",
+    },
+
+    recentlyDeleted: {
+      title: "Recently deleted",
+      description:
+        "Deleted requirements and scenarios stay here for 7 days. After that they're removed for good.",
+      empty: "Nothing here. Items you delete appear here for 7 days.",
+      type: {
+        requirement: "Requirement",
+        scenario: "Scenario",
+      },
+      inProject: "in {{project}}",
+      inRequirement: "in “{{requirement}}” · {{project}}",
+      deleted: "Deleted {{time}}",
+      daysLeft_one: "{{count}} day left",
+      daysLeft_other: "{{count}} days left",
+      restore: "Restore",
+      working: "Working…",
+      deleteForever: "Delete forever",
+      restored: "Restored.",
+      open: "Open it",
+      confirmTitle: "Delete forever?",
+      confirmText: "“{{title}}” will be removed for good. This can't be undone.",
     },
 
     comingSoon: {

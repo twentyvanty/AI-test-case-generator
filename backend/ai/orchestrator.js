@@ -169,7 +169,10 @@ export async function runPipeline({ kind, input, generator, validator, maxAttemp
     }
 
     // 3. Rule checks in code
-    const ruleChecks = mergeResults(checkDuplicates(kind, output), checkSensitiveData(output));
+    const ruleChecks = mergeResults(
+      checkDuplicates(kind, output, { existing: input.existingScenarios }),
+      checkSensitiveData(output)
+    );
 
     // 4. AI validation by a different model
     let report;

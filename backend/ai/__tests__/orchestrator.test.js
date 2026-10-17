@@ -4,6 +4,8 @@ import { runPipeline } from "../orchestrator.js";
 import { draftScenarios, generateTestCases, suggestTechniques } from "../index.js";
 import { createMockProvider } from "../providers/mock.provider.js";
 import { ProviderAuthError, ProviderError, ProviderQuotaError } from "../errors.js";
+import { draftScenariosPrompt } from "../prompts/draftScenarios.js";
+import { validatePrompt } from "../prompts/validate.js";
 
 const requirementText =
   "Users must be able to reset their password via email link. The link expires after 30 minutes. Failed attempts are capped at 5 per hour.";
@@ -35,8 +37,8 @@ function scripted(model, answers) {
 
 const goodScenarios = {
   scenarios: [
-    { title: "Link used before 30 minutes", description: "d", technique: "boundaryValue", estimatedCases: 3 },
-    { title: "Sixth attempt in an hour", description: "d", technique: "boundaryValue", estimatedCases: 3 },
+    { title: "Link used before 30 minutes", description: "d", technique: "boundaryValue", priority: "high", estimatedCases: 3 },
+    { title: "Sixth attempt in an hour", description: "d", technique: "boundaryValue", priority: "high", estimatedCases: 3 },
   ],
 };
 
@@ -247,3 +249,64 @@ test("technique suggestion uses no AI validator", async () => {
   assert.equal(result.usage.validator.input, 0);
   assert.ok(result.output.suggestions.some((item) => item.technique === "boundaryValue"));
 });
+
+// ---- generate more ----
+
+const existingScenarios = [
+  { title: "Link used before 30 minutes", description: "d", technique: "boundaryValue" },
+];
+
+test("generate more: the prompt lists the existing scenarios and asks only for new ones", () => {
+  const { system, prompt } = draftScenariosPrompt(
+    { requirementText, techniques: ["boundaryValue"], existingScenarios },
+    []
+  );
+
+  assert.match(prompt, /<existing_scenarios>[\s\S]*Link used before 30 minutes[\s\S]*<\/existing_scenarios>/);
+  assert.match(system, /NEW scenarios only/);
+});
+
+test("a normal draft has no existing-scenarios block", () => {
+  const { prompt } = draftScenariosPrompt({ requirementText, techniques: [] }, []);
+  assert.doesNotMatch(prompt, /existing_scenarios/);
+});
+
+test("generate more: the validator sees the existing scenarios and judges coverage together", () => {
+  const { system, prompt } = validatePrompt(
+    "SCENARIOS",
+    { requirementText, techniques: [], existingScenarios },
+    { scenarios: [] }
+  );
+
+  assert.match(prompt, /<existing_scenarios>/);
+  assert.match(system, /only NEW scenarios/);
+});
+
+test("generate more with the mock: passes and returns only new scenarios", async () => {
+  const result = await draftScenarios(
+    { requirementText, techniques: ["boundaryValue"], existingScenarios },
+    mock()
+  );
+
+  assert.equal(result.status, "PASSED");
+  assert.ok(result.output.scenarios.length > 0);
+  assert.ok(result.output.scenarios.every((item) => item.title !== existingScenarios[0].title));
+  assert.ok(result.output.scenarios.every((item) => ["high", "medium", "low"].includes(item.priority)));
+});
+
+test("generate more: a new scenario that repeats an existing one fails the rules check", async () => {
+  const repeat = {
+    scenarios: [{ ...existingScenarios[0], priority: "high", estimatedCases: 3 }],
+  };
+
+  const result = await runPipeline({
+    kind: "SCENARIOS",
+    input: { requirementText, techniques: ["boundaryValue"], existingScenarios },
+    generator: scripted("g", [repeat]),
+    validator: scripted("v", [passReport]),
+  });
+
+  assert.equal(result.status, "NEEDS_REVIEW");
+  assert.equal(result.validation.final.rules.status, "fail");
+});
+

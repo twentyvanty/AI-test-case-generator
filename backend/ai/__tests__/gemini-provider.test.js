@@ -209,7 +209,7 @@ test("pipeline: busy servers stop after 1 attempt instead of using up the 3 qual
 
 test("pipeline: records the fallback model that actually answered", async () => {
   const scenarios = {
-    scenarios: [{ title: "Age 17 rejected", description: "d", technique: "boundaryValue", estimatedCases: 3 }],
+    scenarios: [{ title: "Age 17 rejected", description: "d", technique: "boundaryValue", priority: "high", estimatedCases: 3 }],
   };
   const report = {
     requirementCoverage: { status: "pass", issues: [] },

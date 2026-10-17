@@ -21,10 +21,25 @@ export function suggestTechniques({ requirementText }, providers = getProviders(
 }
 
 // Step 1 → 2: draft scenarios. `techniques` empty = let the AI choose.
-export function draftScenarios({ requirementText, techniques = [] }, providers = getProviders()) {
+// existingScenarios given ("generate more") → the output holds only NEW scenarios
+// that don't overlap them: [{ title, description, technique }]
+export function draftScenarios(
+  { requirementText, techniques = [], existingScenarios = [] },
+  providers = getProviders()
+) {
   return runPipeline({
     kind: "SCENARIOS",
-    input: { requirementText, techniques },
+    input: {
+      requirementText,
+      techniques,
+      ...(existingScenarios.length > 0 && {
+        existingScenarios: existingScenarios.map(({ title, description, technique }) => ({
+          title,
+          description,
+          technique: technique ?? null,
+        })),
+      }),
+    },
     ...providers,
   });
 }

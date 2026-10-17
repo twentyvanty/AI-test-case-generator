@@ -26,7 +26,7 @@ function StepTabs({ active, status, onChange }: StepTabsProps) {
             disabled={!isStepUnlocked(step, status)}
             onClick={() => onChange(step)}
             className={cn(
-              "-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm transition disabled:cursor-not-allowed disabled:opacity-40",
+              "-mb-px flex items-center gap-2 whitespace-nowrap rounded-t-lg border-b-2 px-3 py-2.5 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-brand-soft disabled:cursor-not-allowed disabled:opacity-40",
               isActive
                 ? "border-brand-strong font-medium text-brand-strong"
                 : "border-transparent text-gray-500 hover:text-ink"

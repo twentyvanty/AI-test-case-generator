@@ -1,6 +1,6 @@
 # Roadmap
 
-_Last updated: 2026-09-27_
+_Last updated: 2026-09-30_
 
 ## Milestone 1 — Main tester flow, end to end (before the demo)
 
@@ -12,10 +12,10 @@ Goal: a tester can go **Requirement → Scenarios → Test cases → Report** on
 | — | Project documentation (`docs/`) | ✅ Done 2026-09-26 |
 | — | Swagger API docs (`/api/docs`) | ✅ Done 2026-09-26 |
 | 2 | AI pipeline: providers (Gemini + mock), output schemas, rule checks, generate → validate → retry ×3, provider guide | ✅ Done 2026-09-27 (checked with a real Gemini key) |
-| 3 | Requirements API + Step 1 page: text or document upload (PDF/DOCX/MD/TXT), technique selection, "let AI suggest", 4-step stepper, draft scenarios | ✅ Built 2026-09-27, awaiting a check by the team with the real key |
-| 4 | Scenarios API + Step 2 page: draft/redraft, select, edit, add, history of last 10 with restore, "needs review" warning | ⏳ Next |
-| 5 | Test cases API + Step 3 page: validation results (4 checks), tabs per scenario, full test-case editor, regenerate | ⏳ |
-| 6 | Report + export: coverage and traceability, Excel/CSV export with column picker, real project stats, remove mocks | ⏳ |
+| 3 | Requirements API + Step 1 page: text or document upload (PDF/DOCX/MD/TXT), technique selection, "let AI suggest", 4-step stepper, draft scenarios | ✅ Built 2026-09-27, checked by the team with the real key |
+| 4 | Scenarios API + Step 2 page: edit, add, delete, priority (AI-suggested, tester can change), generate more, redraft, history of last 10 with restore, "needs review" warning; **Recently deleted** (7-day restore) for requirements and scenarios | ✅ Built 2026-09-30, awaiting the team's check with the real key |
+| 5 | Test cases API + Step 3 page: validation results (4 checks), tabs per scenario, full test-case editor, regenerate; deleted test cases go to Recently deleted | ⏳ Next |
+| 6 | Report + export: coverage and traceability, Excel/CSV export with column picker, real project stats. **Real Dashboard:** recent runs (dashboard + sidebar), runs this week, weekly activity, technique mix and total test cases from real data; pass/fail tiles show "—" until M2; `mocks/dashboard.ts` deleted | ⏳ |
 
 ## Later milestones
 

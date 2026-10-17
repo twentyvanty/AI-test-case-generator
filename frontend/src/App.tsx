@@ -3,6 +3,7 @@ import { useAuth } from "./auth/AuthContext";
 import AppLayout from "./components/layout/AppLayout";
 import ComingSoonPage from "./pages/ComingSoonPage";
 import DashboardPage from "./pages/DashboardPage";
+import HistoryPage from "./pages/HistoryPage";
 import LoginPage from "./pages/LoginPage";
 import ProjectPage from "./pages/ProjectPage";
 import RequirementPage from "./pages/RequirementPage";
@@ -21,10 +22,7 @@ function App() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/workspace" element={<WorkspacePage />} />
-          <Route
-            path="/history"
-            element={<ComingSoonPage titleKey="nav.history" />}
-          />
+          <Route path="/history" element={<HistoryPage />} />
           <Route
             path="/account"
             element={<ComingSoonPage titleKey="nav.account" />}

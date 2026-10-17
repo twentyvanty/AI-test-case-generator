@@ -35,6 +35,12 @@ enum GenerationStatus {
   FAILED // provider/quota error, no usable output
 }
 
+enum ScenarioPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
 enum ItemSource {
   AI
   MANUAL
@@ -81,10 +87,13 @@ model Requirement {
   testCases TestCase[]
   runs      GenerationRun[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  // Set = in "Recently deleted"; permanently removed 7 days later (numbers are never reused)
+  deletedAt DateTime?
 
   @@unique([projectId, number])
+  @@index([deletedAt])
 }
 
 // One row per AI generation (history + audit). The latest 10 per kind
@@ -123,21 +132,27 @@ model Scenario {
   runId Int?
   run   GenerationRun? @relation(fields: [runId], references: [id], onDelete: SetNull)
 
-  number         Int // shown as SC-01, unique per requirement
-  title          String     @db.VarChar(255)
-  description    String     @db.Text
-  technique      String?    @db.VarChar(50)
-  selected       Boolean    @default(true)
-  estimatedCases Int        @default(0)
+  // Shown as SC-01. Unique among the requirement's active (not deleted) scenarios —
+  // kept by the code, because a deleted SC-02 can wait in the bin while a new SC-02 exists
+  number         Int
+  title          String           @db.VarChar(255)
+  description    String           @db.Text
+  technique      String?          @db.VarChar(50)
+  priority       ScenarioPriority @default(MEDIUM) // suggested by the AI, changeable by the tester
+  selected       Boolean          @default(true)
+  estimatedCases Int              @default(0)
   source         ItemSource
   position       Int
 
   testCases TestCase[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  // Set = in "Recently deleted"; permanently removed 7 days later
+  deletedAt DateTime?
 
-  @@unique([requirementId, number])
+  @@index([requirementId, number])
+  @@index([deletedAt])
 }
 
 model TestCase {
@@ -150,7 +165,7 @@ model TestCase {
   requirementId Int
   requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
 
-  number         Int // shown as TC-0001, unique per requirement
+  number         Int // shown as TC-0001, unique among the requirement's active test cases (kept by the code)
   title          String     @db.VarChar(255)
   description    String     @db.Text
   precondition   String     @db.Text
@@ -160,10 +175,13 @@ model TestCase {
   source         ItemSource
   position       Int
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  // Set = in "Recently deleted"; permanently removed 7 days later
+  deletedAt DateTime?
 
-  @@unique([requirementId, number])
+  @@index([requirementId, number])
+  @@index([deletedAt])
 }
 
 model UserPreference {

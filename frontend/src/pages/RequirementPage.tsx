@@ -19,7 +19,7 @@ import RequirementStep, {
   type Busy,
   type RequirementForm,
 } from "../components/requirement/RequirementStep";
-import ScenarioPreview from "../components/requirement/ScenarioPreview";
+import ScenariosStep from "../components/requirement/ScenariosStep";
 import type { Attachment } from "../components/requirement/SpecificationFiles";
 import StepTabs from "../components/requirement/StepTabs";
 import { isStepUnlocked, STEPS, type Step } from "../components/requirement/steps";
@@ -353,7 +353,15 @@ function RequirementPage() {
           )}
 
           {step === "scenarios" && detail && (
-            <ScenarioPreview scenarios={detail.scenarios} latestRun={detail.latestScenarioRun} />
+            <ScenariosStep
+              projectId={projectId}
+              requirementNumber={detail.number}
+              scenarios={detail.scenarios}
+              latestRun={detail.latestScenarioRun}
+              onChange={(changes) =>
+                setDetail((current) => current && { ...current, ...changes })
+              }
+            />
           )}
         </>
       )}

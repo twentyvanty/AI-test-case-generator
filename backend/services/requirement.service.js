@@ -3,6 +3,8 @@ import { getOrCreateUser } from "./user.service.js";
 
 // Requirements are addressed by project id + requirement number (REQ-0001 = number 1).
 // Every query also checks project.userId, so users only ever reach their own data.
+// Deleted rows (deletedAt set) wait in "Recently deleted" (trash.service.js) and are
+// skipped by every query here.
 
 const listFields = {
   id: true,
@@ -14,7 +16,7 @@ const listFields = {
   sourceFileName: true,
   createdAt: true,
   updatedAt: true,
-  _count: { select: { scenarios: true } },
+  _count: { select: { scenarios: { where: { deletedAt: null } } } },
 };
 
 // Prisma's `_count` → a plain `scenarioCount` field
@@ -43,6 +45,7 @@ export async function findOwnedRequirement(keycloakUser, projectId, number) {
     where: {
       projectId,
       number,
+      deletedAt: null,
       project: { userId: user.id },
     },
   });
@@ -57,7 +60,7 @@ export async function getRequirements(keycloakUser, projectId) {
   }
 
   const requirements = await prisma.requirement.findMany({
-    where: { projectId },
+    where: { projectId, deletedAt: null },
     select: listFields,
     orderBy: { number: "asc" },
   });
@@ -73,8 +76,9 @@ export async function createRequirement(keycloakUser, projectId, data) {
     return null;
   }
 
-  // Next number in this project. Two requests at the same moment could pick the
-  // same number; the unique (projectId, number) index rejects one, so retry it.
+  // Next number in this project, counting deleted ones too so numbers are never
+  // reused. Two requests at the same moment could pick the same number; the unique
+  // (projectId, number) index rejects one, so retry it.
   for (let attempt = 1; ; attempt++) {
     try {
       return await prisma.$transaction(async (tx) => {
@@ -115,7 +119,7 @@ export async function getRequirement(keycloakUser, projectId, number) {
 
   const [scenarios, latestScenarioRun] = await Promise.all([
     prisma.scenario.findMany({
-      where: { requirementId: requirement.id },
+      where: { requirementId: requirement.id, deletedAt: null },
       orderBy: { number: "asc" },
     }),
     prisma.generationRun.findFirst({
@@ -162,7 +166,8 @@ export async function updateRequirement(keycloakUser, projectId, number, data) {
   return toListItem(updated);
 }
 
-// false = not found (or not the user's). Runs, scenarios and cases are deleted with it.
+// Moves the requirement to "Recently deleted" (restorable for 7 days, together with
+// its runs, scenarios and test cases). false = not found (or not the user's).
 export async function deleteRequirement(keycloakUser, projectId, number) {
   const requirement = await findOwnedRequirement(keycloakUser, projectId, number);
 
@@ -170,7 +175,10 @@ export async function deleteRequirement(keycloakUser, projectId, number) {
     return false;
   }
 
-  await prisma.requirement.delete({ where: { id: requirement.id } });
+  await prisma.requirement.update({
+    where: { id: requirement.id },
+    data: { deletedAt: new Date() },
+  });
 
   return true;
 }

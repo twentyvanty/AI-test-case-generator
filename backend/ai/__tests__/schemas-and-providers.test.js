@@ -58,3 +58,11 @@ test("asking for Gemini without a key gives a clear error", () => {
 test("an unknown provider name gives a clear error", () => {
   assert.throws(() => getProviders({ AI_GENERATOR_PROVIDER: "gpt" }), /Unknown AI provider "gpt"/);
 });
+
+test("scenario priority must be high, medium or low", () => {
+  const base = { title: "T", description: "D", technique: "boundaryValue", estimatedCases: 3 };
+
+  assert.equal(scenarioDraftSchema.safeParse({ scenarios: [{ ...base, priority: "high" }] }).success, true);
+  assert.equal(scenarioDraftSchema.safeParse({ scenarios: [{ ...base, priority: "urgent" }] }).success, false);
+  assert.equal(scenarioDraftSchema.safeParse({ scenarios: [base] }).success, false);
+});

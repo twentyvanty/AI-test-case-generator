@@ -32,3 +32,14 @@ body {
     linear-gradient(135deg, #e3ecef 0%, #e9ebf1 50%, #e6e4ef 100%);
   background-attachment: fixed;
 }
+
+/* Focus: no outline after a mouse click (some browsers draw a blue box there),
+   but a soft brand ring when moving with the keyboard, so it stays accessible. */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}

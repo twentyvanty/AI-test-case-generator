@@ -165,9 +165,11 @@ router.patch("/:number", authenticateToken, updateRequirement);
  * /api/projects/{projectId}/requirements/{number}:
  *   delete:
  *     tags: [Requirements]
- *     summary: Delete a requirement
+ *     summary: Delete a requirement (restorable for 7 days)
  *     operationId: deleteRequirement
- *     description: Also deletes its generation history, scenarios and test cases.
+ *     description: |
+ *       Moves it to Recently deleted (see /api/trash) together with its scenarios,
+ *       test cases and history. After 7 days it's removed for good.
  *     parameters:
  *       - $ref: '#/components/parameters/ProjectId'
  *       - $ref: '#/components/parameters/RequirementNumber'
@@ -227,10 +229,13 @@ router.post("/:number/technique-suggestions", authenticateToken, suggestTechniqu
  *     operationId: draftScenarios
  *     description: |
  *       Uses the saved requirement text and techniques (an empty technique list lets
- *       the AI choose). The result is saved as a GenerationRun (kind SCENARIOS).
+ *       the AI choose). The result is saved as a GenerationRun (kind SCENARIOS) whose
+ *       output is the full scenario list afterwards (for restore).
  *
- *       - **PASSED / NEEDS_REVIEW**: the new scenarios replace the old ones and the
- *         requirement's status becomes SCENARIOS_READY.
+ *       - **mode "replace"** (default): the new scenarios replace the current ones.
+ *       - **mode "more"**: the AI adds new scenarios that don't overlap the current ones.
+ *       - **PASSED / NEEDS_REVIEW**: the scenarios are saved and the requirement's
+ *         status becomes SCENARIOS_READY.
  *       - **FAILED** (AI busy, over its limit…): the old scenarios are kept and
  *         errorMessage explains why. Still HTTP 201.
  *
@@ -238,6 +243,17 @@ router.post("/:number/technique-suggestions", authenticateToken, suggestTechniqu
  *     parameters:
  *       - $ref: '#/components/parameters/ProjectId'
  *       - $ref: '#/components/parameters/RequirementNumber'
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               mode:
+ *                 type: string
+ *                 enum: [replace, more]
+ *                 default: replace
  *     responses:
  *       201:
  *         description: The saved run and the requirement's scenarios after it

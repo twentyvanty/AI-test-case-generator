@@ -43,12 +43,14 @@ export function similarity(a, b) {
 
 const NEAR_DUPLICATE = 0.92;
 
-function findDuplicates(items, label, getTitle, getBody) {
+// existingCount: the first N items are the tester's existing ones — pairs of two
+// existing items are never reported (only new ↔ new and new ↔ existing)
+function findDuplicates(items, label, getTitle, getBody, existingCount = 0) {
   const failures = [];
   const warnings = [];
 
   for (let i = 0; i < items.length; i++) {
-    for (let j = i + 1; j < items.length; j++) {
+    for (let j = Math.max(i + 1, existingCount); j < items.length; j++) {
       const titleA = getTitle(items[i]);
       const titleB = getTitle(items[j]);
       const sameTitle = normalize(titleA) === normalize(titleB);
@@ -66,10 +68,18 @@ function findDuplicates(items, label, getTitle, getBody) {
   return { failures, warnings };
 }
 
-export function checkDuplicates(kind, output) {
+// existing: for "generate more", the tester's current scenarios — new ones must
+// not duplicate them either
+export function checkDuplicates(kind, output, { existing = [] } = {}) {
   if (kind === "SCENARIOS") {
     return fromIssues(
-      findDuplicates(output.scenarios, "scenario", (scenario) => scenario.title)
+      findDuplicates(
+        [...existing, ...output.scenarios],
+        "scenario",
+        (scenario) => scenario.title,
+        undefined,
+        existing.length
+      )
     );
   }
 

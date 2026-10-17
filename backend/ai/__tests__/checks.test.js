@@ -126,3 +126,26 @@ test("merging results keeps the worst status and all issues", () => {
 
   assert.deepEqual(merged, { status: "fail", issues: ["a", "b"] });
 });
+
+// ---- generate more: duplicates against the existing scenarios ----
+
+test("a new scenario that repeats an existing one fails", () => {
+  const result = checkDuplicates(
+    "SCENARIOS",
+    { scenarios: [scenario("Reset link expiry!")] },
+    { existing: [scenario("Reset link expiry")] }
+  );
+
+  assert.equal(result.status, "fail");
+  assert.match(result.issues[0], /Reset link expiry/);
+});
+
+test("duplicates among the tester's existing scenarios are not reported", () => {
+  const result = checkDuplicates(
+    "SCENARIOS",
+    { scenarios: [scenario("Sixth attempt is blocked")] },
+    { existing: [scenario("Reset link expiry"), scenario("Reset link expiry")] }
+  );
+
+  assert.equal(result.status, "pass");
+});

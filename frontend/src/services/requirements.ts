@@ -16,6 +16,12 @@ export type RequirementStatus = "DRAFT" | "SCENARIOS_READY" | "CASES_READY" | "R
 
 export type GenerationStatus = "PASSED" | "NEEDS_REVIEW" | "FAILED";
 
+// Suggested by the AI when drafting; the tester can change it.
+// The value is also the i18n key under "priority.*"
+export type ScenarioPriority = "HIGH" | "MEDIUM" | "LOW";
+
+export const PRIORITIES: ScenarioPriority[] = ["HIGH", "MEDIUM", "LOW"];
+
 export type Requirement = {
   id: number;
   projectId: number;
@@ -35,10 +41,35 @@ export type Scenario = {
   title: string;
   description: string;
   technique: TechniqueKey | null;
+  priority: ScenarioPriority;
   selected: boolean;
   estimatedCases: number;
   source: "AI" | "MANUAL";
 };
+
+// What the tester can set on a scenario (add / edit)
+export type ScenarioInput = {
+  title: string;
+  description: string;
+  technique: TechniqueKey | null;
+  priority: ScenarioPriority;
+  estimatedCases: number;
+};
+
+// One entry of the scenario draft history (last 10)
+export type ScenarioRun = {
+  id: number;
+  createdAt: string;
+  mode: DraftMode;
+  status: GenerationStatus;
+  attempts: number;
+  scenarioCount: number;
+  errorMessage: string | null;
+  restorable: boolean;
+};
+
+// "replace" = new scenarios replace the current ones; "more" = added to them
+export type DraftMode = "replace" | "more";
 
 export type CheckResult = {
   status: "pass" | "warn" | "fail";
@@ -121,12 +152,52 @@ export function suggestTechniques(projectId: number, number: number) {
   });
 }
 
-// Step 1 → 2. Can take a minute or more. A busy AI → run.status FAILED + errorMessage.
-export function draftScenarios(projectId: number, number: number) {
+// Step 1 → 2 (and Redraft / Generate more in step 2). Can take a minute or more.
+// A busy AI → run.status FAILED + errorMessage, and the scenarios are unchanged.
+export function draftScenarios(projectId: number, number: number, mode: DraftMode = "replace") {
   return request<{ run: RunSummary; scenarios: Scenario[] }>(
     `${base(projectId)}/${number}/scenario-drafts`,
-    { method: "POST" }
+    { method: "POST", body: { mode } }
   );
+}
+
+// ---- Step 2: scenarios ----------------------------------------------------------
+
+const scenarioPath = (projectId: number, number: number, scenarioNumber?: number) =>
+  `${base(projectId)}/${number}/scenarios${scenarioNumber === undefined ? "" : `/${scenarioNumber}`}`;
+
+export function createScenario(projectId: number, number: number, input: ScenarioInput) {
+  return request<Scenario>(scenarioPath(projectId, number), { method: "POST", body: input });
+}
+
+export function updateScenario(
+  projectId: number,
+  number: number,
+  scenarioNumber: number,
+  changes: Partial<ScenarioInput>
+) {
+  return request<Scenario>(scenarioPath(projectId, number, scenarioNumber), {
+    method: "PATCH",
+    body: changes,
+  });
+}
+
+// Moves it to Recently deleted (7 days). Returns the requirement's status afterwards.
+export function deleteScenario(projectId: number, number: number, scenarioNumber: number) {
+  return request<{ status: RequirementStatus }>(scenarioPath(projectId, number, scenarioNumber), {
+    method: "DELETE",
+  });
+}
+
+export function getScenarioRuns(projectId: number, number: number) {
+  return request<ScenarioRun[]>(`${base(projectId)}/${number}/scenario-runs`);
+}
+
+// Replaces the current scenarios with the ones saved right after that run
+export function restoreScenarioRun(projectId: number, number: number, runId: number) {
+  return request<Scenario[]>(`${base(projectId)}/${number}/scenario-runs/${runId}/restore`, {
+    method: "POST",
+  });
 }
 
 // Reads the text out of PDF / DOCX / Markdown / TXT files (nothing is stored)

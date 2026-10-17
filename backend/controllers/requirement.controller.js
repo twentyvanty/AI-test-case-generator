@@ -12,32 +12,11 @@ import {
 
 import { validateCreateRequirementDto } from "../dto/requirement/create-requirement.dto.js";
 import { validateUpdateRequirementDto } from "../dto/requirement/update-requirement.dto.js";
-
-// Reads :projectId (and :number) from the URL. Answers 400 and returns null if invalid.
-function readIds(req, res, { withNumber = true } = {}) {
-  const projectId = Number(req.params.projectId);
-  const number = Number(req.params.number);
-
-  if (!Number.isInteger(projectId)) {
-    res.status(400).json({
-      message: "Invalid project id",
-    });
-    return null;
-  }
-
-  if (withNumber && !Number.isInteger(number)) {
-    res.status(400).json({
-      message: "Invalid requirement number",
-    });
-    return null;
-  }
-
-  return { projectId, number };
-}
+import { readIds } from "./params.js";
 
 export async function getRequirements(req, res) {
   try {
-    const ids = readIds(req, res, { withNumber: false });
+    const ids = readIds(req, res, ["projectId"]);
 
     if (!ids) {
       return;
@@ -63,7 +42,7 @@ export async function getRequirements(req, res) {
 
 export async function createRequirement(req, res) {
   try {
-    const ids = readIds(req, res, { withNumber: false });
+    const ids = readIds(req, res, ["projectId"]);
 
     if (!ids) {
       return;
@@ -97,7 +76,7 @@ export async function createRequirement(req, res) {
 
 export async function getRequirement(req, res) {
   try {
-    const ids = readIds(req, res);
+    const ids = readIds(req, res, ["projectId", "number"]);
 
     if (!ids) {
       return;
@@ -123,7 +102,7 @@ export async function getRequirement(req, res) {
 
 export async function updateRequirement(req, res) {
   try {
-    const ids = readIds(req, res);
+    const ids = readIds(req, res, ["projectId", "number"]);
 
     if (!ids) {
       return;
@@ -162,7 +141,7 @@ export async function updateRequirement(req, res) {
 
 export async function deleteRequirement(req, res) {
   try {
-    const ids = readIds(req, res);
+    const ids = readIds(req, res, ["projectId", "number"]);
 
     if (!ids) {
       return;
@@ -186,12 +165,14 @@ export async function deleteRequirement(req, res) {
   }
 }
 
+const DRAFT_MODES = ["replace", "more"];
+
 // AI endpoints: always 201 with the saved run. A busy/over-quota AI is not a server
 // error — the run's status is FAILED and errorMessage says why.
 
 export async function suggestTechniques(req, res) {
   try {
-    const ids = readIds(req, res);
+    const ids = readIds(req, res, ["projectId", "number"]);
 
     if (!ids) {
       return;
@@ -217,13 +198,22 @@ export async function suggestTechniques(req, res) {
 
 export async function draftScenarios(req, res) {
   try {
-    const ids = readIds(req, res);
+    const ids = readIds(req, res, ["projectId", "number"]);
 
     if (!ids) {
       return;
     }
 
-    const result = await draftScenariosFor(req.user, ids.projectId, ids.number);
+    // "replace" (default): new scenarios replace the current ones; "more": added to them
+    const mode = req.body?.mode ?? "replace";
+
+    if (!DRAFT_MODES.includes(mode)) {
+      return res.status(400).json({
+        message: `mode must be one of: ${DRAFT_MODES.join(", ")}`,
+      });
+    }
+
+    const result = await draftScenariosFor(req.user, ids.projectId, ids.number, mode);
 
     if (!result) {
       return res.status(404).json({

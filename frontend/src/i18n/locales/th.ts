@@ -134,7 +134,7 @@ const th = {
       deleting: "กำลังลบ…",
       deleteTitle: "ลบข้อกำหนดนี้หรือไม่?",
       deleteDescription:
-        "{{code}} รวมถึงสถานการณ์ Test Case และประวัติการสร้างทั้งหมดจะถูกลบ และไม่สามารถกู้คืนได้",
+        "{{code}} รวมถึงสถานการณ์ Test Case และประวัติการสร้าง จะถูกย้ายไปที่ ประวัติ → รายการที่เพิ่งลบ และกู้คืนได้ภายใน 7 วัน",
     },
 
     requirementStatus: {
@@ -193,14 +193,101 @@ const th = {
       aiReason: "AI: {{reason}}",
     },
 
-    scenarioPreview: {
-      title: "สถานการณ์ที่ร่างไว้",
-      count_other: "{{count}} สถานการณ์",
-      note: "การแก้ไข เลือก และเพิ่มสถานการณ์จะมาในอัปเดตถัดไป",
-      noTechnique: "ไม่ระบุเทคนิค",
+    scenariosStep: {
+      title: "ตรวจสอบสถานการณ์ที่สร้างขึ้น",
+      description:
+        "ตรวจสอบสถานการณ์และระดับความสำคัญ แก้ไข เพิ่ม ลบ หรือสร้างเพิ่ม ก่อนสร้าง Test Case",
+      add: "เพิ่มสถานการณ์",
+      generateMore: "สร้างเพิ่ม",
+      redraft: "ร่างใหม่",
+      history: "ประวัติ",
+      generateCases_other: "สร้าง {{count}} Test Case",
+      generateCasesSoon: "การสร้าง Test Case จะมาในอัปเดตถัดไป",
+      scenarioCount_other: "{{count}} สถานการณ์",
+      caseCount_other: "~{{count}} Test Case",
       estimatedCases_other: "~{{count}} Test Case",
+      manual: "เพิ่มโดยคุณ",
+      priorityOf: "ระดับความสำคัญของ {{code}}",
+      edit: "แก้ไข",
+      delete: "ลบ",
+      newScenario: "สถานการณ์ใหม่",
+      generatingMore: "กำลังให้ AI สร้างสถานการณ์เพิ่ม… อาจใช้เวลาหนึ่งถึงสองนาที",
+      restoring: "กำลังกู้คืน…",
+      restored: "กู้คืนฉบับร่างก่อนหน้าแล้ว",
+      deleted: "ย้าย {{code}} ไปที่รายการที่เพิ่งลบแล้ว กู้คืนได้ภายใน 7 วัน",
+      openHistory: "เปิดประวัติ",
       needsReviewTitle: "กรุณาตรวจสอบสถานการณ์เหล่านี้",
-      needsReviewText: "การตรวจสอบของ AI ยังพบปัญหาหลังจากลอง 3 ครั้ง กรุณาตรวจสอบสถานการณ์ด้านล่างอย่างละเอียด:",
+      needsReviewText:
+        "การตรวจสอบของ AI ยังพบปัญหาหลังจากลอง 3 ครั้ง กรุณาตรวจสอบสถานการณ์ด้านล่างอย่างละเอียด:",
+      confirmDeleteTitle: "ลบ {{code}} หรือไม่?",
+      confirmDeleteText: "จะย้ายไปที่ ประวัติ → รายการที่เพิ่งลบ และกู้คืนได้ภายใน 7 วัน",
+      confirmRedraftTitle: "ร่างสถานการณ์ใหม่ทั้งหมดหรือไม่?",
+      confirmRestoreTitle: "กู้คืนฉบับร่างนี้หรือไม่?",
+      confirmReplaceText:
+        "สถานการณ์ปัจจุบันรวมถึงที่คุณแก้ไขจะถูกแทนที่ ฉบับร่างก่อนหน้ายังอยู่ในประวัติ",
+    },
+
+    scenarioForm: {
+      title: "ชื่อ",
+      description: "คำอธิบาย",
+      technique: "เทคนิค",
+      noTechnique: "ไม่ระบุเทคนิค",
+      priority: "ระดับความสำคัญ",
+      estimatedCases: "จำนวน Test Case โดยประมาณ",
+      save: "บันทึก",
+      saving: "กำลังบันทึก…",
+    },
+
+    scenarioHistory: {
+      title: "ประวัติฉบับร่าง",
+      description: "ฉบับร่างสถานการณ์ 10 ครั้งล่าสุด กู้คืนเพื่อนำสถานการณ์ชุดนั้นกลับมา",
+      empty: "ยังไม่มีฉบับร่าง",
+      latest: "(ล่าสุด)",
+      count_other: "{{count}} สถานการณ์",
+      restore: "กู้คืน",
+      close: "ปิด",
+      mode: {
+        replace: "ร่าง",
+        more: "สร้างเพิ่ม",
+      },
+    },
+
+    priority: {
+      HIGH: "สูง",
+      MEDIUM: "ปานกลาง",
+      LOW: "ต่ำ",
+    },
+
+    runStatus: {
+      PASSED: "ผ่าน",
+      NEEDS_REVIEW: "ต้องตรวจสอบ",
+      FAILED: "ไม่สำเร็จ",
+    },
+
+    historyPage: {
+      title: "ประวัติ",
+      moreSoon: "ประวัติการสร้างด้วย AI ทั้งหมดในทุกโปรเจกต์จะมาในอัปเดตถัดไป",
+    },
+
+    recentlyDeleted: {
+      title: "รายการที่เพิ่งลบ",
+      description: "ข้อกำหนดและสถานการณ์ที่ลบจะเก็บไว้ที่นี่ 7 วัน หลังจากนั้นจะถูกลบถาวร",
+      empty: "ไม่มีรายการ สิ่งที่คุณลบจะแสดงที่นี่เป็นเวลา 7 วัน",
+      type: {
+        requirement: "ข้อกำหนด",
+        scenario: "สถานการณ์",
+      },
+      inProject: "ใน {{project}}",
+      inRequirement: "ใน “{{requirement}}” · {{project}}",
+      deleted: "ลบเมื่อ {{time}}",
+      daysLeft_other: "เหลือ {{count}} วัน",
+      restore: "กู้คืน",
+      working: "กำลังดำเนินการ…",
+      deleteForever: "ลบถาวร",
+      restored: "กู้คืนแล้ว",
+      open: "เปิด",
+      confirmTitle: "ลบถาวรหรือไม่?",
+      confirmText: "“{{title}}” จะถูกลบถาวรและไม่สามารถกู้คืนได้",
     },
 
     comingSoon: {

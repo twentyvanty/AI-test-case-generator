@@ -123,3 +123,30 @@ Separately, the `gemini-2.5-*` models turned out to be unavailable to new keys, 
 **Decision.** Not built. Every request uses the server's key (`GEMINI_API_KEY` in `backend/.env`), as in Slice 2.
 **Consequences.** It's simpler and safer: keys are never sent from browsers or stored per user. If the project later lets users bring their own key, it belongs with the credit system (M5).
 
+### D-021 — Scenario priority: suggested by the AI, decided by the tester
+**Context.** One design showed a High / Medium / Low priority on each scenario. The team wants testers to choose it, with a sensible default.
+**Decision.** New `Scenario.priority` (HIGH / MEDIUM / LOW). When drafting, the AI suggests it based on risk: money, security, data loss or the main flow → high; cosmetic or rare cases → low. The tester can change it at any time with a dropdown on the scenario. Scenarios added by hand start as Medium.
+**Consequences.** Testers get a useful default without extra work, and the report (Slice 6) can sort or filter by priority.
+
+### D-022 — "Generate more" adds scenarios and checks them against the existing ones
+**Context.** A first draft sometimes misses something, and redrafting throws away the tester's edits.
+**Decision.** `scenario-drafts` takes `mode: "more"`. The AI receives the current scenarios as data and is asked for 1–10 new, non-overlapping ones. The duplicate check and the AI validator compare the new scenarios with the existing ones: a repeat fails and triggers a retry. Pairs of existing scenarios are never reported, because those are the tester's. The new scenarios are numbered after the current ones.
+**Consequences.** Testers can grow a list step by step. It's still one GenerationRun of kind `SCENARIOS`; its `input.mode` records "more".
+
+### D-023 — Every scenario run stores a full snapshot for restore
+**Context.** "Restore any of the last 10 generations" has to work the same for a normal draft and for "generate more", whose AI output is only the new scenarios.
+**Decision.** A run's `output` stores the **full scenario list right after the run** (for "more": existing + new), in one format (title, description, technique, priority, estimated cases, source). Restoring replaces the current scenarios with that list. FAILED runs have no snapshot and can't be restored.
+**Consequences.** Restore is one simple operation. Manual edits made *after* a run aren't in any snapshot, so the Redraft and Restore dialogs warn that current edits will be replaced.
+
+### D-024 — Recently deleted: 7-day soft delete
+**Context.** The team wants deleted requirements, scenarios and test cases to be recoverable for a while.
+**Decision.**
+- `deletedAt` on Requirement, Scenario and TestCase. Delete sets it; queries skip those rows.
+- History → Recently deleted lists them with the days left, and offers Restore and Delete forever.
+- After **7 days** (`TRASH_DAYS`) the server removes them for good. It checks at start-up and every hour.
+- A deleted requirement brings its scenarios, test cases and history back when restored.
+- Redraft and Restore-a-draft replace the current scenarios directly, without using the bin: the draft history already keeps those versions.
+- Scenario and test case numbers are unique among active rows only (checked in code), so a number can be taken while an old item waits in the bin. A restored item gets the next free number if its own is taken.
+
+**Consequences.** Mistakes can be undone for a week. Every new query must filter `deletedAt: null`; Slice 5 must do this for test cases.
+

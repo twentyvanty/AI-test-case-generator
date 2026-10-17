@@ -1,6 +1,6 @@
 # Architecture
 
-_Last updated: 2026-09-27_
+_Last updated: 2026-09-30_
 
 ## Overview
 
@@ -91,9 +91,17 @@ Current endpoints (all require login):
 | POST | `/api/projects/:projectId/requirements` | Create a requirement (gets the next number: REQ-0001, REQ-0002, …) |
 | GET | `/api/projects/:projectId/requirements/:number` | One requirement with its scenarios and latest scenario draft |
 | PATCH | `/api/projects/:projectId/requirements/:number` | Edit title, details, techniques, file names |
-| DELETE | `/api/projects/:projectId/requirements/:number` | Delete it (with its runs, scenarios and test cases) |
+| DELETE | `/api/projects/:projectId/requirements/:number` | Move it to Recently deleted for 7 days (with its runs, scenarios and test cases) |
 | POST | `/api/projects/:projectId/requirements/:number/technique-suggestions` | AI suggests techniques (saved as a `GenerationRun`) |
-| POST | `/api/projects/:projectId/requirements/:number/scenario-drafts` | AI drafts scenarios (saved as a `GenerationRun`; replaces the scenarios) |
+| POST | `/api/projects/:projectId/requirements/:number/scenario-drafts` | AI drafts scenarios, saved as a `GenerationRun`. Body `{ mode }`: `replace` (default) replaces the scenarios, `more` adds new ones that don't overlap |
+| POST | `/api/projects/:projectId/requirements/:number/scenarios` | Add a scenario by hand |
+| PATCH | `/api/projects/:projectId/requirements/:number/scenarios/:scenarioNumber` | Edit a scenario (title, description, technique, priority, estimated cases) |
+| DELETE | `/api/projects/:projectId/requirements/:number/scenarios/:scenarioNumber` | Move a scenario to Recently deleted for 7 days |
+| GET | `/api/projects/:projectId/requirements/:number/scenario-runs` | The last 10 scenario drafts (draft history) |
+| POST | `/api/projects/:projectId/requirements/:number/scenario-runs/:runId/restore` | Replace the scenarios with that draft's saved list |
+| GET | `/api/trash` | The user's recently deleted requirements and scenarios, with days left |
+| POST | `/api/trash/:type/:id/restore` | Restore a deleted item (`type` = `requirement` or `scenario`) |
+| DELETE | `/api/trash/:type/:id` | Delete an item for good now |
 | POST | `/api/documents/extract-text` | Read the text of PDF / DOCX / Markdown / TXT files (not stored) |
 
 Requirements are addressed by their **number inside the project**, the same number shown as REQ-0001. Ownership is checked through the project on every request. The AI endpoints always answer `201` with the saved run; an AI problem shows up as `status: "FAILED"` plus `errorMessage` (D-019). They can take a minute or more, so the server allows requests up to 10 minutes.
@@ -169,21 +177,24 @@ erDiagram
         string title
         text description
         string technique
+        enum priority "HIGH, MEDIUM, LOW"
         bool selected
         int estimatedCases
         enum source "AI or MANUAL"
+        datetime deletedAt "set = Recently deleted"
     }
     TestCase {
         int id PK
         int scenarioId FK
         int requirementId FK
-        int number "TC-0001, unique per requirement"
+        int number "TC-0001"
         string title
         text description
         text precondition
         json steps "string list"
         text expectedResult
         enum source "AI or MANUAL"
+        datetime deletedAt "set = Recently deleted"
     }
     UserPreference {
         int id PK
@@ -192,7 +203,13 @@ erDiagram
     }
 ```
 
-Deleting a project removes its requirements. Deleting a requirement removes its runs, scenarios and test cases. Deleting a run keeps its scenarios (their `runId` becomes empty).
+**Deleting in the app is a soft delete** (D-024). A requirement, scenario or test case gets a `deletedAt` date, and every normal query skips it. For 7 days it appears in History → Recently deleted and can be restored (children come back with it). After 7 days `purgeExpired()` in `services/trash.service.js` removes it for good; it runs at server start and every hour. `Requirement` also has `deletedAt` (not shown above).
+
+Numbers aren't reused for requirements (a new one takes the highest number + 1, deleted ones included). For scenarios and test cases the numbers are unique among the *active* rows only, checked by the code, not by a database index. That lets a redraft create a new SC-02 while an old SC-02 waits in the bin; a restored item whose number is taken gets the next free one.
+
+At the database level, removing a project removes its requirements, and removing a requirement removes its runs, scenarios and test cases. Removing a run keeps its scenarios (their `runId` becomes empty).
+
+**Scenario runs store a snapshot** (D-023). The `output` of every SCENARIOS run is the full scenario list right after that run (for "generate more": existing + new), so any run in the draft history can be restored the same way.
 
 `Requirement.status` controls which steps of the tester flow are unlocked:
 `DRAFT` → `SCENARIOS_READY` → `CASES_READY` → `REPORTED`.
@@ -206,7 +223,7 @@ flowchart LR
     T --> P["4. Report<br/>coverage, traceability,<br/>Excel/CSV export"]
 ```
 
-Status: Step 1 is built (Slice 3); Step 2 shows the drafted scenarios read-only until Slice 4.
+Status: Step 1 (Slice 3) and Step 2 (Slice 4) are built; steps 3–4 come in Slices 5–6.
 
 Each AI step goes through the same pipeline: **generate → format check → rule checks → AI validation (a different model) → retry up to 3 times**. If it still fails, the result is marked *needs review* for the tester to fix by hand. Every generation is stored as a `GenerationRun`, so the tester can restore any of the last 10.
 
@@ -224,9 +241,14 @@ Each returns an object shaped like a `GenerationRun` row: status, attempts, outp
 
 ## Frontend structure
 
-- **Routing** ([frontend/src/App.tsx](../frontend/src/App.tsx)): `/` Dashboard, `/workspace` Projects, `/projects/:projectId`, `/projects/:projectId/requirements/new` and `/projects/:projectId/requirements/:requirementNumber` (the requirement page, step in `?step=`), `/history` and `/account` (coming soon). All pages share `AppLayout` (top nav + sidebar).
+- **Routing** ([frontend/src/App.tsx](../frontend/src/App.tsx)): `/` Dashboard, `/workspace` Projects, `/projects/:projectId`, `/projects/:projectId/requirements/new` and `/projects/:projectId/requirements/:requirementNumber` (the requirement page, step in `?step=`), `/history` (Recently deleted), `/account` (coming soon). All pages share `AppLayout` (top nav + sidebar).
 - **Data access:** pages only call functions in `src/services/`, which use one `request()` helper ([services/http.ts](../frontend/src/services/http.ts)). It adds the login token, sends JSON or files, and turns error answers into an `ApiError` carrying the backend's own message. Projects and requirements use the real API. Only the Dashboard still reads `src/mocks/dashboard.ts` (until M2).
-- **Requirement page** ([pages/RequirementPage.tsx](../frontend/src/pages/RequirementPage.tsx)): one page with the 4 steps (01 Requirement · 02 Scenarios · 03 Test cases · 04 Report). A step unlocks when the requirement's status reaches it (see `components/requirement/steps.ts`). Step 1 (`RequirementStep`) is three numbered cards: describe, attach files (`SpecificationFiles`), choose techniques (`TechniquePicker`). Step 2 is currently a read-only list (`ScenarioPreview`), which Slice 4 replaces.
+- **Requirement page** ([pages/RequirementPage.tsx](../frontend/src/pages/RequirementPage.tsx)): one page with the 4 steps (01 Requirement · 02 Scenarios · 03 Test cases · 04 Report). A step unlocks when the requirement's status reaches it (see `components/requirement/steps.ts`). Step 1 (`RequirementStep`) is three numbered cards: describe, attach files (`SpecificationFiles`), choose techniques (`TechniquePicker`). Step 2 (`ScenariosStep`) follows the white design:
+  - a toolbar: Add scenario, Generate more, Redraft, History, and Generate test cases (enabled in Slice 5)
+  - a summary line
+  - one `ScenarioCard` per scenario, with a priority dropdown (`PrioritySelect`), Edit (`ScenarioForm`) and Delete
+  - the draft history in a modal (`ScenarioHistory`)
+- **History page** ([pages/HistoryPage.tsx](../frontend/src/pages/HistoryPage.tsx)): "Recently deleted" (`components/history/DeletedItemList`) with Restore / Delete forever and the days left. The full generation history across projects comes in M3.
 - **Design system:** colors and fonts are Tailwind tokens in [frontend/src/index.css](../frontend/src/index.css) (`ink`, `brand`, `success`, `warning`, `danger`; Space Grotesk / IBM Plex Sans / IBM Plex Sans Thai / IBM Plex Mono). The shared pieces live in `components/ui/`.
 - **Languages:** every UI string comes from `i18n/locales/en.ts` and `th.ts`. The chosen language is remembered in the browser.
 

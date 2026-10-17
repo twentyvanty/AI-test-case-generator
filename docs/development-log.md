@@ -4,6 +4,83 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-09-30 — Slice 4: Scenarios step, priority and Recently deleted
+
+**Goal.** The real Step 2: review the AI's scenarios and shape them before test cases are generated. Plus a 7-day "Recently deleted", requested during planning.
+
+**Design input.** The team compared the white and black designs and chose the **white design's layout and actions** (add, edit, delete, generate more, redraft), plus the **priority level** from the black design. The black design's stat tiles, keep/drop checkboxes and `REQ-104.1` tags weren't used. Every scenario on the list will be expanded into test cases; unwanted ones are deleted.
+
+**What was built**
+- **Database** (migration `add_priority_and_soft_delete`):
+  - `Scenario.priority`
+  - `deletedAt` on Requirement / Scenario / TestCase
+  - the scenario and test case number uniqueness moves from the database to the code (see D-024)
+- **AI module**:
+  - scenarios now include a risk-based `priority`
+  - new "generate more" mode: the prompt lists the existing scenarios; the duplicate check and the validator compare new ↔ existing
+  - the mock supports both
+- **Backend**:
+  - scenario endpoints: add, edit, delete, draft history, restore
+  - `scenario-drafts` takes `{ mode: "replace" | "more" }`
+  - every run stores a full snapshot for restore
+  - `/api/trash`: list, restore, delete forever
+  - hourly removal of items deleted over 7 days ago
+  - all with Swagger docs
+- **Frontend**:
+  - Step 2 (`ScenariosStep`):
+    - toolbar, summary line, cards with a priority dropdown
+    - inline edit/add form
+    - confirm dialogs for delete / redraft / restore
+    - draft history modal
+    - "Generate test cases" button (disabled until Slice 5)
+  - The History page now shows **Recently deleted**. The delete dialogs point there.
+  - Fixed from the team's screenshots: the thick blue focus box on the step tabs (now a soft ring for keyboard users only), and technique cards whose text sat too low.
+
+**Problem found on the way: Prisma generated a wrong migration.** The generated SQL dropped the `TestCase → Requirement` foreign key but re-added `TestCase → Scenario`, which still existed, so MySQL stopped with "Duplicate foreign key constraint name" after 13 of 14 statements. The fix:
+1. corrected the last statement in the migration file (with a comment)
+2. added the missing key by hand
+3. marked the migration as applied
+4. removed the log row of the failed attempt
+
+A replay of all migrations into a fresh database then gave **no differences**, so teammates' setups work.
+
+**Decisions:** D-021 (priority), D-022 (generate more), D-023 (run snapshots), D-024 (Recently deleted).
+
+**How it was checked**
+- `npm test`: **67 tests** pass. New ones cover:
+  - the priority schema
+  - the "more" prompt and validator prompt
+  - duplicates against existing scenarios
+  - "more" with the mock
+  - scenario DTOs
+  - the 7-day date rules
+- Services against the real database with the mock AI, **20 checks**:
+  - replace/more numbering and snapshots
+  - add/edit/delete; last one deleted → DRAFT
+  - history + restore
+  - a restored scenario renumbered when its number is taken
+  - another user has no access
+  - soft-deleted requirement listed, not reused, restored with its scenarios
+  - delete forever
+  - purge removes an 8-day-old item and keeps a 6-day-old one
+  - a busy AI changes nothing
+- Swagger spec valid (`redocly lint`).
+- **Browser test** (headless Chrome, a temporary Keycloak user, mock AI), **16 checks**:
+  - draft; priority change survives a reload; edit; add; delete
+  - generate more; busy AI; redraft
+  - history (including a failed run) → restore
+  - History page restore; delete and restore a requirement
+  - phone width; Thai
+
+  No page errors. The temporary user and data were removed afterwards.
+- Frontend `lint` and `build` pass.
+
+**Follow-ups**
+- Team checkpoint with the real Gemini key: are the AI's priorities sensible? Does "Generate more" avoid repeats? Does restoring an earlier draft work?
+- Slice 5: test cases (and their deletes go to Recently deleted; queries must filter `deletedAt`).
+
+---
+
 ## 2026-09-27 — Slice 3: Requirements API + Step 1 page
 
 **Goal.** Make requirements real (saved in MySQL) and build Step 1 of the tester flow: write the requirement (or attach documents), choose techniques, and draft scenarios with the AI.

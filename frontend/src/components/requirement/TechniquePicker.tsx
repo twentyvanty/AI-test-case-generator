@@ -28,7 +28,7 @@ function OptionCard({ name, description, selected, disabled, onClick, reason }: 
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "rounded-2xl border bg-white/80 px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-60",
+        "flex flex-col justify-start rounded-2xl border bg-white/80 px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-60",
         selected
           ? "border-brand-strong ring-1 ring-brand-strong"
           : "border-gray-200 hover:bg-white"

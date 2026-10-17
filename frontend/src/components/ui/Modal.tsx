@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 type ModalProps = {
   open: boolean;
@@ -39,7 +40,9 @@ function Modal({
     return null;
   }
 
-  return (
+  // Rendered straight into <body>: inside a Card, the card's backdrop blur would
+  // make "fixed" relative to the card, so the overlay would only cover the card
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 px-4 backdrop-blur-sm"
       onClick={onClose}
@@ -63,7 +66,8 @@ function Modal({
           <div className="mt-6 flex justify-end gap-3">{footer}</div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

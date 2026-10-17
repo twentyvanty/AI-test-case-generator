@@ -9,6 +9,9 @@ import userRoutes from "./routes/user.routes.js";
 import projectRoutes from "./routes/project.routes.js";
 import requirementRoutes from "./routes/requirement.routes.js";
 import documentRoutes from "./routes/document.routes.js";
+import scenarioRoutes from "./routes/scenario.routes.js";
+import trashRoutes from "./routes/trash.routes.js";
+import { purgeExpired } from "./services/trash.service.js";
 import { openapiSpec } from "./docs/openapi.js";
 import { keycloakClientId } from "./config/keycloak.js";
 
@@ -39,7 +42,9 @@ app.use(
 app.use("/api", userRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/projects/:projectId/requirements", requirementRoutes);
+app.use("/api/projects/:projectId/requirements/:number", scenarioRoutes);
 app.use("/api/documents", documentRoutes);
+app.use("/api/trash", trashRoutes);
 
 const PORT = process.env.PORT || 5001;
 
@@ -50,3 +55,19 @@ const server = app.listen(PORT, () => {
 // An AI generation with retries can take several minutes; Node's default
 // (5 min) would cut it off, so allow up to 10 min per request.
 server.requestTimeout = 10 * 60 * 1000;
+
+// "Recently deleted": remove items deleted more than 7 days ago, now and every hour
+async function purge() {
+  try {
+    const removed = await purgeExpired();
+
+    if (removed.requirements + removed.scenarios + removed.testCases > 0) {
+      console.log("🗑️  Removed for good (deleted over 7 days ago):", removed);
+    }
+  } catch (error) {
+    console.error("Purge of deleted items failed:", error);
+  }
+}
+
+purge();
+setInterval(purge, 60 * 60 * 1000).unref();
