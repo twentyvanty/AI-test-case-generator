@@ -1,0 +1,211 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1760" height="1010" viewBox="0 0 1760 1010" font-family="Helvetica, Arial, sans-serif">
+<defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1f232b"/></marker>
+<marker id="arrT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3f8f80"/></marker>
+<marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b7792f"/></marker>
+</defs>
+<rect width="1760" height="1010" fill="white"/>
+<path d="M144,62 h78 l22,22 v112 h-100 z" fill="white" stroke="#1f232b" stroke-width="1.6"/>
+<path d="M130,76 h78 l22,22 v112 h-100 z" fill="white" stroke="#1f232b" stroke-width="1.6"/>
+<line x1="142" y1="102" x2="200" y2="102" stroke="#6b7280" stroke-width="1.4"/>
+<line x1="142" y1="117" x2="212" y2="117" stroke="#6b7280" stroke-width="1.4"/>
+<line x1="142" y1="132" x2="200" y2="132" stroke="#6b7280" stroke-width="1.4"/>
+<line x1="142" y1="147" x2="212" y2="147" stroke="#6b7280" stroke-width="1.4"/>
+<line x1="142" y1="162" x2="200" y2="162" stroke="#6b7280" stroke-width="1.4"/>
+<line x1="142" y1="177" x2="212" y2="177" stroke="#6b7280" stroke-width="1.4"/>
+<text x="180" y="236" font-size="15" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Requirement documents</text>
+<text x="180" y="254" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="normal">typed text, PDF, DOCX, MD, TXT</text>
+<path d="M475,72 h88 l22,22 v118 h-110 z" fill="white" stroke="#1f232b" stroke-width="1.6"/>
+<text x="530" y="128" font-size="24" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">{ … }</text>
+<text x="530" y="168" font-size="24" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">{ … }</text>
+<text x="530" y="236" font-size="15" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Recommended test design</text>
+<text x="530" y="254" font-size="15" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">techniques + reasons</text>
+<rect x="808" y="70" width="144" height="142" rx="10" fill="white" stroke="#1f232b" stroke-width="1.6"/>
+<text x="822" y="103" font-size="12" font-weight="normal" fill="#1f232b" text-anchor="start" font-style="normal">SC-01</text>
+<line x1="870" y1="98" x2="902" y2="98" stroke="#6b7280" stroke-width="2"/>
+<rect x="908" y="90" width="34" height="16" rx="8" fill="#b5485a" opacity="0.18"/>
+<text x="925" y="102" font-size="10" font-weight="normal" fill="#b5485a" text-anchor="middle" font-style="normal">High</text>
+<text x="822" y="133" font-size="12" font-weight="normal" fill="#1f232b" text-anchor="start" font-style="normal">SC-02</text>
+<line x1="870" y1="128" x2="902" y2="128" stroke="#6b7280" stroke-width="2"/>
+<rect x="908" y="120" width="34" height="16" rx="8" fill="#b7792f" opacity="0.18"/>
+<text x="925" y="132" font-size="10" font-weight="normal" fill="#b7792f" text-anchor="middle" font-style="normal">Med</text>
+<text x="822" y="163" font-size="12" font-weight="normal" fill="#1f232b" text-anchor="start" font-style="normal">SC-03</text>
+<line x1="870" y1="158" x2="902" y2="158" stroke="#6b7280" stroke-width="2"/>
+<rect x="908" y="150" width="34" height="16" rx="8" fill="#6b7280" opacity="0.18"/>
+<text x="925" y="162" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="normal">Low</text>
+<text x="822" y="193" font-size="12" font-weight="normal" fill="#1f232b" text-anchor="start" font-style="normal">SC-04</text>
+<line x1="870" y1="188" x2="902" y2="188" stroke="#6b7280" stroke-width="2"/>
+<rect x="908" y="180" width="34" height="16" rx="8" fill="#b7792f" opacity="0.18"/>
+<text x="925" y="192" font-size="10" font-weight="normal" fill="#b7792f" text-anchor="middle" font-style="normal">Med</text>
+<text x="880" y="236" font-size="15" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Test scenarios</text>
+<text x="880" y="254" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="normal">technique, priority, est. cases</text>
+<rect x="1158" y="70" width="144" height="142" rx="10" fill="white" stroke="#1f232b" stroke-width="1.6"/>
+<text x="1172" y="96" font-size="12" font-weight="bold" fill="#1f232b" text-anchor="start" font-style="normal">TC-0001</text>
+<text x="1172" y="116" font-size="12" font-weight="normal" fill="#6b7280" text-anchor="start" font-style="normal">Pre: …</text>
+<text x="1172" y="136" font-size="12" font-weight="normal" fill="#6b7280" text-anchor="start" font-style="normal">1. ———</text>
+<text x="1172" y="156" font-size="12" font-weight="normal" fill="#6b7280" text-anchor="start" font-style="normal">2. ———</text>
+<text x="1172" y="176" font-size="12" font-weight="normal" fill="#6b7280" text-anchor="start" font-style="normal">Expect: ———</text>
+<text x="1172" y="198" font-size="12" font-weight="bold" fill="#1f232b" text-anchor="start" font-style="normal">TC-0002 …</text>
+<text x="1230" y="236" font-size="15" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Test cases</text>
+<text x="1230" y="254" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="normal">precondition, steps, expected result</text>
+<rect x="1508" y="70" width="144" height="142" rx="10" fill="white" stroke="#1f232b" stroke-width="1.6"/>
+<rect x="1522" y="84" width="22" height="18" fill="white" stroke="#6b7280" stroke-width="1"/>
+<rect x="1544" y="84" width="22" height="18" fill="white" stroke="#6b7280" stroke-width="1"/>
+<rect x="1566" y="84" width="22" height="18" fill="white" stroke="#6b7280" stroke-width="1"/>
+<rect x="1588" y="84" width="22" height="18" fill="white" stroke="#6b7280" stroke-width="1"/>
+<rect x="1522" y="102" width="22" height="18" fill="white" stroke="#6b7280" stroke-width="1"/>
+<rect x="1544" y="102" width="22" height="18" fill="white" stroke="#6b7280" stroke-width="1"/>
+<rect x="1566" y="102" width="22" height="18" fill="#e7f3f0" stroke="#6b7280" stroke-width="1"/>
+<rect x="1588" y="102" width="22" height="18" fill="white" stroke="#6b7280" stroke-width="1"/>
+<rect x="1522" y="120" width="22" height="18" fill="white" stroke="#6b7280" stroke-width="1"/>
+<rect x="1544" y="120" width="22" height="18" fill="#e7f3f0" stroke="#6b7280" stroke-width="1"/>
+<rect x="1566" y="120" width="22" height="18" fill="white" stroke="#6b7280" stroke-width="1"/>
+<rect x="1588" y="120" width="22" height="18" fill="white" stroke="#6b7280" stroke-width="1"/>
+<rect x="1522" y="138" width="22" height="18" fill="white" stroke="#6b7280" stroke-width="1"/>
+<rect x="1544" y="138" width="22" height="18" fill="white" stroke="#6b7280" stroke-width="1"/>
+<rect x="1566" y="138" width="22" height="18" fill="white" stroke="#6b7280" stroke-width="1"/>
+<rect x="1588" y="138" width="22" height="18" fill="#e7f3f0" stroke="#6b7280" stroke-width="1"/>
+<rect x="1522" y="166" width="100" height="8" rx="4" fill="#3f8f80" opacity="0.9"/>
+<rect x="1522" y="179" width="76" height="8" rx="4" fill="#3f8f80" opacity="0.65"/>
+<rect x="1522" y="192" width="52" height="8" rx="4" fill="#3f8f80" opacity="0.4"/>
+<text x="1580" y="236" font-size="15" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Coverage &amp; traceability</text>
+<text x="1580" y="254" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="normal">report, Excel / CSV export</text>
+<rect x="45.0" y="360" width="270" height="112" rx="10" fill="#f3f4f6" stroke="#6b7280" stroke-width="2" filter="none"/>
+<text x="180" y="390" font-size="15.5" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Step 0: Extract text</text>
+<text x="180" y="416" font-size="14" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">Read the uploaded files</text>
+<text x="180" y="438" font-size="14" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="italic">(no LLM)</text>
+<rect x="395.0" y="360" width="270" height="112" rx="10" fill="white" stroke="#3f8f80" stroke-width="2" filter="none"/>
+<text x="530" y="390" font-size="15.5" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Step 1: Recommend test design</text>
+<text x="530" y="416" font-size="14" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">techniques by prompting LLM</text>
+<text x="530" y="438" font-size="14" font-weight="normal" fill="#3f8f80" text-anchor="middle" font-style="italic">Prompt: requirement + technique list</text>
+<rect x="745.0" y="360" width="270" height="112" rx="10" fill="white" stroke="#3f8f80" stroke-width="2" filter="none"/>
+<text x="880" y="390" font-size="15.5" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Step 2: Draft test scenarios</text>
+<text x="880" y="416" font-size="14" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">by prompting LLM (+ Generate more)</text>
+<text x="880" y="438" font-size="14" font-weight="normal" fill="#3f8f80" text-anchor="middle" font-style="italic">Prompt: requirement + techniques</text>
+<rect x="1095.0" y="360" width="270" height="112" rx="10" fill="white" stroke="#3f8f80" stroke-width="2" filter="none"/>
+<text x="1230" y="390" font-size="15.5" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Step 3: Generate test cases</text>
+<text x="1230" y="416" font-size="14" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">for each scenario by prompting LLM</text>
+<text x="1230" y="438" font-size="14" font-weight="normal" fill="#3f8f80" text-anchor="middle" font-style="italic">Prompt: requirement + scenarios</text>
+<rect x="1445.0" y="360" width="270" height="112" rx="10" fill="#f3f4f6" stroke="#6b7280" stroke-width="2" filter="none"/>
+<text x="1580" y="390" font-size="15.5" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Step 4: Build coverage &amp;</text>
+<text x="1580" y="416" font-size="14" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">traceability report from stored</text>
+<text x="1580" y="438" font-size="14" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">data (no LLM)</text>
+<path d="M180,266 V356" fill="none" stroke="#1f232b" stroke-width="1.8" marker-end="url(#arr)"/>
+<text x="190" y="318" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="start" font-style="italic">input</text>
+<path d="M315.0,416 H391.0" fill="none" stroke="#1f232b" stroke-width="1.8" marker-end="url(#arr)"/>
+<text x="355.0" y="404" font-size="12" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="italic">requirement</text>
+<text x="355.0" y="436" font-size="12" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="italic">text</text>
+<path d="M530,360 V270" fill="none" stroke="#1f232b" stroke-width="1.8" marker-end="url(#arr)"/>
+<text x="538" y="320" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="start" font-style="italic">output</text>
+<path d="M880,360 V270" fill="none" stroke="#1f232b" stroke-width="1.8" marker-end="url(#arr)"/>
+<text x="888" y="320" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="start" font-style="italic">output</text>
+<path d="M1230,360 V270" fill="none" stroke="#1f232b" stroke-width="1.8" marker-end="url(#arr)"/>
+<text x="1238" y="320" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="start" font-style="italic">output</text>
+<path d="M1580,360 V270" fill="none" stroke="#1f232b" stroke-width="1.8" marker-end="url(#arr)"/>
+<text x="1588" y="320" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="start" font-style="italic">output</text>
+<path d="M582,266 C582,352 788,318 788,356" fill="none" stroke="#b7792f" stroke-width="1.8" marker-end="url(#arrA)"/>
+<circle cx="655.0" cy="279" r="7" fill="#fbf1e3" stroke="#b7792f" stroke-width="1.8"/>
+<path d="M643.0,302 Q643.0,288 655.0,288 Q667.0,288 667.0,302 Z" fill="#fbf1e3" stroke="#b7792f" stroke-width="1.8"/>
+<text x="675.0" y="284" font-size="12.5" font-weight="bold" fill="#b7792f" text-anchor="start" font-style="normal">Tester confirms</text>
+<text x="675.0" y="300" font-size="12.5" font-weight="normal" fill="#b7792f" text-anchor="start" font-style="normal">techniques</text>
+<path d="M932,266 C932,352 1138,318 1138,356" fill="none" stroke="#b7792f" stroke-width="1.8" marker-end="url(#arrA)"/>
+<circle cx="1005.0" cy="279" r="7" fill="#fbf1e3" stroke="#b7792f" stroke-width="1.8"/>
+<path d="M993.0,302 Q993.0,288 1005.0,288 Q1017.0,288 1017.0,302 Z" fill="#fbf1e3" stroke="#b7792f" stroke-width="1.8"/>
+<text x="1025.0" y="284" font-size="12.5" font-weight="bold" fill="#b7792f" text-anchor="start" font-style="normal">Tester edits</text>
+<text x="1025.0" y="300" font-size="12.5" font-weight="normal" fill="#b7792f" text-anchor="start" font-style="normal">scenarios</text>
+<path d="M1282,266 C1282,352 1488,318 1488,356" fill="none" stroke="#b7792f" stroke-width="1.8" marker-end="url(#arrA)"/>
+<circle cx="1355.0" cy="279" r="7" fill="#fbf1e3" stroke="#b7792f" stroke-width="1.8"/>
+<path d="M1343.0,302 Q1343.0,288 1355.0,288 Q1367.0,288 1367.0,302 Z" fill="#fbf1e3" stroke="#b7792f" stroke-width="1.8"/>
+<text x="1375.0" y="284" font-size="12.5" font-weight="bold" fill="#b7792f" text-anchor="start" font-style="normal">Tester edits</text>
+<text x="1375.0" y="300" font-size="12.5" font-weight="normal" fill="#b7792f" text-anchor="start" font-style="normal">test cases</text>
+<rect x="370" y="560" width="1030" height="296" rx="14" fill="#fafdfc" stroke="#3f8f80" stroke-width="1.6" stroke-dasharray="8 6"/>
+<text x="388" y="588" font-size="15" font-weight="bold" fill="#3f8f80" text-anchor="start" font-style="normal">AI generation pipeline (same loop for Steps 1–3)</text>
+<path d="M502,472 V557" fill="none" stroke="#3f8f80" stroke-width="1.8" marker-end="url(#arrT)"/>
+<text x="494" y="530" font-size="13" font-weight="normal" fill="#3f8f80" text-anchor="end" font-style="italic">prompt</text>
+<path d="M558,560 V476" fill="none" stroke="#3f8f80" stroke-width="1.8" marker-end="url(#arrT)"/>
+<text x="566" y="530" font-size="13" font-weight="normal" fill="#3f8f80" text-anchor="start" font-style="italic">output</text>
+<path d="M852,472 V557" fill="none" stroke="#3f8f80" stroke-width="1.8" marker-end="url(#arrT)"/>
+<text x="844" y="530" font-size="13" font-weight="normal" fill="#3f8f80" text-anchor="end" font-style="italic">prompt</text>
+<path d="M908,560 V476" fill="none" stroke="#3f8f80" stroke-width="1.8" marker-end="url(#arrT)"/>
+<text x="916" y="530" font-size="13" font-weight="normal" fill="#3f8f80" text-anchor="start" font-style="italic">output</text>
+<path d="M1202,472 V557" fill="none" stroke="#3f8f80" stroke-width="1.8" marker-end="url(#arrT)"/>
+<text x="1194" y="530" font-size="13" font-weight="normal" fill="#3f8f80" text-anchor="end" font-style="italic">prompt</text>
+<path d="M1258,560 V476" fill="none" stroke="#3f8f80" stroke-width="1.8" marker-end="url(#arrT)"/>
+<text x="1266" y="530" font-size="13" font-weight="normal" fill="#3f8f80" text-anchor="start" font-style="italic">output</text>
+<circle cx="560" cy="715" r="64" fill="#e7f3f0" stroke="#3f8f80" stroke-width="2"/>
+<line x1="560" y1="715" x2="603.2" y2="730.7" stroke="#3f8f80" stroke-width="1.4"/>
+<circle cx="603.2" cy="730.7" r="10" fill="white" stroke="#3f8f80" stroke-width="1.6"/>
+<line x1="560" y1="715" x2="579.4" y2="756.7" stroke="#3f8f80" stroke-width="1.4"/>
+<circle cx="579.4" cy="756.7" r="8" fill="white" stroke="#3f8f80" stroke-width="1.6"/>
+<line x1="560" y1="715" x2="544.3" y2="758.2" stroke="#3f8f80" stroke-width="1.4"/>
+<circle cx="544.3" cy="758.2" r="10" fill="white" stroke="#3f8f80" stroke-width="1.6"/>
+<line x1="560" y1="715" x2="518.3" y2="734.4" stroke="#3f8f80" stroke-width="1.4"/>
+<circle cx="518.3" cy="734.4" r="8" fill="white" stroke="#3f8f80" stroke-width="1.6"/>
+<line x1="560" y1="715" x2="516.8" y2="699.3" stroke="#3f8f80" stroke-width="1.4"/>
+<circle cx="516.8" cy="699.3" r="10" fill="white" stroke="#3f8f80" stroke-width="1.6"/>
+<line x1="560" y1="715" x2="540.6" y2="673.3" stroke="#3f8f80" stroke-width="1.4"/>
+<circle cx="540.6" cy="673.3" r="8" fill="white" stroke="#3f8f80" stroke-width="1.6"/>
+<line x1="560" y1="715" x2="575.7" y2="671.8" stroke="#3f8f80" stroke-width="1.4"/>
+<circle cx="575.7" cy="671.8" r="10" fill="white" stroke="#3f8f80" stroke-width="1.6"/>
+<line x1="560" y1="715" x2="601.7" y2="695.6" stroke="#3f8f80" stroke-width="1.4"/>
+<circle cx="601.7" cy="695.6" r="8" fill="white" stroke="#3f8f80" stroke-width="1.6"/>
+<circle cx="560" cy="715" r="25" fill="white" stroke="#3f8f80" stroke-width="2"/>
+<text x="560" y="721" font-size="16" font-weight="bold" fill="#3f8f80" text-anchor="middle" font-style="normal">LLM</text>
+<text x="560" y="803" font-size="15" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Generator LLM</text>
+<text x="560" y="821" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="normal">(Gemini 3.5 Flash)</text>
+<circle cx="1200" cy="715" r="64" fill="#e7f3f0" stroke="#3f8f80" stroke-width="2"/>
+<line x1="1200" y1="715" x2="1243.2" y2="730.7" stroke="#3f8f80" stroke-width="1.4"/>
+<circle cx="1243.2" cy="730.7" r="10" fill="white" stroke="#3f8f80" stroke-width="1.6"/>
+<line x1="1200" y1="715" x2="1219.4" y2="756.7" stroke="#3f8f80" stroke-width="1.4"/>
+<circle cx="1219.4" cy="756.7" r="8" fill="white" stroke="#3f8f80" stroke-width="1.6"/>
+<line x1="1200" y1="715" x2="1184.3" y2="758.2" stroke="#3f8f80" stroke-width="1.4"/>
+<circle cx="1184.3" cy="758.2" r="10" fill="white" stroke="#3f8f80" stroke-width="1.6"/>
+<line x1="1200" y1="715" x2="1158.3" y2="734.4" stroke="#3f8f80" stroke-width="1.4"/>
+<circle cx="1158.3" cy="734.4" r="8" fill="white" stroke="#3f8f80" stroke-width="1.6"/>
+<line x1="1200" y1="715" x2="1156.8" y2="699.3" stroke="#3f8f80" stroke-width="1.4"/>
+<circle cx="1156.8" cy="699.3" r="10" fill="white" stroke="#3f8f80" stroke-width="1.6"/>
+<line x1="1200" y1="715" x2="1180.6" y2="673.3" stroke="#3f8f80" stroke-width="1.4"/>
+<circle cx="1180.6" cy="673.3" r="8" fill="white" stroke="#3f8f80" stroke-width="1.6"/>
+<line x1="1200" y1="715" x2="1215.7" y2="671.8" stroke="#3f8f80" stroke-width="1.4"/>
+<circle cx="1215.7" cy="671.8" r="10" fill="white" stroke="#3f8f80" stroke-width="1.6"/>
+<line x1="1200" y1="715" x2="1241.7" y2="695.6" stroke="#3f8f80" stroke-width="1.4"/>
+<circle cx="1241.7" cy="695.6" r="8" fill="white" stroke="#3f8f80" stroke-width="1.6"/>
+<circle cx="1200" cy="715" r="25" fill="white" stroke="#3f8f80" stroke-width="2"/>
+<text x="1200" y="721" font-size="16" font-weight="bold" fill="#3f8f80" text-anchor="middle" font-style="normal">LLM</text>
+<text x="1200" y="803" font-size="15" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Validator LLM</text>
+<text x="1200" y="821" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="normal">(a different model: 3.5 Flash-Lite)</text>
+<rect x="780" y="667" width="200" height="96" rx="10" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.6"/>
+<text x="880" y="697" font-size="15" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Checks in code</text>
+<text x="880" y="719" font-size="13" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">format (JSON schema)</text>
+<text x="880" y="737" font-size="13" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">duplicates · sensitive data</text>
+<path d="M624,715 H776" fill="none" stroke="#1f232b" stroke-width="1.8" marker-end="url(#arr)"/>
+<text x="702.0" y="705" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="italic">draft</text>
+<path d="M980,715 H1132" fill="none" stroke="#1f232b" stroke-width="1.8" marker-end="url(#arr)"/>
+<text x="1200" y="637" font-size="1" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal"></text>
+<text x="1200" y="839" font-size="12.5" font-weight="normal" fill="#3f8f80" text-anchor="middle" font-style="normal">checks: requirement coverage · technique · rules</text>
+<path d="M1200,649 C1200,612 560,612 560,647" fill="none" stroke="#b5485a" stroke-width="1.6" stroke-dasharray="6 5" marker-end="url(#arr)"/>
+<text x="880" y="606" font-size="13" font-weight="normal" fill="#b5485a" text-anchor="middle" font-style="italic">problems found → retry with the issues (max 3 attempts)</text>
+<text x="370" y="890" font-size="14" font-weight="bold" fill="#1f232b" text-anchor="start" font-style="normal">Each run ends as:</text>
+<rect x="505" y="873" width="68" height="24" rx="12" fill="#3f8f55" opacity="0.15"/>
+<text x="539.0" y="890" font-size="12.5" font-weight="bold" fill="#3f8f55" text-anchor="middle" font-style="normal">PASSED</text>
+<text x="581" y="890" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="start" font-style="normal">all checks pass</text>
+<rect x="706.0" y="873" width="122" height="24" rx="12" fill="#b7792f" opacity="0.15"/>
+<text x="767.0" y="890" font-size="12.5" font-weight="bold" fill="#b7792f" text-anchor="middle" font-style="normal">NEEDS REVIEW</text>
+<text x="836.0" y="890" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="start" font-style="normal">best attempt kept, tester fixes the issues</text>
+<rect x="1139.2" y="873" width="68" height="24" rx="12" fill="#b5485a" opacity="0.15"/>
+<text x="1173.2" y="890" font-size="12.5" font-weight="bold" fill="#b5485a" text-anchor="middle" font-style="normal">FAILED</text>
+<text x="1215.2" y="890" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="start" font-style="normal">AI unavailable, nothing changes</text>
+<text x="370" y="916" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="start" font-style="normal">Step 1 uses the generator + format check only (no validator). Every run is saved, so the last 10 drafts can be restored.</text>
+<rect x="1436" y="572" width="274" height="150" rx="10" fill="white" stroke="#d6d9de"/>
+<text x="1450" y="594" font-size="14" font-weight="bold" fill="#1f232b" text-anchor="start" font-style="normal">Legend</text>
+<rect x="1450" y="608" width="28" height="18" rx="4" fill="white" stroke="#3f8f80" stroke-width="2"/>
+<text x="1488" y="622" font-size="13" font-weight="normal" fill="#1f232b" text-anchor="start" font-style="normal">step that prompts the LLM</text>
+<rect x="1450" y="638" width="28" height="18" rx="4" fill="#f3f4f6" stroke="#6b7280" stroke-width="2"/>
+<text x="1488" y="652" font-size="13" font-weight="normal" fill="#1f232b" text-anchor="start" font-style="normal">system only (no LLM)</text>
+<circle cx="1464" cy="673" r="7" fill="#fbf1e3" stroke="#b7792f" stroke-width="1.8"/>
+<path d="M1452,696 Q1452,682 1464,682 Q1476,682 1476,696 Z" fill="#fbf1e3" stroke="#b7792f" stroke-width="1.8"/>
+<text x="1488" y="684" font-size="13" font-weight="normal" fill="#1f232b" text-anchor="start" font-style="normal">human review by the tester</text>
+<line x1="1450" y1="710" x2="1478" y2="710" stroke="#b5485a" stroke-width="1.6" stroke-dasharray="6 5"/>
+<text x="1488" y="714" font-size="13" font-weight="normal" fill="#1f232b" text-anchor="start" font-style="normal">automatic retry</text>
+<text x="880.0" y="975" font-size="16" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">Fig. 1.  Overview of the AI Test Case Generator: from requirement to scenarios, test cases and report</text>
+</svg>
