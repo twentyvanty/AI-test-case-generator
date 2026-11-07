@@ -1,70 +1,14 @@
 import { GoogleGenAI } from "@google/genai";
+import { ProviderAuthError, ProviderError, ProviderQuotaError } from "../errors.js";
 import {
-  ProviderAuthError,
-  ProviderError,
-  ProviderQuotaError,
-  ProviderUnavailableError,
-} from "../errors.js";
-
-// Longest we wait for ONE request. A test-case answer normally takes 30–70 s on
-// the free tier; much longer means the model is stuck (seen: 17 min hangs).
-const DEFAULT_TIMEOUT_MS = 120_000;
-
-// Waits before re-trying a model that answered "busy" (HTTP 5xx)
-const BUSY_RETRY_WAITS_MS = [3_000, 8_000];
-
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// AI_DEBUG=1 prints every request with timings to stderr (for troubleshooting)
-const debug = (...parts) => {
-  if (process.env.AI_DEBUG) {
-    console.error(`[ai ${new Date().toISOString().slice(11, 19)}]`, ...parts);
-  }
-};
-
-// Resolves/rejects like `promise`, but rejects with a TimeoutError after `ms`
-// no matter what — even if the SDK ignores the abort signal.
-function withDeadline(promise, ms, onTimeout) {
-  let timer;
-
-  const deadline = new Promise((_, reject) => {
-    timer = setTimeout(() => {
-      onTimeout();
-      reject(Object.assign(new Error(`timed out after ${ms} ms`), { name: "TimeoutError" }));
-    }, ms);
-  });
-
-  return Promise.race([promise, deadline]).finally(() => clearTimeout(timer));
-}
-
-// Gemini errors often carry a JSON body — pull out just the human message
-function readableMessage(raw) {
-  try {
-    return JSON.parse(raw)?.error?.message ?? raw;
-  } catch {
-    return raw;
-  }
-}
-
-// The request took longer than our time limit (we cancelled it)
-function isTimeout(error) {
-  return (
-    error?.name === "TimeoutError" ||
-    error?.name === "AbortError" ||
-    /aborted|timed? ?out/i.test(String(error?.message ?? ""))
-  );
-}
-
-// Google answered "busy / temporarily down", or the connection dropped
-function isBusy(error) {
-  const status = error?.status;
-  const text = String(error?.message ?? "");
-
-  return (
-    (status >= 500 && status <= 504) ||
-    /high demand|overloaded|UNAVAILABLE|fetch failed|ECONNRESET|socket hang up/i.test(text)
-  );
-}
+  BUSY_RETRY_WAITS_MS,
+  DEFAULT_TIMEOUT_MS,
+  callWithFallback,
+  debug,
+  readableMessage,
+  withBusyRetries,
+  withDeadline,
+} from "./reliability.js";
 
 // Turn an SDK error into one of our error types (see ../errors.js)
 function toProviderError(error, model) {
@@ -154,55 +98,21 @@ export function createGeminiProvider({
     }
   }
 
-  // One model: retry "busy" answers after a short wait; give up at once on a timeout
-  // (a model that hung once usually hangs again — better to switch models).
-  async function callModel(modelName, request) {
-    for (let retry = 0; ; retry++) {
-      try {
-        return await callOnce(modelName, request);
-      } catch (error) {
-        const canRetry = isBusy(error) && !isTimeout(error) && retry < waits.length;
-
-        if (!canRetry) {
-          throw error;
-        }
-
-        debug(`  busy → waiting ${waits[retry]} ms before retrying ${modelName}`);
-        await sleep(waits[retry]);
-      }
-    }
-  }
-
   return {
     name: "gemini",
     model,
     fallbackModel,
 
     async generateJson(request) {
-      let response;
-      let usedModel = model;
-
-      try {
-        response = await callModel(model, request);
-      } catch (error) {
-        if (!isBusy(error) && !isTimeout(error)) {
-          throw toProviderError(error, model);
-        }
-
-        // Main model busy or too slow → try the fallback model
-        if (!fallbackModel || fallbackModel === model) {
-          throw unavailableError([model], error, timeoutMs);
-        }
-
-        try {
-          usedModel = fallbackModel;
-          response = await callModel(fallbackModel, request);
-        } catch (fallbackError) {
-          throw isBusy(fallbackError) || isTimeout(fallbackError)
-            ? unavailableError([model, fallbackModel], fallbackError, timeoutMs)
-            : toProviderError(fallbackError, fallbackModel);
-        }
-      }
+      const { response, usedModel } = await callWithFallback({
+        serviceName: "Gemini",
+        model,
+        fallbackModel,
+        timeoutMs,
+        callModel: (modelName) =>
+          withBusyRetries((name) => callOnce(name, request), modelName, waits),
+        toProviderError,
+      });
 
       const text = response.text;
 
@@ -235,15 +145,4 @@ export function createGeminiProvider({
       };
     },
   };
-}
-
-function unavailableError(models, cause, timeoutMs) {
-  const why = isTimeout(cause)
-    ? `didn't answer within ${Math.round(timeoutMs / 1000)} s`
-    : "is busy (high demand)";
-
-  return new ProviderUnavailableError(
-    `Gemini ${why} — tried ${models.join(" and ")}. Please try again in a few minutes.`,
-    { cause, status: cause?.status }
-  );
 }

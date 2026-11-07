@@ -15,8 +15,11 @@
 <line x1="112" y1="147" x2="182" y2="147" stroke="#6b7280" stroke-width="1.4"/>
 <line x1="112" y1="162" x2="170" y2="162" stroke="#6b7280" stroke-width="1.4"/>
 <line x1="112" y1="177" x2="182" y2="177" stroke="#6b7280" stroke-width="1.4"/>
+<rect x="156" y="146" width="52" height="42" rx="5" fill="white" stroke="#3f8f80" stroke-width="1.8"/>
+<circle cx="170" cy="158" r="5" fill="#3f8f80" opacity="0.7"/>
+<path d="M160,184 L176,168 L186,177 L194,170 L204,184 Z" fill="#3f8f80" opacity="0.55"/>
 <text x="150" y="238" font-size="15" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Requirement documents</text>
-<text x="150" y="256" font-size="12.5" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="normal">text, PDF, DOCX, MD, TXT</text>
+<text x="150" y="256" font-size="12.5" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="normal">text, PDF, DOCX, MD, TXT, images</text>
 <path d="M393,72 h88 l22,22 v118 h-110 z" fill="white" stroke="#1f232b" stroke-width="1.6"/>
 <text x="448" y="128" font-size="24" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">{ … }</text>
 <text x="448" y="168" font-size="24" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">{ … }</text>
@@ -85,9 +88,9 @@
 <text x="1660" y="238" font-size="15" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Report</text>
 <text x="1660" y="256" font-size="12.5" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="normal">coverage, traceability, results, defects</text>
 <rect x="21.0" y="368" width="258" height="118" rx="10" fill="#f3f4f6" stroke="#6b7280" stroke-width="2"/>
-<text x="150" y="398" font-size="15" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Step 0: Extract text</text>
-<text x="150" y="425" font-size="13.5" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">Read the uploaded files</text>
-<text x="150" y="447" font-size="13.5" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="italic">(no LLM)</text>
+<text x="150" y="398" font-size="15" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Step 0: Read the inputs</text>
+<text x="150" y="425" font-size="13.5" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">Documents: text read by code</text>
+<text x="150" y="447" font-size="13.5" font-weight="normal" fill="#3f8f80" text-anchor="middle" font-style="italic">Images: read by a vision LLM</text>
 <rect x="319.0" y="368" width="258" height="118" rx="10" fill="white" stroke="#3f8f80" stroke-width="2"/>
 <text x="448" y="398" font-size="15" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Step 1: Recommend</text>
 <text x="448" y="425" font-size="13.5" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">test design techniques</text>

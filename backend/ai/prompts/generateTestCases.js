@@ -1,4 +1,10 @@
-import { BASE_RULES, previousIssuesBlock, requirementBlock, techniquesBlock } from "./shared.js";
+import {
+  BASE_RULES,
+  languageBlock,
+  previousIssuesBlock,
+  requirementBlock,
+  techniquesBlock,
+} from "./shared.js";
 
 export function scenariosBlock(scenarios) {
   return `<scenarios>\n${scenarios
@@ -28,7 +34,9 @@ ${BASE_RULES}
 
 ${requirementBlock(input.requirementText)}
 
-${scenariosBlock(input.scenarios)}${previousIssuesBlock(previousIssues)}`;
+${scenariosBlock(input.scenarios)}${previousIssuesBlock(previousIssues)}
+
+${languageBlock(input.requirementText)}`;
 
   return { system, prompt };
 }

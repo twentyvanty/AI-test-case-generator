@@ -1,4 +1,10 @@
-import { BASE_RULES, previousIssuesBlock, requirementBlock, techniquesBlock } from "./shared.js";
+import {
+  BASE_RULES,
+  languageBlock,
+  previousIssuesBlock,
+  requirementBlock,
+  techniquesBlock,
+} from "./shared.js";
 
 // The tester's current scenarios, for "generate more" (and for its validator)
 export function existingScenariosBlock(existingScenarios) {
@@ -41,7 +47,9 @@ ${coverage}
 
   const prompt = `${techniquesBlock(input.techniques ?? [])}
 
-${requirementBlock(input.requirementText)}${more ? `\n\n${existingScenariosBlock(existing)}` : ""}${previousIssuesBlock(previousIssues)}`;
+${requirementBlock(input.requirementText)}${more ? `\n\n${existingScenariosBlock(existing)}` : ""}${previousIssuesBlock(previousIssues)}
+
+${languageBlock(input.requirementText)}`;
 
   return { system, prompt };
 }

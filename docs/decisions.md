@@ -150,3 +150,23 @@ Separately, the `gemini-2.5-*` models turned out to be unavailable to new keys, 
 
 **Consequences.** Mistakes can be undone for a week. Every new query must filter `deletedAt: null`; Slice 5 must do this for test cases.
 
+### D-025 — OpenRouter as the main AI provider
+**Context.** The team wants one account that gives access to many models: free models now, paid models later once pricing is agreed. Gemini's free tier was often overloaded during development (D-015).
+**Decision.**
+- Add an OpenRouter provider (`ai/providers/openrouter.provider.js`) and make it the default whenever `OPENROUTER_API_KEY` is set.
+- It uses the `openai` SDK with OpenRouter's address.
+- It asks for structured JSON output first, and falls back to JSON mode with the schema in the prompt for models without it.
+- The time limit, busy retries and fallback model are shared with the Gemini provider (`reliability.js`), so both behave the same.
+- Gemini and the mock stay available.
+
+**Consequences.**
+- Moving to paid models is only an `.env` change: credits + model names.
+- Free models allow 50 requests a day until $10 of credits has been bought (1,000 a day after). One scenario draft uses 2–6 requests.
+- Free hosts may log prompts, so only non-confidential requirements should be used on free models.
+- The default models are provisional until they're measured on real requirements.
+
+### D-026 — The output language is decided in code, not by the model
+**Context.** Free OpenRouter models didn't follow the rule "answer in the same language as the requirement" reliably: a Thai requirement got English scenarios (2026-11-06).
+**Decision.** `detectLanguage()` counts Thai vs Latin letters in the requirement, and the majority wins. Every prompt (generator and validator) ends with an explicit `OUTPUT LANGUAGE: Thai` / `English` line.
+**Consequences.** Predictable output language. A mixed requirement follows its main language, and Thai text with English product terms stays Thai. If a future requirement needs a third language, extend `detectLanguage` (or let the tester choose, as discussed).
+

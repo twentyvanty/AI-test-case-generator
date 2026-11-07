@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="820" viewBox="0 0 1600 820" font-family="Helvetica, Arial, sans-serif">
+<defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1f232b"/></marker>
+<marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker>
+</defs>
+<rect width="1600" height="820" fill="white"/>
+<circle cx="95" cy="260" r="24" fill="#fbf1e3" stroke="#b7792f" stroke-width="2.2"/>
+<path d="M53,340 Q53,294 95,294 Q137,294 137,340 Z" fill="#fbf1e3" stroke="#b7792f" stroke-width="2.2"/>
+<text x="95" y="372" font-size="20" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Tester</text>
+<rect x="250" y="180" width="310" height="210" rx="16" fill="#e8eef7" stroke="#4a6fa5" stroke-width="2.2"/>
+<text x="405.0" y="218" font-size="21" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Frontend</text>
+<text x="405.0" y="252" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">Web application the tester uses:</text>
+<text x="405.0" y="277" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">enter requirements (text, files</text>
+<text x="405.0" y="302" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">or images), choose techniques,</text>
+<text x="405.0" y="327" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">review results, view reports</text>
+<rect x="690" y="180" width="330" height="210" rx="16" fill="#e7f3f0" stroke="#3f8f80" stroke-width="2.2"/>
+<text x="855.0" y="218" font-size="21" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Backend</text>
+<text x="855.0" y="252" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">Handles requests and logic</text>
+<text x="855.0" y="277" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">Reads uploaded documents</text>
+<text x="855.0" y="302" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">Runs the AI pipeline:</text>
+<text x="855.0" y="327" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">generate → check → validate</text>
+<rect x="1150" y="165" width="380" height="240" rx="16" fill="white" stroke="#3f8f80" stroke-width="2.2"/>
+<text x="1340.0" y="203" font-size="21" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">LLM API</text>
+<text x="1340.0" y="237" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">Generator model: writes scenarios,</text>
+<text x="1340.0" y="262" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">test cases and test scripts</text>
+<text x="1340.0" y="287" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">Validator model (a different model):</text>
+<text x="1340.0" y="312" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">checks the results</text>
+<text x="1340.0" y="337" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">Vision model: reads requirement images</text>
+<rect x="750" y="540" width="330" height="190" rx="16" fill="#f3f4f6" stroke="#6b7280" stroke-width="2.2"/>
+<text x="915.0" y="578" font-size="21" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Database</text>
+<text x="915.0" y="612" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">Users, projects, requirements,</text>
+<text x="915.0" y="637" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">scenarios, test cases, results,</text>
+<text x="915.0" y="662" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">defect reports and the history</text>
+<text x="915.0" y="687" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">of every AI generation</text>
+<rect x="250" y="560" width="310" height="120" rx="16" fill="white" stroke="#6b7280" stroke-width="2.2" stroke-dasharray="8 6"/>
+<text x="405.0" y="598" font-size="21" font-weight="bold" fill="#1f232b" text-anchor="middle" font-style="normal">Authentication service</text>
+<text x="405.0" y="632" font-size="15" font-weight="normal" fill="#374151" text-anchor="middle" font-style="normal">Login and user accounts</text>
+<path d="M145,285 H244" fill="none" stroke="#1f232b" stroke-width="2" marker-end="url(#arr)"/>
+<circle cx="197.5" cy="251" r="13" fill="#1f232b"/>
+<text x="197.5" y="256" font-size="14" font-weight="bold" fill="white" text-anchor="middle" font-style="normal">1</text>
+<text x="197.5" y="315" font-size="14" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">submits</text>
+<text x="197.5" y="333" font-size="14" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">requirement</text>
+<path d="M560,255 H684" fill="none" stroke="#1f232b" stroke-width="2" marker-end="url(#arr)"/>
+<circle cx="625.0" cy="225" r="13" fill="#1f232b"/>
+<text x="625.0" y="230" font-size="14" font-weight="bold" fill="white" text-anchor="middle" font-style="normal">2</text>
+<text x="625.0" y="202" font-size="14" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">request</text>
+<path d="M690,325 H566" fill="none" stroke="#1f232b" stroke-width="2" marker-end="url(#arr)"/>
+<circle cx="625.0" cy="355" r="13" fill="#1f232b"/>
+<text x="625.0" y="360" font-size="14" font-weight="bold" fill="white" text-anchor="middle" font-style="normal">7</text>
+<text x="625.0" y="385" font-size="14" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">results</text>
+<path d="M1020,255 H1144" fill="none" stroke="#1f232b" stroke-width="2" marker-end="url(#arr)"/>
+<circle cx="1085.0" cy="225" r="13" fill="#1f232b"/>
+<text x="1085.0" y="230" font-size="14" font-weight="bold" fill="white" text-anchor="middle" font-style="normal">3</text>
+<text x="1085.0" y="202" font-size="14" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">prompt</text>
+<path d="M1150,325 H1026" fill="none" stroke="#1f232b" stroke-width="2" marker-end="url(#arr)"/>
+<circle cx="1085.0" cy="355" r="13" fill="#1f232b"/>
+<text x="1085.0" y="360" font-size="14" font-weight="bold" fill="white" text-anchor="middle" font-style="normal">4</text>
+<text x="1085.0" y="385" font-size="14" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">AI output</text>
+<text x="1340.0" y="441" font-size="14" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="italic">Steps 3–4 repeat (up to 3 times)</text>
+<text x="1340.0" y="461" font-size="14" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="italic">while the validator finds problems</text>
+<path d="M840,390 V534" fill="none" stroke="#1f232b" stroke-width="2" marker-end="url(#arr)"/>
+<circle cx="840" cy="465.0" r="13" fill="#1f232b"/>
+<text x="840" y="470.0" font-size="14" font-weight="bold" fill="white" text-anchor="middle" font-style="normal">5</text>
+<text x="818" y="470.0" font-size="14" font-weight="normal" fill="#1f232b" text-anchor="end" font-style="normal">save</text>
+<path d="M970,540 V396" fill="none" stroke="#1f232b" stroke-width="2" marker-end="url(#arr)"/>
+<circle cx="970" cy="465.0" r="13" fill="#1f232b"/>
+<text x="970" y="470.0" font-size="14" font-weight="bold" fill="white" text-anchor="middle" font-style="normal">6</text>
+<text x="992" y="470.0" font-size="14" font-weight="normal" fill="#1f232b" text-anchor="start" font-style="normal">read</text>
+<path d="M405.0,390 V554" fill="none" stroke="#6b7280" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrG)"/>
+<text x="419.0" y="480.0" font-size="14" font-weight="normal" fill="#6b7280" text-anchor="start" font-style="italic">login</text>
+<path d="M560,620 H720 V396" fill="none" stroke="#6b7280" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrG)"/>
+<text x="640.0" y="610" font-size="14" font-weight="normal" fill="#6b7280" text-anchor="middle" font-style="italic">verifies the user</text>
+<text x="800.0" y="785" font-size="18" font-weight="normal" fill="#1f232b" text-anchor="middle" font-style="normal">Figure 4.1  Overall architecture of the AI Test Case Generator</text>
+</svg>

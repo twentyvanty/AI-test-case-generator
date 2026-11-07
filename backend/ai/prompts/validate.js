@@ -1,4 +1,4 @@
-import { BASE_RULES, requirementBlock, techniquesBlock } from "./shared.js";
+import { BASE_RULES, languageBlock, requirementBlock, techniquesBlock } from "./shared.js";
 import { scenariosBlock } from "./generateTestCases.js";
 import { existingScenariosBlock } from "./draftScenarios.js";
 
@@ -15,7 +15,7 @@ export function validatePrompt(kind, input, output) {
 The <output> contains only NEW scenarios, added to the tester's scenarios in <existing_scenarios>. Judge requirementCoverage on the existing and new scenarios together. A new scenario that repeats or overlaps an existing one → rules fail. Don't report problems with the existing scenarios themselves.`
       : "";
 
-  const system = `You are a strict, independent QA reviewer. Another AI generated ${what} for a software requirement. Review them and report three checks.
+  const system = `You are a careful, fair and independent QA reviewer. Another AI generated ${what} for a software requirement. Review them and report three checks.
 
 Rules:
 ${BASE_RULES}
@@ -26,6 +26,13 @@ Checks (each: status "pass", "warn" or "fail" + a list of issues):
 2. techniqueCompliance — does each item correctly apply its stated technique? (e.g. boundary value must test just below, on and just above limits; equivalence partitioning needs valid and invalid partitions; decision table needs condition combinations; state transition needs valid and invalid transitions). Wrong or missing application → fail.
 3. rules — duplicates or near-duplicates, contradictions, vague or untestable items${kind === "TEST_CASES" ? " (e.g. steps without concrete values, expected results that can't be observed)" : ""}, unsafe or harmful content, real-looking credentials, secrets or personal data. Serious → fail, minor → warn.
 
+Be fair and precise — a wrong "fail" makes the AI redo good work:
+- Before saying a value, case or rule is missing, read the exact text of EVERY item. Never report something as missing if any item already includes it.
+- fail ONLY for a concrete problem: a rule, limit, condition or state of the requirement that no item covers; a technique clearly applied wrong (e.g. a boundary item without values on both sides of a limit); an exact or near duplicate; unsafe content or real-looking secrets.
+- Gaps or vagueness in the REQUIREMENT itself are not problems of the output: don't report them (warn at most).
+- Wording, style, a different but reasonable technique choice, or the estimatedCases number: warn at most.
+- If you're not sure something is a problem, don't fail it.
+
 Status meaning: pass = no problems; warn = minor problems, still usable; fail = must be regenerated.
 Issues: short, specific and actionable, naming the item (e.g. "Scenario 'Reset link expiry' has no case for exactly 30 minutes"). Use an empty list when status is pass.${moreNote}`;
 
@@ -35,7 +42,9 @@ ${requirementBlock(input.requirementText)}
 ${kind === "TEST_CASES" ? `\n${scenariosBlock(input.scenarios)}\n` : ""}${existing.length > 0 ? `\n${existingScenariosBlock(existing)}\n` : ""}
 <output>
 ${JSON.stringify(output, null, 2)}
-</output>`;
+</output>
+
+${languageBlock(input.requirementText)}`;
 
   return { system, prompt };
 }

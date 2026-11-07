@@ -1,4 +1,10 @@
-import { BASE_RULES, previousIssuesBlock, requirementBlock, techniquesBlock } from "./shared.js";
+import {
+  BASE_RULES,
+  languageBlock,
+  previousIssuesBlock,
+  requirementBlock,
+  techniquesBlock,
+} from "./shared.js";
 
 // input: { requirementText }
 export function suggestTechniquesPrompt(input, previousIssues) {
@@ -11,7 +17,9 @@ ${BASE_RULES}
 
   const prompt = `${techniquesBlock([])}
 
-${requirementBlock(input.requirementText)}${previousIssuesBlock(previousIssues)}`;
+${requirementBlock(input.requirementText)}${previousIssuesBlock(previousIssues)}
+
+${languageBlock(input.requirementText)}`;
 
   return { system, prompt };
 }

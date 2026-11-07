@@ -4,6 +4,68 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-06 — Slice 4.5: OpenRouter as the AI provider
+
+**Goal.** Switch the AI to OpenRouter (free models now, paid later) before the test-case and test-script slices add more AI calls, so their prompts are tuned on the provider actually used.
+
+**What was built**
+- `ai/providers/openrouter.provider.js`: the same interface as the Gemini provider.
+  - Structured output (`json_schema` + `require_parameters`) first. If a model doesn't support it, it switches to JSON mode with the schema in the prompt, and remembers that per model.
+  - Tolerant JSON parsing (code fences, text around the JSON).
+  - Error mapping: 429/402 quota, 401 key, 404 model, 403 moderation, 5xx busy, and errors inside a 200 answer.
+  - Token usage and the model that answered are recorded.
+- `ai/providers/reliability.js`: the time limit, busy retries and fallback logic moved out of the Gemini provider, so both providers share the same tested code. Gemini's behaviour is unchanged; its existing tests still pass.
+- `providers/index.js`: `openrouter` is the default when `OPENROUTER_API_KEY` is set, with provisional free models (generator `google/gemma-4-31b-it:free`, validator `nvidia/nemotron-3.5-super-vl:free`, plus fallbacks).
+- `.env.example` and `docs/ai-providers.md`: OpenRouter setup, free-tier limits, privacy note, how to move to paid.
+
+**Facts checked in OpenRouter's docs (2026-11-06).**
+- Free models allow 20 requests a minute and 50 a day; 1,000 a day once $10 of credits has been bought.
+- Only 4 of the 11 free models supported structured output, which is why there's a JSON-mode fallback.
+
+**Decision:** D-025.
+
+**How it was checked**
+- `npm test`: **80 tests** pass (67 before + 13 new OpenRouter tests with a fake client):
+  - structured output request
+  - JSON-mode fallback remembered per model
+  - busy → fallback
+  - hang → time limit → fallback
+  - quota / credits / key / model / moderation mapping
+  - error inside a 200 answer
+  - invalid JSON
+  - `.env` model overrides
+  - the full pipeline through the provider
+- A real call to OpenRouter with a deliberately wrong key returned 401 and was shown as our clear "rejected the API key" message, with no retry.
+
+**Checked with the team's real key (same day)**
+- **Bug 1:** the first real run failed. Gemma doesn't support structured output, and OpenRouter's real message ("No endpoints found that **can handle** the requested parameters") didn't match the check. Fixed, and the test now uses the real wording.
+- **Bug 2:** Gemma's free host answered "429 Provider returned error". That was the *host* being overloaded, not the account limit: the key showed 0 of 50 requests used. Such 429s are now treated as "busy" (retry → fallback), while the account's own "Rate limit exceeded" still stops at once.
+- **Added a third way to ask for JSON** (`prompt` mode: no format option, schema only in the prompt) for models that support neither structured output nor JSON mode. The provider steps schema → json → prompt per model and remembers the result.
+- **Measured all free models** with the same Thai prompt. All 8 tried answered with valid Thai JSON; both Gemma models were overloaded. New defaults:
+  - generator `nvidia/nemotron-3-ultra-550b-a55b:free` (fallback `dots-studio/dots-3-note-preview:free`)
+  - validator `xingchen-agi/xing4.0-29b-a4b:free` (fallback `cohere/north-mini-code:free`)
+
+  Each fallback runs on a different host. Details are in `docs/ai-providers.md`.
+- **First full run:** PASSED after 3 attempts (279 s); the final scenarios covered every rule. The validator is strict and sometimes wrong; to watch during Slice 5.
+- `npm test`: **82 tests** pass.
+- **After the Thai run (2026-11-07):**
+  - The Thai requirement got English scenarios.
+  - The fast validators failed good drafts with false claims → NEEDS_REVIEW.
+  - xing's host was often busy.
+
+  Fixes:
+  - the output language is now detected in code and stated at the end of every prompt (D-026)
+  - a fairer validator prompt (fail only concrete problems)
+  - validator → `dots-3-note-preview` (fallback cohere); generator fallback → `recursive/flint-v1.0`
+
+  `npm test`: **85 tests** pass.
+- **Validator comparison (Thai requirement):**
+  - xing/cohere and dots each ended NEEDS_REVIEW after 3 attempts, with false objections; dots also garbled Thai.
+  - `nvidia/nemotron-3.5-super-vl:free` **PASSED in 2 attempts**, and its objections were correct (the missing login and initial-status scenarios, which the generator then added). It became the default validator.
+  - The output was fully Thai, confirming the language fix.
+
+---
+
 ## 2026-09-30 — Slice 4: Scenarios step, priority and Recently deleted
 
 **Goal.** The real Step 2: review the AI's scenarios and shape them before test cases are generated. Plus a 7-day "Recently deleted", requested during planning.

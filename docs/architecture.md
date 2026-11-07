@@ -1,6 +1,6 @@
 # Architecture
 
-_Last updated: 2026-09-30_
+_Last updated: 2026-11-06_
 
 ## Overview
 
@@ -12,7 +12,7 @@ flowchart LR
     Keycloak["Keycloak :8080<br/>(Docker)"]
     Backend["Backend API<br/>Express :5001"]
     DB[("MySQL :3306")]
-    AI["AI provider<br/>(Gemini / mock)"]
+    AI["AI provider<br/>(OpenRouter / Gemini / mock)"]
 
     Browser -- "login / register<br/>(OpenID Connect)" --> Keycloak
     Browser -- "REST + Bearer JWT" --> Backend
@@ -29,7 +29,7 @@ flowchart LR
 | Backend | Node.js, Express 5 (ES modules, JavaScript), Prisma 6, jose (JWT verification) |
 | Database | MySQL |
 | Auth | Keycloak 26 in Docker, with a custom login theme and Google login |
-| AI | Provider-agnostic layer: Gemini (free tier) for now, plus a mock provider for development and tests |
+| AI | Provider-agnostic layer: **OpenRouter** (free models now, paid later), Gemini as an optional second provider, plus a mock provider for development and tests |
 
 ## Repository layout
 
@@ -264,4 +264,4 @@ Settings come from environment variables, with local-development defaults. See `
 | `PORT` | backend | API port (default 5001) |
 | `KEYCLOAK_URL`, `KEYCLOAK_REALM` | backend | Used to verify tokens (and by Swagger) |
 | `KEYCLOAK_CLIENT_ID` | backend | Client used by Swagger's "Authorize" (default `ai-test-case-frontend`) |
-| `GEMINI_API_KEY`, `GEMINI_GENERATOR_MODEL`, `GEMINI_VALIDATOR_MODEL`, `GEMINI_*_FALLBACK_MODEL`, `AI_REQUEST_TIMEOUT_SECONDS`, `AI_GENERATOR_PROVIDER`, `AI_VALIDATOR_PROVIDER`, `MOCK_FAIL_MODE` | backend | AI settings; see [ai-providers.md](ai-providers.md#3-setting-up-the-gemini-free-tier) |
+| `OPENROUTER_API_KEY`, `OPENROUTER_*_MODEL`, `GEMINI_API_KEY`, `GEMINI_GENERATOR_MODEL`, `GEMINI_VALIDATOR_MODEL`, `GEMINI_*_FALLBACK_MODEL`, `AI_REQUEST_TIMEOUT_SECONDS`, `AI_GENERATOR_PROVIDER`, `AI_VALIDATOR_PROVIDER`, `MOCK_FAIL_MODE` | backend | AI settings; see [ai-providers.md](ai-providers.md#3-setting-up-the-gemini-free-tier) |

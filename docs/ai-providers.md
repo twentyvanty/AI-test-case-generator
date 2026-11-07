@@ -1,8 +1,8 @@
 # AI pipeline & providers
 
-_Last updated: 2026-09-27_
+_Last updated: 2026-11-06_
 
-This explains how the backend's AI module (`backend/ai/`) works, how to set up the free Gemini tier, how to try it from the terminal, and how to switch to a paid tier or another provider (OpenAI, Claude) later.
+This explains how the backend's AI module (`backend/ai/`) works, how to set up **OpenRouter** (the main provider since 2026-11-06, D-025) or Gemini, how to try it from the terminal, and how to move to a paid tier or another provider later.
 
 ## 1. How a generation works
 
@@ -97,12 +97,92 @@ Taking `try-ai.js cases "Users must reset their password…"` as the example:
 | `ai/schemas.js` | zod schemas for every AI answer. Also sent to the model as a JSON schema |
 | `ai/checks/` | Code checks: structure, duplicates, sensitive data |
 | `ai/prompts/` | Prompt text for each step and for the validator |
-| `ai/providers/` | `gemini.provider.js`, `mock.provider.js`, and `index.js`, which picks one from env |
+| `ai/providers/` | `openrouter.provider.js` (main), `gemini.provider.js`, `mock.provider.js`; `reliability.js` (time limit, busy retries, fallback model — shared by the real providers); `index.js` picks them from env |
 | `ai/errors.js` | `ProviderError`, `ProviderQuotaError`, `ProviderAuthError` |
 | `ai/__tests__/` | Tests (`npm test`). They always use the mock, so no key or quota is needed |
 | `scripts/try-ai.js` | Terminal tool (section 4) |
 
-## 3. Setting up the Gemini free tier
+## 3. Setting up OpenRouter (main provider)
+
+[OpenRouter](https://openrouter.ai) gives one API key for many models from different companies, free ones (ID ending in `:free`) and paid ones. It uses the OpenAI request format, so the provider uses the `openai` SDK with OpenRouter's address.
+
+1. Create an account at **https://openrouter.ai**, then **Keys → Create key**.
+2. In `backend/.env`, add:
+   ```
+   OPENROUTER_API_KEY=<your key>
+   ```
+   Never commit this file; `.env` is already in `.gitignore`.
+3. That's all. With this key set, OpenRouter is used for both the generator and the validator, even if a Gemini key is also set.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `OPENROUTER_API_KEY` | — | Enables OpenRouter (the default provider when set) |
+| `OPENROUTER_GENERATOR_MODEL` | `nvidia/nemotron-3-ultra-550b-a55b:free` | Model that writes scenarios and test cases |
+| `OPENROUTER_VALIDATOR_MODEL` | `nvidia/nemotron-3.5-super-vl:free` | Model that checks them (a different model from the generator, D-006) |
+| `OPENROUTER_GENERATOR_FALLBACK_MODEL` | `recursive/flint-v1.0:free` | Used when the generator model is busy or too slow. `none` disables it |
+| `OPENROUTER_VALIDATOR_FALLBACK_MODEL` | `cohere/north-mini-code:free` | Used when the validator model is busy or too slow. `none` disables it |
+| `OPENROUTER_APP_URL` / `OPENROUTER_APP_NAME` | — / `AI Test Case Generator` | Optional: how the app appears on openrouter.ai |
+
+**How the defaults were chosen (2026-11-06).** The same Thai scenario-draft prompt (course registration: credit limits + status changes) was sent once to each free model. Every model answered with valid JSON and Thai titles:
+
+| Model | Time | Scenarios | Notes |
+|---|---|---|---|
+| `nvidia/nemotron-3-ultra-550b-a55b:free` | 90 s | 10 | Largest; specific boundary values → **generator** |
+| `nvidia/nemotron-3.5-super-vl:free` | 85 s | 10 | Similar quality (same company as the generator) |
+| `dots-studio/dots-3-note-preview:free` | 65 s | 8 | Good; other company and host → **generator fallback** |
+| `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` | 88 s | 12 | Many but small model |
+| `recursive/flint-v1.0:free` | 91 s | 7 | Slow (many hidden reasoning tokens) |
+| `nvidia/nemotron-3.5-lightning:free` | 60 s | 5 | Thinner |
+| `cohere/north-mini-code:free` | 16 s | 6 | Fast → **validator fallback** |
+| `xingchen-agi/xing4.0-29b-a4b:free` | 11 s | 5 | Fastest, structured output → **validator** |
+
+Both Google Gemma models (`gemma-4-31b`, `gemma-4-26b`) were first in line but **failed on every try**: their shared free host kept answering "429 Provider returned error" (overloaded). That's why each fallback now runs on a different company's host.
+
+**First full run** (the English online-transfer requirement, 2026-11-06):
+- **PASSED after 3 attempts in 279 s.** The generator took 47–104 s per attempt, the validator 4–16 s.
+- The final 10 scenarios covered every rule.
+- The validator is strict and **sometimes wrong** (it claimed 0.99 has too many decimals), which cost extra attempts. If that keeps happening, try `OPENROUTER_VALIDATOR_MODEL=cohere/north-mini-code:free`.
+- Expect **1–5 minutes per AI step** on free models. The server allows 10.
+
+**Changes after the Thai run (2026-11-07)**
+
+The Thai requirement got **English** scenarios: the model ignored "same language as the requirement". The fast validators (xing, cohere) also failed good drafts with false claims, e.g. "the boundary value 8 is missing" when it was listed, which ended the run in NEEDS_REVIEW. xing's host was also often busy. Three changes:
+1. **The output language is decided in code** (`detectLanguage` in `prompts/shared.js`: Thai vs Latin letters, majority wins). Every prompt now **ends** with an explicit line such as `OUTPUT LANGUAGE: Thai (ภาษาไทย)…`, including the validator's, so its issues are in Thai too.
+2. **A fairer validator prompt.** It must read every item before calling something missing. It fails only concrete problems: an uncovered rule, a clearly wrong technique, duplicates, unsafe content. Gaps in the requirement itself, wording and style are warn at most.
+3. **New model line-up:**
+   - validator `dots-3-note-preview` (large, a different company), with fallback `cohere/north-mini-code`
+   - generator fallback `recursive/flint-v1.0`, on a different host from the generator
+
+**Validator comparison on the Thai requirement (2026-11-07).** The same generator was used; only the validator changed:
+
+| Validator | Result | Its objections |
+|---|---|---|
+| xing → cohere (busy fallback) | NEEDS_REVIEW, 3 attempts | Several **false** (e.g. "8 is missing" when it was listed) |
+| `dots-3-note-preview` | NEEDS_REVIEW, 3 attempts, 48–74 s per check | **False** ("no login scenario" when SC-01 was one); garbled Thai words |
+| **`nemotron-3.5-super-vl`** | **PASSED in 2 attempts**, 54–85 s per check | **All correct**: the login and initial-status scenarios really were missing, and the generator added them |
+
+So the default validator is now **`nvidia/nemotron-3.5-super-vl:free`**. It's a different model from the generator, which is what D-006 requires, but from the same company (NVIDIA). If NVIDIA's free host is busy, both roles fall back to models on other hosts.
+
+**Lesson for the report:** the free *generators* are good enough, but most free models are unreliable *judges*. They reject good drafts with false claims, which costs time and requests. Validator quality matters more than its speed. A paid validator model is the first upgrade to make (only an `.env` change).
+
+**How JSON answers are requested.** The provider first asks for **structured output** (`response_format: json_schema`, plus `provider.require_parameters` so OpenRouter only routes to hosts that support it). Only some models support that: on 2026-11-06, 4 of the 11 free models did. If a model rejects it, the provider automatically switches that model to **JSON mode** and writes the schema into the prompt. Either way, zod checks every answer, and a bad answer is just a failed attempt that gets retried.
+
+**Free-tier limits and caveats** (checked in OpenRouter's docs on 2026-11-06; they can change):
+- **20 requests a minute; 50 a day** while the account has bought less than $10 of credits, and **1,000 a day** after that, still on free models. A limit hit ends the run as `FAILED` with a clear message (HTTP 429).
+- **Budget:** one scenario draft uses 2 to 6 requests (1–3 attempts × generator + validator), plus any busy retries. 50 a day is enough for testing, but tight for a demo. Buying $10 of credits once is the cheapest way to raise it.
+- ⚠️ **Privacy:** free models are run by various hosts, and some may log or train on prompts. Use only sample or non-confidential requirements until the team moves to paid models. Mention this as a limitation in the project report.
+- The list of free models changes often. To see the current free models and which support structured output:
+  ```bash
+  curl -s https://openrouter.ai/api/v1/models | python3 -c 'import json,sys; [print(("structured  " if "structured_outputs" in (m.get("supported_parameters") or []) else "json-mode   "), m["id"]) for m in json.load(sys.stdin)["data"] if m["id"].endswith(":free")]'
+  ```
+- Errors are mapped like Gemini's:
+  - 429 or 402 → quota / credits
+  - 401 → bad key
+  - 404 → unknown model
+  - 403 → moderation block, which stops at once
+  - 5xx / "overloaded" → busy: retry, then the fallback model
+
+## 3b. Gemini (optional second provider)
 
 1. Go to **https://aistudio.google.com**, sign in with a Google account, and click **Get API key → Create API key**.
 2. In `backend/.env`, add:
@@ -178,6 +258,13 @@ The output shows the status, each attempt with ✓ / ⚠ / ✗ per check and how
 ```
 
 ## 5. Moving to a paid tier or another provider
+
+### Paid OpenRouter (the plan)
+**No code change.**
+1. Add credits at https://openrouter.ai/credits.
+2. Change the model names in `backend/.env` from `…:free` models to paid ones, e.g. a stronger generator. You can mix providers, since OpenRouter lists models from many companies.
+3. The free-tier daily limit no longer applies. Paid rate limits and "out of credits" (HTTP 402) are handled with clear messages.
+4. Token usage per run is already saved (`GenerationRun.usage`), which is the basis for working out costs and credits.
 
 ### Paid Gemini
 Same code. Enable billing on the Google Cloud project behind your AI Studio key (or create a key in a billed project) and use that key. Optionally switch to stronger models via `GEMINI_GENERATOR_MODEL`.
