@@ -114,6 +114,10 @@ export type ExtractedDocument = {
   fileName: string;
   size: number;
   text: string;
+  // "ai" = an image read by the vision model: the text needs checking
+  readBy: "code" | "ai";
+  // Why an image couldn't be read (AI busy, limit reached…); text is then empty
+  error: string | null;
 };
 
 const base = (projectId: number) => `/api/projects/${projectId}/requirements`;

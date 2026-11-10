@@ -20,6 +20,11 @@ export const techniqueSuggestionSchema = z.object({
     .max(TECHNIQUE_KEYS.length),
 });
 
+// Step 0: text read from a requirement image (screenshot, scan, diagram…)
+export const imageTextSchema = z.object({
+  text: text(20_000),
+});
+
 // Risk-based priority the AI suggests for each scenario (the tester can change it)
 export const SCENARIO_PRIORITIES = ["high", "medium", "low"];
 

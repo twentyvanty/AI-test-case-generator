@@ -69,7 +69,7 @@ export function createGeminiProvider({
 
   // One request. After timeoutMs we cancel it (abort signal) AND stop waiting for it
   // (deadline), so a stuck request can never hold us up longer than the limit.
-  async function callOnce(modelName, { system, prompt, jsonSchema }) {
+  async function callOnce(modelName, { system, prompt, jsonSchema, images }) {
     const controller = new AbortController();
     const started = Date.now();
     debug(`→ ${modelName} request`);
@@ -78,7 +78,20 @@ export function createGeminiProvider({
       const response = await withDeadline(
         ai.models.generateContent({
           model: modelName,
-          contents: prompt,
+          // Text only, or text + images (inline data) for the vision role
+          contents: images?.length
+            ? [
+                {
+                  role: "user",
+                  parts: [
+                    { text: prompt },
+                    ...images.map((image) => ({
+                      inlineData: { mimeType: image.mimeType, data: image.base64 },
+                    })),
+                  ],
+                },
+              ]
+            : prompt,
           config: {
             systemInstruction: system,
             responseMimeType: "application/json",

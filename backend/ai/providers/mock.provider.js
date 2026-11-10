@@ -255,7 +255,17 @@ const MALFORMED = {
   TECHNIQUE_SUGGESTION: { suggestions: [] },
   SCENARIOS: { scenarios: [{ title: "Incomplete scenario" }] },
   TEST_CASES: { testCases: [{ title: "Incomplete test case" }] },
+  IMAGE_TEXT: { text: "" },
 };
+
+// Image reading: the mock can't see the image, so it returns clearly fake text
+function readImage({ fileName, images }) {
+  const kb = Math.round(((images?.[0]?.base64.length ?? 0) * 3) / 4 / 1024);
+
+  return {
+    text: `Mock text read from ${fileName} (${kb} KB image).\n- Users must be able to reset their password via an email link.\n- The link expires after 30 minutes.\nDiagram/screen: a "Forgot password" form with an Email field and a Send button.`,
+  };
+}
 
 export function createMockProvider({ role, failMode = "never" }) {
   if (!MOCK_FAIL_MODES.includes(failMode)) {
@@ -292,6 +302,8 @@ export function createMockProvider({ role, failMode = "never" }) {
         throw new ProviderUnavailableError("Mock servers are busy (MOCK_FAIL_MODE=busy)");
       } else if (failMode === "once" && attempt === 1) {
         data = MALFORMED[kind];
+      } else if (kind === "IMAGE_TEXT") {
+        data = readImage(input);
       } else if (kind === "TECHNIQUE_SUGGESTION") {
         data = suggestTechniques(input.requirementText);
       } else if (kind === "SCENARIOS") {

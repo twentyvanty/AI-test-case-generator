@@ -40,12 +40,18 @@ function receiveFiles(req, res, next) {
  * /api/documents/extract-text:
  *   post:
  *     tags: [Documents]
- *     summary: Read the text of requirement documents
+ *     summary: Read the text of requirement documents and images
  *     operationId: extractDocumentText
  *     description: |
- *       Upload 1–5 files (PDF, DOCX, Markdown or TXT, up to 20 MB each) and get their
- *       plain text back. The files are not stored. A PDF that only contains scanned
- *       images returns empty text.
+ *       Upload 1–5 files and get their plain text back. The files are not stored.
+ *
+ *       - **Documents** (PDF, DOCX, Markdown, TXT; up to 20 MB) are read by code
+ *         (`readBy: "code"`). A PDF that only contains scanned images returns empty text.
+ *       - **Images** (PNG, JPG, WebP; up to 5 MB) are read by a vision AI model
+ *         (`readBy: "ai"`): it transcribes the text and describes diagrams or screens.
+ *         Each image uses one AI request and can take up to a minute. If the AI is
+ *         busy or over its limit, that file comes back with empty `text` and an
+ *         `error` message; the other files are still returned.
  *     requestBody:
  *       required: true
  *       content:
@@ -69,7 +75,7 @@ function receiveFiles(req, res, next) {
  *               items:
  *                 $ref: '#/components/schemas/ExtractedDocument'
  *       400:
- *         description: No files, unsupported type, too large, too many, or unreadable file
+ *         description: No files, unsupported type, too large, too many, not a valid image, or unreadable file
  *         content:
  *           application/json:
  *             schema:

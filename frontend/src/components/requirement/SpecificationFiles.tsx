@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
+import { isImageFileName } from "../../utils/files";
 import { formatFileSize } from "../../utils/format";
+import Badge from "../ui/Badge";
 import Dropzone from "../ui/Dropzone";
 import Spinner from "../ui/Spinner";
 
@@ -10,6 +12,9 @@ export type Attachment = {
   // The exact text block this file added to the details, so removing the file
   // can take its text out again (null if unknown)
   block: string | null;
+  // Images: a local preview (only in this visit) and "read by AI — please check"
+  previewUrl?: string | null;
+  readByAi?: boolean;
 };
 
 type SpecificationFilesProps = {
@@ -41,7 +46,12 @@ function SpecificationFiles({
         <Spinner
           key={fileName}
           className="px-1"
-          label={t("specificationFiles.reading", { name: fileName })}
+          label={t(
+            isImageFileName(fileName)
+              ? "specificationFiles.readingImage"
+              : "specificationFiles.reading",
+            { name: fileName }
+          )}
         />
       ))}
 
@@ -58,7 +68,21 @@ function SpecificationFiles({
               key={attachment.fileName}
               className="flex items-center justify-between gap-3 px-3.5 py-2.5 text-sm"
             >
-              <span className="min-w-0 truncate text-ink">{attachment.fileName}</span>
+              <span className="flex min-w-0 items-center gap-2.5">
+                {attachment.previewUrl && (
+                  <img
+                    src={attachment.previewUrl}
+                    alt=""
+                    className="h-9 w-9 shrink-0 rounded-md border border-gray-200 object-cover"
+                  />
+                )}
+                <span className="truncate text-ink">{attachment.fileName}</span>
+                {attachment.readByAi && (
+                  <Badge tone="warning" className="shrink-0">
+                    {t("specificationFiles.readByAi")}
+                  </Badge>
+                )}
+              </span>
 
               <span className="flex shrink-0 items-center gap-3">
                 {attachment.size !== null && (

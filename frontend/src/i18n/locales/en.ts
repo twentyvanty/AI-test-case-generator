@@ -119,9 +119,9 @@ const en = {
 
     dropzone: {
       title: "Drop files here, or click to choose",
-      hint: "PDF, DOCX, Markdown or TXT — up to 20 MB each, 5 at a time",
-      tooLarge: "{{name}} is larger than 20 MB.",
-      unsupported: "{{name}} isn't a PDF, DOCX, Markdown or TXT file.",
+      hint: "PDF, DOCX, Markdown, TXT (up to 20 MB) or images: PNG, JPG, WebP (up to 5 MB) — 5 files at a time",
+      tooLarge: "{{name}} is larger than {{limit}} MB.",
+      unsupported: "{{name}} isn't a PDF, DOCX, Markdown, TXT, PNG, JPG or WebP file.",
     },
 
     requirementPage: {
@@ -184,10 +184,14 @@ const en = {
 
     specificationFiles: {
       reading: "Reading {{name}}…",
+      readingImage: "Reading {{name}} with AI… this can take up to a minute.",
       remove: "Remove {{name}}",
       noText:
-        "No text found in {{name}}. If it's a scanned image, please type the requirement instead.",
-      hint: "The text of each file is added to the details above, so you can check and edit what the AI will read.",
+        "No text found in {{name}}. If it's a scanned document, upload it as an image (PNG or JPG) or type the requirement instead.",
+      noTextImage: "The AI found no text in {{name}}. Please type the requirement instead.",
+      aiFailed: "Couldn't read {{name}}: {{message}}",
+      readByAi: "Read by AI, please check",
+      hint: "The text of each file is added to the details above, so you can check and edit what the AI will read. Images are read by AI and may contain small mistakes — please check that text carefully.",
     },
 
     techniquePicker: {

@@ -1,6 +1,8 @@
 import {
   DocumentError,
   extractDocumentText,
+  isImageFile,
+  readImageText,
 } from "../services/document.service.js";
 
 // Browsers send non-English file names as UTF-8, but the upload parser reads
@@ -19,17 +21,25 @@ export async function extractText(req, res) {
       });
     }
 
-    const documents = [];
+    // In parallel: reading an image with the AI can take up to a minute
+    const documents = await Promise.all(
+      files.map(async (file) => {
+        const fileName = originalName(file);
 
-    for (const file of files) {
-      const fileName = originalName(file);
+        if (isImageFile(fileName)) {
+          const { text, error } = await readImageText(fileName, file.buffer);
+          return { fileName, size: file.size, text, readBy: "ai", error };
+        }
 
-      documents.push({
-        fileName,
-        size: file.size,
-        text: await extractDocumentText(fileName, file.buffer),
-      });
-    }
+        return {
+          fileName,
+          size: file.size,
+          text: await extractDocumentText(fileName, file.buffer),
+          readBy: "code",
+          error: null,
+        };
+      })
+    );
 
     res.json(documents);
   } catch (error) {

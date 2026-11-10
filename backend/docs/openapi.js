@@ -313,8 +313,18 @@ const definition = {
           fileName: { type: "string", example: "reset-spec.pdf" },
           size: { type: "integer", description: "Bytes", example: 48213 },
           text: { type: "string" },
+          readBy: {
+            type: "string",
+            enum: ["code", "ai"],
+            description: "code = document; ai = image read by the vision model (check the text)",
+          },
+          error: {
+            type: "string",
+            nullable: true,
+            description: "Why an image couldn't be read (AI busy, limit reached…); text is then empty",
+          },
         },
-        required: ["fileName", "size", "text"],
+        required: ["fileName", "size", "text", "readBy", "error"],
       },
     },
     responses: {

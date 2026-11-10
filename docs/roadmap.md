@@ -14,9 +14,9 @@ Goal: a tester can go **Requirement → Scenarios → Test cases → Report** on
 | 2 | AI pipeline: providers (Gemini + mock), output schemas, rule checks, generate → validate → retry ×3, provider guide | ✅ Done 2026-09-27 (checked with a real Gemini key) |
 | 3 | Requirements API + Step 1 page: text or document upload (PDF/DOCX/MD/TXT), technique selection, "let AI suggest", 4-step stepper, draft scenarios | ✅ Built 2026-09-27, checked by the team with the real key |
 | 4 | Scenarios API + Step 2 page: edit, add, delete, priority (AI-suggested, tester can change), generate more, redraft, history of last 10 with restore, "needs review" warning; **Recently deleted** (7-day restore) for requirements and scenarios | ✅ Built 2026-09-30, awaiting the team's check with the real key |
-| 4.5 | **Switch the AI provider to OpenRouter** (free models now, paid later = only an `.env` change) | ✅ Built 2026-11-06, models to be confirmed with the team's key |
-| 4.6 | **Requirement images:** attach screenshots, scans, UI mock-ups or diagrams in Step 1; a vision model (`nemotron-3.5-super-vl`) reads them into editable requirement text | ⏳ Next |
-| 5 | Test cases (Step 3, per the final mock-up): generate from scenarios, table with Pass/Fail/Open, edit/delete (Recently deleted), CSV downloads, coverage card; "needs review" actions + "mark as reviewed"; "test cases may be out of date" warning; History → Generated; scenario priority removed | ⏳ |
+| 4.5 | **Switch the AI provider to OpenRouter** (free models now, paid later = only an `.env` change) | ✅ Done 2026-11-07 (models measured and confirmed with the team's key) |
+| 4.6 | **Requirement images:** attach screenshots, scans, UI mock-ups or diagrams in Step 1; a vision model (Gemini 3.5 Flash, OpenRouter as backup) reads them into editable requirement text | ✅ Built 2026-11-10, awaiting the team's check |
+| 5 | Test cases (Step 3, per the final mock-up): generate from scenarios, table with Pass/Fail/Open, edit/delete (Recently deleted), CSV downloads, coverage card; "needs review" actions + "mark as reviewed"; "test cases may be out of date" warning; History → Generated; scenario priority removed | ⏳ Next |
 | 6 | Defect report (with screenshots) + Report step (Step 5) | ⏳ |
 | 7 | Test scripts step (Step 4, AI-generated, optional) + Account page (profile, security via Keycloak, usage) | ⏳ |
 | 8 | **Real Dashboard:** recent runs (dashboard + sidebar), runs this week, weekly activity, technique mix and total test cases from real data; `mocks/dashboard.ts` deleted | ⏳ |

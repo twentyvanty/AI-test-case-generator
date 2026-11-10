@@ -165,6 +165,48 @@ So the default validator is now **`nvidia/nemotron-3.5-super-vl:free`**. It's a 
 
 **Lesson for the report:** the free *generators* are good enough, but most free models are unreliable *judges*. They reject good drafts with false claims, which costs time and requests. Validator quality matters more than its speed. A paid validator model is the first upgrade to make (only an `.env` change).
 
+### Reading requirement images (the vision role)
+
+In Step 1, testers can attach **images** (PNG, JPG or WebP, up to 5 MB): screenshots of a spec, scans, UI mock-ups, flow or state diagrams.
+- A **vision model** transcribes the visible text exactly, then describes diagrams and screens under a `Diagram/screen:` line (`ai/prompts/readImage.js`).
+- The text is added to the requirement details as `--- from <image> (read by AI, please check) ---`.
+- There's no validator; the tester is the check. Each image uses **one AI request** and usually takes about 10–80 s.
+
+**Which provider reads images.** Images follow their own order, separate from the text steps:
+1. **Gemini** (`gemini-3.5-flash`, then `gemini-3.7-flash`) when `GEMINI_API_KEY` is set. It's by far the best reader we tested.
+2. If Gemini is busy, too slow or out of quota, the same request goes to **OpenRouter** (nano-omni, then Gemma 31B) when `OPENROUTER_API_KEY` is set.
+3. Only a key for one provider → that provider alone. No keys → the mock.
+
+`AI_VISION_PROVIDER` forces a single provider. When Gemini and OpenRouter are both busy, the wait can reach about 3 minutes before "try again".
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `GEMINI_VISION_MODEL` | `gemini-3.5-flash` | Main image reader |
+| `GEMINI_VISION_FALLBACK_MODEL` | `gemini-3.7-flash` | Used when it's busy or too slow (`none` disables) |
+| `OPENROUTER_VISION_MODEL` | `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` | Backup image reader (must accept image input) |
+| `OPENROUTER_VISION_FALLBACK_MODEL` | `google/gemma-4-31b-it:free` | Used when the OpenRouter vision model is busy or too slow |
+| `AI_VISION_PROVIDER` | Gemini → OpenRouter (above) | `openrouter`, `gemini` or `mock` to use only that one |
+
+**Test 2: a Thai swimlane diagram (2026-11-10, suggested by the partner company).** The diagram was a "รางวัลเลิศรัฐ" flow with 5 lanes, 3 phases, small Thai text, rotated lane labels and dashed arrows.
+- **`gemini-3.5-flash`:** read **every label and the whole flow correctly**, including the pass / send-back branches, the dashed arrows between phases and the award levels. It made one small typo ("กพบ." instead of "กพม."). It took 37 s, and 34 s on a second run. → **main image reader.** On another try, Google answered "high demand" 6 times in a row, hence the OpenRouter backup.
+- **`nemotron-3.5-super-vl`:** answered in 45 s but **invented a purchasing process**: wrong title, wrong lanes, and "ปฏิเสธขอซื้อ" in every box.
+- **`nano-omni`:** didn't finish within 120 s (twice).
+- **Gemma 31B:** host overloaded.
+
+**Test 1: a simple Thai text screenshot (2026-11-10).** The image was a password-reset requirement with a small state flow. Each free OpenRouter model that accepts images read it:
+
+| Model | Result |
+|---|---|
+| `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` | **Most accurate:** headings and bullets kept on separate lines, most Thai words exact, a few small errors · 76 s → **vision model** |
+| `nvidia/nemotron-3.5-super-vl:free` | 12–21 s, but **paraphrased** words (e.g. "email" became "password"), and on a second run **invented an unrelated requirement** → not used for images |
+| `dots-studio/dots-3-note-preview:free` | No answer within 120 s |
+| `google/gemma-4-31b-it` / `gemma-4-26b` | Host overloaded (429) → Gemma 31B is the **fallback**: when busy, the tester gets "try again", never invented text |
+
+**Lesson:**
+- For images, the model matters far more than for text: only Gemini read the diagram correctly.
+- Even the best model makes small errors in Thai, so AI-read text is always marked "please check" and stays editable.
+- Free hosts are often busy; a paid Gemini key is the simplest upgrade for image reading.
+
 **How JSON answers are requested.** The provider first asks for **structured output** (`response_format: json_schema`, plus `provider.require_parameters` so OpenRouter only routes to hosts that support it). Only some models support that: on 2026-11-06, 4 of the 11 free models did. If a model rejects it, the provider automatically switches that model to **JSON mode** and writes the schema into the prompt. Either way, zod checks every answer, and a bad answer is just a failed attempt that gets retried.
 
 **Free-tier limits and caveats** (checked in OpenRouter's docs on 2026-11-06; they can change):

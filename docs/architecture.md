@@ -102,7 +102,7 @@ Current endpoints (all require login):
 | GET | `/api/trash` | The user's recently deleted requirements and scenarios, with days left |
 | POST | `/api/trash/:type/:id/restore` | Restore a deleted item (`type` = `requirement` or `scenario`) |
 | DELETE | `/api/trash/:type/:id` | Delete an item for good now |
-| POST | `/api/documents/extract-text` | Read the text of PDF / DOCX / Markdown / TXT files (not stored) |
+| POST | `/api/documents/extract-text` | Read the text of uploaded files (not stored): PDF / DOCX / Markdown / TXT by code; PNG / JPG / WebP images by a vision AI model (D-027) |
 
 Requirements are addressed by their **number inside the project**, the same number shown as REQ-0001. Ownership is checked through the project on every request. The AI endpoints always answer `201` with the saved run; an AI problem shows up as `status: "FAILED"` plus `errorMessage` (D-019). They can take a minute or more, so the server allows requests up to 10 minutes.
 

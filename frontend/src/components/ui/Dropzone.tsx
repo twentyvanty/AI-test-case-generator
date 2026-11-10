@@ -2,9 +2,14 @@ import { useRef, useState } from "react";
 import type { DragEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../../utils/cn";
+import {
+  DOCUMENT_EXTENSIONS,
+  IMAGE_EXTENSIONS,
+  isAcceptedFileName,
+  maxSizeMb,
+} from "../../utils/files";
 
-const ACCEPTED = [".pdf", ".docx", ".md", ".markdown", ".txt"];
-const MAX_BYTES = 20 * 1024 * 1024;
+const ACCEPTED = [...DOCUMENT_EXTENSIONS, ...IMAGE_EXTENSIONS];
 
 type DropzoneProps = {
   // Called with the files that passed the type/size check
@@ -13,7 +18,7 @@ type DropzoneProps = {
   className?: string;
 };
 
-// Drag-and-drop (or click) picker for requirement documents
+// Drag-and-drop (or click) picker for requirement documents and images
 function Dropzone({ onFiles, disabled = false, className }: DropzoneProps) {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -25,15 +30,15 @@ function Dropzone({ onFiles, disabled = false, className }: DropzoneProps) {
     const problems: string[] = [];
 
     const accepted = files.filter((file) => {
-      const extension = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
-
-      if (!ACCEPTED.includes(extension)) {
+      if (!isAcceptedFileName(file.name)) {
         problems.push(t("dropzone.unsupported", { name: file.name }));
         return false;
       }
 
-      if (file.size > MAX_BYTES) {
-        problems.push(t("dropzone.tooLarge", { name: file.name }));
+      const limit = maxSizeMb(file.name);
+
+      if (file.size > limit * 1024 * 1024) {
+        problems.push(t("dropzone.tooLarge", { name: file.name, limit }));
         return false;
       }
 

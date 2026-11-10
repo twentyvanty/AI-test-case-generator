@@ -4,6 +4,63 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-10 — Slice 4.6: Requirement images
+
+**Goal.** Let testers attach requirement **images** (screenshots, scans, UI mock-ups, diagrams) in Step 1, as the team requested.
+
+**What was built**
+- **AI module:**
+  - a new `IMAGE_TEXT` pipeline kind with the prompt `prompts/readImage.js` (transcribe exactly, then a `Diagram/screen:` description) and the schema `{ text }`
+  - `readRequirementImage()` in `ai/index.js`
+  - the generator only, with the format check and retries; no validator
+- **Providers:**
+  - `generateJson` accepts `images`: OpenRouter sends them as `image_url` data URLs, Gemini as inline data, and the mock returns sample text
+  - a model that can't take images gets a clear "set OPENROUTER_VISION_MODEL" message, instead of the JSON-mode stepping
+  - `providers/index.js` gains a **vision** role (`OPENROUTER_VISION_MODEL` / `…_FALLBACK_MODEL`, `AI_VISION_PROVIDER`); the role settings are now one table per provider
+- **Document service:**
+  - PNG / JPG / WebP up to 5 MB, with a file-signature check
+  - images go to the vision model, documents are still read by code
+  - files are processed in parallel
+  - an AI failure returns `error` for that image only
+  - the response now includes `readBy` (`code` / `ai`) and `error`, documented in Swagger
+- **Frontend:**
+  - the dropzone accepts images (5 MB limit) and attachments show a thumbnail
+  - "Reading … with AI…" while waiting
+  - the badge **"Read by AI, please check"**, plus the same note in the text block header so it survives saving
+  - clear messages for AI failures and images with no text
+  - EN + TH
+
+**Choosing the vision model (real key).** The first prompt let the model paraphrase Thai words, so it was tightened (copy exactly, keep line breaks, exact state names). Then the same Thai screenshot was read by every free image model:
+- **nemotron-3-nano-omni** was the most accurate (76 s) → the vision model
+- super-vl paraphrased, and once invented an unrelated requirement
+- dots timed out; both Gemma models were overloaded
+
+The partner company suggested **Gemini 3.5 Flash**. On a harder image, a Thai swimlane diagram, it read every label and the whole flow correctly in 34–37 s (one small typo). On the same diagram, super-vl invented a purchasing process and nano-omni timed out.
+
+So images now go to **Gemini first** (when a Gemini key is set) and to OpenRouter (nano-omni → Gemma 31B) when Gemini is busy or out of quota. This uses a small `withBackupProvider` wrapper in `providers/index.js`. Details are in `docs/ai-providers.md`.
+
+**Decision:** D-027.
+
+**How it was checked**
+- `npm test`: **99 tests** pass (85 + 14 new):
+  - image prompt
+  - vision role defaults and overrides
+  - pipeline passing images
+  - empty transcription retried
+  - OpenRouter image message format
+  - "can't read images" message
+  - image type, size and signature checks
+  - AI failure for one image
+  - images not read as documents
+  - Gemini-first vision with the OpenRouter backup: provider choice, switching when busy, the error when both are busy, no switch on setup errors
+- The upload controller with the mock AI: a Thai-named PNG and a Markdown file in one upload → `readBy: ai` and `readBy: code`; a fake `.png` → 400.
+- Real requests for the model comparison: a Thai screenshot and a Thai swimlane diagram. The final default setup read the diagram via Gemini in 34 s.
+- Frontend `tsc`, `lint` and `build` pass.
+
+**Follow-ups:** the team checks it on the website with real screenshots (English, Thai and a diagram).
+
+---
+
 ## 2026-11-06 — Slice 4.5: OpenRouter as the AI provider
 
 **Goal.** Switch the AI to OpenRouter (free models now, paid later) before the test-case and test-script slices add more AI calls, so their prompts are tuned on the provider actually used.

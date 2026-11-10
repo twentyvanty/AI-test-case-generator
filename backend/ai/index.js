@@ -11,6 +11,18 @@ import { getProviders } from "./providers/index.js";
 
 export { TECHNIQUES, TECHNIQUE_KEYS } from "./techniques.js";
 
+// Step 0: read a requirement image into text (vision model). The text goes into
+// the editable requirement details; there's no AI validator for it.
+// image: { fileName, mimeType, base64 }
+export function readRequirementImage({ fileName, mimeType, base64 }, providers = getProviders()) {
+  return runPipeline({
+    kind: "IMAGE_TEXT",
+    input: { fileName, images: [{ mimeType, base64 }] },
+    generator: providers.vision,
+    validator: providers.validator,
+  });
+}
+
 // Recommend techniques for a requirement ("Let AI suggest").
 export function suggestTechniques({ requirementText }, providers = getProviders()) {
   return runPipeline({

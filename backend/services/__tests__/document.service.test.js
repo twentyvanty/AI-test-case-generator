@@ -5,7 +5,10 @@ import {
   cleanText,
   DocumentError,
   extractDocumentText,
+  isImageFile,
+  readImageText,
 } from "../document.service.js";
+import { createMockProvider } from "../../ai/providers/mock.provider.js";
 
 // The smallest valid PDF with one line of text, built by hand
 // (the xref offsets are calculated so PDF readers accept it)
@@ -68,4 +71,51 @@ test("a damaged file gives a readable error", async () => {
 
 test("cleanText tidies line endings and blank lines", () => {
   assert.equal(cleanText("  a  \r\nb\r\n\r\n\r\n\r\nc  \n"), "a\nb\n\nc");
+});
+
+// ---- images (read by the vision model) ----
+
+const PNG = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(64)]);
+const JPG = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(64)]);
+const WEBP = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WEBP"), Buffer.alloc(64)]);
+const mock = (failMode = "never") => ({
+  vision: createMockProvider({ role: "vision", failMode }),
+  validator: createMockProvider({ role: "validator", failMode }),
+});
+
+test("image files are recognised by extension", () => {
+  assert.equal(isImageFile("Screen.PNG"), true);
+  assert.equal(isImageFile("flow.jpeg"), true);
+  assert.equal(isImageFile("ui.webp"), true);
+  assert.equal(isImageFile("spec.pdf"), false);
+});
+
+test("PNG, JPG and WebP images are read by the vision model", async () => {
+  for (const [name, buffer] of [["a.png", PNG], ["b.jpg", JPG], ["c.webp", WEBP]]) {
+    const result = await readImageText(name, buffer, mock());
+    assert.equal(result.error, null);
+    assert.match(result.text, new RegExp(`Mock text read from ${name.replace(".", "\\.")}`));
+  }
+});
+
+test("a renamed non-image or a too-large image is refused before calling the AI", async () => {
+  await assert.rejects(readImageText("fake.png", Buffer.from("not an image"), mock()), (error) =>
+    error instanceof DocumentError && /isn't a valid PNG image/.test(error.message)
+  );
+
+  const big = Buffer.concat([PNG, Buffer.alloc(5 * 1024 * 1024)]);
+  await assert.rejects(readImageText("big.png", big, mock()), (error) =>
+    error instanceof DocumentError && /5 MB/.test(error.message)
+  );
+});
+
+test("an AI problem returns an error for that image instead of failing the upload", async () => {
+  const result = await readImageText("a.png", PNG, mock("busy"));
+
+  assert.equal(result.text, "");
+  assert.match(result.error, /busy/);
+});
+
+test("images aren't read as documents", async () => {
+  await assert.rejects(extractDocumentText("a.png", PNG), DocumentError);
 });

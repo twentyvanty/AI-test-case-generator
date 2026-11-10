@@ -37,6 +37,23 @@ function asBusyIfUpstream(error) {
   return error;
 }
 
+const CANT_READ_IMAGES = /image input|support image|image_url|images? (?:is|are) not supported/i;
+
+// The user message: plain text, or text + images (data URLs) for the vision role
+function userContent(prompt, images) {
+  if (!images?.length) {
+    return prompt;
+  }
+
+  return [
+    { type: "text", text: prompt },
+    ...images.map((image) => ({
+      type: "image_url",
+      image_url: { url: `data:${image.mimeType};base64,${image.base64}` },
+    })),
+  ];
+}
+
 // Turn an API error into one of our error types (see ../errors.js)
 function toProviderError(error, model) {
   const status = error?.status;
@@ -59,6 +76,14 @@ function toProviderError(error, model) {
   if (status === 401) {
     return new ProviderAuthError(
       "OpenRouter rejected the API key. Check OPENROUTER_API_KEY in backend/.env (create one at openrouter.ai/keys).",
+      { cause: error, status }
+    );
+  }
+
+  // The model can't take images (only possible for the vision role)
+  if (CANT_READ_IMAGES.test(raw)) {
+    return new ProviderAuthError(
+      `OpenRouter model "${model}" can't read images. Set OPENROUTER_VISION_MODEL in backend/.env to a model with image input.`,
       { cause: error, status }
     );
   }
@@ -150,7 +175,7 @@ export function createOpenRouterProvider({
   const modeOf = new Map();
   const currentMode = (modelName) => modeOf.get(modelName) ?? "schema";
 
-  function requestBody(modelName, { system, prompt, jsonSchema }) {
+  function requestBody(modelName, { system, prompt, jsonSchema, images }) {
     const mode = currentMode(modelName);
 
     if (mode === "schema") {
@@ -158,7 +183,7 @@ export function createOpenRouterProvider({
         model: modelName,
         messages: [
           { role: "system", content: system },
-          { role: "user", content: prompt },
+          { role: "user", content: userContent(prompt, images) },
         ],
         response_format: {
           type: "json_schema",
@@ -176,7 +201,7 @@ export function createOpenRouterProvider({
           role: "system",
           content: `${system}\n\nAnswer with ONE JSON object that matches this JSON Schema exactly (no other text):\n${JSON.stringify(jsonSchema)}`,
         },
-        { role: "user", content: prompt },
+        { role: "user", content: userContent(prompt, images) },
       ],
       ...(mode === "json" && { response_format: { type: "json_object" } }),
     };
@@ -220,7 +245,9 @@ export function createOpenRouterProvider({
         const unsupported =
           next &&
           (error?.status === 400 || error?.status === 404) &&
-          UNSUPPORTED_JSON_SCHEMA.test(String(error?.message));
+          UNSUPPORTED_JSON_SCHEMA.test(String(error?.message)) &&
+          // "can't take images" isn't solved by another JSON mode
+          !CANT_READ_IMAGES.test(String(error?.message));
 
         if (!unsupported) {
           throw error;

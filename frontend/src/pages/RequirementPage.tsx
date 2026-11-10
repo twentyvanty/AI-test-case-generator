@@ -29,6 +29,7 @@ import Button from "../components/ui/Button";
 import Modal from "../components/ui/Modal";
 import PageHeader from "../components/ui/PageHeader";
 import Spinner from "../components/ui/Spinner";
+import { isImageFileName } from "../utils/files";
 
 const EMPTY_FORM: RequirementForm = { title: "", text: "", techniques: [] };
 
@@ -50,7 +51,7 @@ const splitFileNames = (sourceFileName: string | null): Attachment[] =>
   (sourceFileName ?? "")
     .split(", ")
     .filter(Boolean)
-    .map((fileName) => ({ fileName, size: null, block: null }));
+    .map((fileName) => ({ fileName, size: null, block: null, readByAi: isImageFileName(fileName) }));
 
 const errorText = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
@@ -250,14 +251,39 @@ function RequirementPage() {
       let text = form.text.trim();
 
       for (const document of documents) {
-        if (!document.text) {
-          problems.push(t("specificationFiles.noText", { name: document.fileName }));
+        const readByAi = document.readBy === "ai";
+
+        if (document.error) {
+          problems.push(
+            t("specificationFiles.aiFailed", { name: document.fileName, message: document.error })
+          );
           continue;
         }
 
-        const block = `--- from ${document.fileName} ---\n${document.text}`;
+        if (!document.text) {
+          problems.push(
+            t(readByAi ? "specificationFiles.noTextImage" : "specificationFiles.noText", {
+              name: document.fileName,
+            })
+          );
+          continue;
+        }
+
+        // AI-read text is marked in the details too, so it's still visible after saving
+        const header = readByAi
+          ? `--- from ${document.fileName} (read by AI, please check) ---`
+          : `--- from ${document.fileName} ---`;
+        const block = `${header}\n${document.text}`;
+        const file = newFiles.find((item) => item.name === document.fileName);
+
         text = text ? `${text}\n\n${block}` : block;
-        added.push({ fileName: document.fileName, size: document.size, block });
+        added.push({
+          fileName: document.fileName,
+          size: document.size,
+          block,
+          readByAi,
+          previewUrl: readByAi && file ? URL.createObjectURL(file) : null,
+        });
       }
 
       setFileProblems(problems);
@@ -278,6 +304,10 @@ function RequirementPage() {
   // Remove a file, and its text too if the tester hasn't edited that part
   const handleRemoveFile = (fileName: string) => {
     const attachment = attachments.find((item) => item.fileName === fileName);
+
+    if (attachment?.previewUrl) {
+      URL.revokeObjectURL(attachment.previewUrl);
+    }
 
     if (attachment?.block && form.text.includes(attachment.block)) {
       changeForm({

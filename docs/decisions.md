@@ -170,3 +170,20 @@ Separately, the `gemini-2.5-*` models turned out to be unavailable to new keys, 
 **Decision.** `detectLanguage()` counts Thai vs Latin letters in the requirement, and the majority wins. Every prompt (generator and validator) ends with an explicit `OUTPUT LANGUAGE: Thai` / `English` line.
 **Consequences.** Predictable output language. A mixed requirement follows its main language, and Thai text with English product terms stays Thai. If a future requirement needs a third language, extend `detectLanguage` (or let the tester choose, as discussed).
 
+### D-027 — Requirement images are read by a vision model into editable text
+**Context.** Testers often have requirements as screenshots, scans, UI mock-ups or diagrams, not as text files.
+**Decision.**
+- Step 1 accepts PNG / JPG / WebP images (up to 5 MB each; a file-signature check refuses renamed files).
+- A separate **vision** AI role transcribes the text exactly and describes diagrams and screens.
+- The result is added to the requirement details as `--- from <image> (read by AI, please check) ---`, the same idea as documents (D-018). The image isn't stored, and the rest of the pipeline stays text-only.
+- There's no AI validator for this step; the tester checks the text.
+- An AI problem (busy, quota) returns an error for that image only; the other uploaded files still come back.
+- Provider: **Gemini 3.5 Flash** when a Gemini key is set, even though OpenRouter handles the text steps. It was suggested by the partner company, and it was the only model that read a Thai swimlane diagram correctly; every free OpenRouter model failed or invented text.
+  - If Gemini is busy or out of quota, the request goes to OpenRouter: `nemotron-3-nano-omni` (the best free OpenRouter reader on a simple Thai screenshot), then `gemma-4-31b`.
+
+**Consequences.**
+- Each image uses one AI request and usually 10–80 s, up to about 3 minutes when every host is busy.
+- The vision role needs a Gemini key for the best results.
+- Transcriptions can contain small errors, so the "please check" marking is essential.
+- Images go to the free model hosts, so no confidential screenshots on free models.
+

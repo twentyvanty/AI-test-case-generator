@@ -6,6 +6,7 @@ import {
   testCaseSetSchema,
   toJsonSchema,
   validatorReportSchema,
+  imageTextSchema,
 } from "./schemas.js";
 import { countFailures, mergeResults, pass } from "./checks/result.js";
 import { checkStructure } from "./checks/structure.js";
@@ -15,10 +16,16 @@ import { suggestTechniquesPrompt } from "./prompts/suggestTechniques.js";
 import { draftScenariosPrompt } from "./prompts/draftScenarios.js";
 import { generateTestCasesPrompt } from "./prompts/generateTestCases.js";
 import { validatePrompt } from "./prompts/validate.js";
+import { readImagePrompt } from "./prompts/readImage.js";
 
 export const MAX_ATTEMPTS = 3;
 
 const KINDS = {
+  IMAGE_TEXT: {
+    schema: imageTextSchema,
+    buildPrompt: readImagePrompt,
+    aiValidation: false, // a transcription the tester checks and edits
+  },
   TECHNIQUE_SUGGESTION: {
     schema: techniqueSuggestionSchema,
     buildPrompt: suggestTechniquesPrompt,
@@ -108,6 +115,8 @@ export async function runPipeline({ kind, input, generator, validator, maxAttemp
           system,
           prompt,
           jsonSchema,
+          // Only image reading sends images; every other step is text only
+          ...(input.images && { images: input.images }),
           task: { kind, input, attempt, role: "generator" },
         })
       );

@@ -105,6 +105,26 @@ test("a model without JSON mode either gets the schema in the prompt only", asyn
   );
 });
 
+test("images are sent as data URLs next to the text", async () => {
+  const client = fakeClient({ main: { text: "read" } });
+
+  await make(client).generateJson({ ...request, images: [{ mimeType: "image/png", base64: "QUJD" }] });
+
+  const content = client.calls[0].messages[1].content;
+  assert.deepEqual(content[0], { type: "text", text: "requirement" });
+  assert.deepEqual(content[1], { type: "image_url", image_url: { url: "data:image/png;base64,QUJD" } });
+});
+
+test("a model that can't read images gives a clear message instead of trying other JSON modes", async () => {
+  const client = fakeClient({ main: apiError(404, "No endpoints found that support image input") });
+
+  await assert.rejects(
+    make(client).generateJson({ ...request, images: [{ mimeType: "image/png", base64: "QUJD" }] }),
+    (error) => error instanceof ProviderAuthError && /can't read images.*OPENROUTER_VISION_MODEL/.test(error.message)
+  );
+  assert.equal(client.calls.length, 1);
+});
+
 test("busy → retried, then the fallback model answers", async () => {
   const client = fakeClient({ main: busy(), backup: { ok: true } });
 
