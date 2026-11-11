@@ -1,7 +1,7 @@
 import { request } from "./http";
 
-// "Recently deleted": deleted requirements and scenarios, kept for 7 days
-export type TrashType = "requirement" | "scenario";
+// "Recently deleted": deleted requirements, scenarios and test cases, kept for 7 days
+export type TrashType = "requirement" | "scenario" | "testCase";
 
 export type TrashItem = {
   type: TrashType;
@@ -15,6 +15,9 @@ export type TrashItem = {
   requirementNumber: number;
   requirementTitle: string;
   scenarioNumber: number | null;
+  testCaseNumber: number | null;
+  // Scenarios: test cases deleted together with it (they come back with it)
+  testCaseCount: number;
 };
 
 // Where a restored item lives now
@@ -23,6 +26,7 @@ export type RestoredItem = {
   projectId: number;
   requirementNumber: number;
   scenarioNumber: number | null;
+  testCaseNumber: number | null;
 };
 
 export function getTrash() {

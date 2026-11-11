@@ -120,6 +120,8 @@ export type RequirementDetail = Requirement & {
   // The runs behind the current scenarios / test cases (their review notes)
   latestScenarioRun: RunSummary | null;
   latestCaseRun: RunSummary | null;
+  // Every run behind the current test cases (one per batch), oldest first
+  caseRuns: RunSummary[];
 };
 
 export type TechniqueSuggestion = {

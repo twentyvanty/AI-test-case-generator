@@ -43,6 +43,12 @@ export function similarity(a, b) {
 
 const NEAR_DUPLICATE = 0.92;
 
+// The numbers in a title: "Request the 5th link" → ["5"]. Boundary-value items are
+// named alike on purpose ("4th / 5th / 6th link", "64 / 65 characters"), so titles
+// whose numbers differ are different tests, however similar the words.
+const numbersIn = (value) => value.normalize("NFKC").match(/\d+(?:\.\d+)?/g) ?? [];
+const differentNumbers = (a, b) => numbersIn(a).join(",") !== numbersIn(b).join(",");
+
 // existingCount: the first N items are the tester's existing ones — pairs of two
 // existing items are never reported (only new ↔ new and new ↔ existing)
 function findDuplicates(items, label, getTitle, getBody, existingCount = 0) {
@@ -59,7 +65,7 @@ function findDuplicates(items, label, getTitle, getBody, existingCount = 0) {
 
       if (sameTitle || sameBody) {
         failures.push(`Duplicate ${label}: "${titleA}" and "${titleB}"`);
-      } else if (similarity(titleA, titleB) >= NEAR_DUPLICATE) {
+      } else if (similarity(titleA, titleB) >= NEAR_DUPLICATE && !differentNumbers(titleA, titleB)) {
         warnings.push(`Possible duplicate ${label}: "${titleA}" and "${titleB}"`);
       }
     }

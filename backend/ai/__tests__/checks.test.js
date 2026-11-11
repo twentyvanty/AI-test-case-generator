@@ -72,6 +72,22 @@ test("near-duplicate titles only warn", () => {
   assert.equal(result.status, "warn");
 });
 
+test("boundary titles that differ only in their numbers are not 'possible duplicates'", () => {
+  // Seen in every real run: "4th / 5th / 6th link" and "64 / 65 characters" were flagged
+  const result = checkDuplicates("SCENARIOS", {
+    scenarios: [
+      scenario("Request 4th password reset link within one hour"),
+      scenario("Request 5th password reset link within one hour"),
+      scenario("Password 64 characters with a digit"),
+      scenario("Password 65 characters with a digit"),
+      scenario("ขอลิงก์ครั้งที่ 5 ภายในหนึ่งชั่วโมง"),
+      scenario("ขอลิงก์ครั้งที่ 6 ภายในหนึ่งชั่วโมง"),
+    ],
+  });
+
+  assert.equal(result.status, "pass", JSON.stringify(result.issues));
+});
+
 test("similarity works for Thai text (no spaces between words)", () => {
   assert.equal(similarity("ลิงก์รีเซ็ตรหัสผ่านหมดอายุ", "ลิงก์รีเซ็ตรหัสผ่านหมดอายุ"), 1);
   assert.ok(similarity("ลิงก์รีเซ็ตรหัสผ่านหมดอายุ", "เข้าสู่ระบบด้วยอีเมล") < 0.5);

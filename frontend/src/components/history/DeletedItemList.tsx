@@ -1,5 +1,9 @@
 import { useTranslation } from "react-i18next";
-import { formatRequirementCode, formatScenarioCode } from "../../services/requirements";
+import {
+  formatRequirementCode,
+  formatScenarioCode,
+  formatTestCaseCode,
+} from "../../services/requirements";
 import { itemKey, type TrashItem } from "../../services/trash";
 import { formatRelativeTime } from "../../utils/format";
 import Badge from "../ui/Badge";
@@ -19,10 +23,13 @@ function DeletedItemList({ items, busyKey, onRestore, onDeleteForever }: Deleted
   return (
     <ul className="divide-y divide-gray-200/80">
       {items.map((item) => {
-        const code =
-          item.type === "scenario"
-            ? `${formatRequirementCode(item.requirementNumber)} · ${formatScenarioCode(item.scenarioNumber ?? 0)}`
-            : formatRequirementCode(item.requirementNumber);
+        const code = [
+          formatRequirementCode(item.requirementNumber),
+          item.type !== "requirement" && formatScenarioCode(item.scenarioNumber ?? 0),
+          item.type === "testCase" && formatTestCaseCode(item.testCaseNumber ?? 0),
+        ]
+          .filter(Boolean)
+          .join(" · ");
         const busy = busyKey === itemKey(item);
 
         return (
@@ -35,8 +42,13 @@ function DeletedItemList({ items, busyKey, onRestore, onDeleteForever }: Deleted
                 {code}
               </p>
               <p className="mt-1 font-semibold text-ink">{item.title}</p>
+              {item.type === "scenario" && item.testCaseCount > 0 && (
+                <p className="mt-0.5 text-sm text-gray-600">
+                  {t("recentlyDeleted.withTestCases", { count: item.testCaseCount })}
+                </p>
+              )}
               <p className="mt-0.5 text-sm text-gray-500">
-                {item.type === "scenario"
+                {item.type !== "requirement"
                   ? t("recentlyDeleted.inRequirement", {
                       requirement: item.requirementTitle,
                       project: item.projectName,

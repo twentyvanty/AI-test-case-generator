@@ -19,10 +19,10 @@ import Spinner from "../components/ui/Spinner";
 
 const errorText = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
-// Link to a restored item: the requirement, or its scenarios step
+// Link to a restored item: the requirement, or its scenarios / test cases step
 const restoredLink = (item: RestoredItem) =>
   `/projects/${item.projectId}/requirements/${item.requirementNumber}${
-    item.type === "scenario" ? "?step=scenarios" : ""
+    item.type === "scenario" ? "?step=scenarios" : item.type === "testCase" ? "?step=testCases" : ""
   }`;
 
 // For now: "Recently deleted" (items kept for 7 days).

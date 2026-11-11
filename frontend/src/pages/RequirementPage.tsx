@@ -20,7 +20,9 @@ import RequirementStep, {
   type RequirementForm,
 } from "../components/requirement/RequirementStep";
 import ScenariosStep from "../components/requirement/ScenariosStep";
+import ReportStep from "../components/requirement/ReportStep";
 import StepPlaceholder from "../components/requirement/StepPlaceholder";
+import TestCasesStep from "../components/requirement/TestCasesStep";
 import type { Attachment } from "../components/requirement/SpecificationFiles";
 import StepTabs from "../components/requirement/StepTabs";
 import { isStepUnlocked, STEPS, type Step } from "../components/requirement/steps";
@@ -161,6 +163,7 @@ function RequirementPage() {
         testCaseCount: 0,
         latestScenarioRun: null,
         latestCaseRun: null,
+        caseRuns: [],
       });
       navigate(`/projects/${projectId}/requirements/${created.number}`, { replace: true });
 
@@ -424,15 +427,29 @@ function RequirementPage() {
           )}
 
           {step === "testCases" && detail && (
-            <StepPlaceholder
-              step="testCases"
-              count={detail.testCaseCount}
+            <TestCasesStep
+              projectId={projectId}
+              requirementNumber={detail.number}
+              scenarios={detail.scenarios}
+              testCases={detail.testCases}
+              caseRuns={detail.caseRuns}
+              onChange={changeDetail}
               onBack={() => goToStep("scenarios")}
+              onNext={() => goToStep("testScripts")}
             />
           )}
 
-          {(step === "testScripts" || step === "report") && (
-            <StepPlaceholder step={step} onBack={() => goToStep("testCases")} />
+          {step === "testScripts" && (
+            <StepPlaceholder onBack={() => goToStep("testCases")} onSkip={() => goToStep("report")} />
+          )}
+
+          {step === "report" && detail && (
+            <ReportStep
+              requirementNumber={detail.number}
+              requirementTitle={detail.title}
+              scenarios={detail.scenarios}
+              testCases={detail.testCases}
+            />
           )}
         </>
       )}

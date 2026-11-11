@@ -339,7 +339,7 @@ function ScenariosStep({
       {(needsReview(latestRun) || hasAiNotes(latestRun)) && latestRun && (
         <div className="mt-4">
           <ReviewNote
-            run={latestRun}
+            runs={[latestRun]}
             kind="scenarios"
             variant={needsReview(latestRun) ? "review" : "notes"}
             marking={busy === "reviewing"}

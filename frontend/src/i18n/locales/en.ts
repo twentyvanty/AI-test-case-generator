@@ -349,6 +349,8 @@ const en = {
       summary_one: "{{count}} case · {{pass}} Pass · {{fail}} Fail",
       summary_other: "{{count}} cases · {{pass}} Pass · {{fail}} Fail",
       backToScenarios: "Back to scenarios",
+      next: "Next: test scripts",
+      markPassed: "Mark {{code}} as passed",
       downloadTable: "Download test case table",
       downloadReport: "Download report",
       exportNote: "Export includes test cases from this requirement only.",
@@ -396,14 +398,9 @@ const en = {
     },
 
     stepPlaceholder: {
-      testCases_one:
-        "{{count}} test case is ready. The test case page (table, Pass / Fail, edit, downloads) comes in the next update.",
-      testCases_other:
-        "{{count}} test cases are ready. The test case page (table, Pass / Fail, edit, downloads) comes in the next update.",
-      backToScenarios: "Back to scenarios",
       testScripts: "Generating automated test scripts from your test cases comes in a later update. This step is optional.",
-      report: "The full report with defects comes in the next update. For now, download the report from the test cases step.",
       back: "Back to test cases",
+      skipToReport: "Skip to report",
     },
 
     historyGenerated: {

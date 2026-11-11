@@ -131,6 +131,20 @@ function latestRunOf(items) {
     : null;
 }
 
+// Every run that produced any of these items, oldest first. Test cases come from
+// several runs (one per batch), and each run's review notes belong on screen.
+function runsOf(items) {
+  const runIds = [...new Set(items.map((item) => item.runId).filter((id) => id !== null))];
+
+  return runIds.length > 0
+    ? prisma.generationRun.findMany({
+        where: { id: { in: runIds } },
+        orderBy: { id: "asc" },
+        select: runFields,
+      })
+    : [];
+}
+
 // The requirement with its scenarios (each with testCaseCount), its test cases,
 // and the runs behind the current scenarios and test cases
 export async function getRequirement(keycloakUser, projectId, number) {
@@ -144,9 +158,10 @@ export async function getRequirement(keycloakUser, projectId, number) {
     scenariosWithCounts(prisma, requirement.id),
     activeTestCases(prisma, requirement.id),
   ]);
-  const [latestScenarioRun, latestCaseRun] = await Promise.all([
+  const [latestScenarioRun, latestCaseRun, caseRuns] = await Promise.all([
     latestRunOf(scenarios),
     latestRunOf(testCases),
+    runsOf(testCases),
   ]);
 
   return {
@@ -157,6 +172,7 @@ export async function getRequirement(keycloakUser, projectId, number) {
     testCases,
     latestScenarioRun,
     latestCaseRun,
+    caseRuns,
   };
 }
 

@@ -144,6 +144,12 @@ const definition = {
                 nullable: true,
                 description: "The newest run behind the current test cases",
               },
+              caseRuns: {
+                type: "array",
+                items: { $ref: "#/components/schemas/RunSummary" },
+                description:
+                  "Every run behind the current test cases (one per batch), oldest first: their review notes and AI notes are shown together",
+              },
             },
             required: ["text", "scenarios", "testCaseCount", "testCases"],
           },

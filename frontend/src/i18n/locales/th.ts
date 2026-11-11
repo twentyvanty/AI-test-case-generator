@@ -321,6 +321,8 @@ const th = {
       title: "Test Case และการตรวจสอบ",
       summary_other: "{{count}} เคส · ผ่าน {{pass}} · ไม่ผ่าน {{fail}}",
       backToScenarios: "กลับไปที่สถานการณ์",
+      next: "ถัดไป: สคริปต์ทดสอบ",
+      markPassed: "ทำเครื่องหมาย {{code}} ว่าผ่าน",
       downloadTable: "ดาวน์โหลดตาราง Test Case",
       downloadReport: "ดาวน์โหลดรายงาน",
       exportNote: "ไฟล์ที่ส่งออกมีเฉพาะ Test Case ของข้อกำหนดนี้",
@@ -367,12 +369,9 @@ const th = {
     },
 
     stepPlaceholder: {
-      testCases_other:
-        "Test Case พร้อมแล้ว {{count}} รายการ หน้า Test Case (ตาราง ผ่าน/ไม่ผ่าน แก้ไข ดาวน์โหลด) จะมาในอัปเดตถัดไป",
-      backToScenarios: "กลับไปที่สถานการณ์",
       testScripts: "การสร้างสคริปต์ทดสอบอัตโนมัติจาก Test Case จะมาในอัปเดตถัดไป ขั้นตอนนี้ไม่บังคับ",
-      report: "รายงานฉบับเต็มพร้อมข้อบกพร่องจะมาในอัปเดตถัดไป ตอนนี้ดาวน์โหลดรายงานได้จากขั้นตอน Test Case",
       back: "กลับไปที่ Test Case",
+      skipToReport: "ข้ามไปที่รายงาน",
     },
 
     historyGenerated: {

@@ -3,28 +3,30 @@ import Button from "../ui/Button";
 import Card from "../ui/Card";
 
 type StepPlaceholderProps = {
-  step: "testCases" | "testScripts" | "report";
-  // Test cases: how many exist (the page itself comes in the next part)
-  count?: number;
   onBack: () => void;
+  onSkip: () => void;
 };
 
-// Steps that arrive in later parts: the test-case page (Slice 5c-2), test
-// scripts and the report (Slices 6–7)
-function StepPlaceholder({ step, count = 0, onBack }: StepPlaceholderProps) {
+// Step 4 (test scripts) arrives in Slice 7. It's optional, so the report is one
+// click away.
+function StepPlaceholder({ onBack, onSkip }: StepPlaceholderProps) {
   const { t } = useTranslation();
 
   return (
     <Card padding="md">
       <h2 className="font-heading text-lg font-semibold tracking-tight text-ink">
-        {t(`steps.${step}`)}
+        {t("steps.testScripts")}
       </h2>
-      <p className="mt-1 text-sm text-gray-500">{t(`stepPlaceholder.${step}`, { count })}</p>
+      <p className="mt-1 text-sm text-gray-500">{t("stepPlaceholder.testScripts")}</p>
 
-      <Button variant="secondary" size="sm" className="mt-4" onClick={onBack}>
-        <span aria-hidden="true">←</span>{" "}
-        {step === "testCases" ? t("stepPlaceholder.backToScenarios") : t("stepPlaceholder.back")}
-      </Button>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button variant="secondary" size="sm" onClick={onBack}>
+          <span aria-hidden="true">←</span> {t("stepPlaceholder.back")}
+        </Button>
+        <Button variant="brand" size="sm" onClick={onSkip}>
+          {t("stepPlaceholder.skipToReport")} <span aria-hidden="true">→</span>
+        </Button>
+      </div>
     </Card>
   );
 }

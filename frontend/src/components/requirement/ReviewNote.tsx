@@ -1,12 +1,32 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { groupIssues, type IssueGroup, type RunSummary } from "../../services/requirements";
+import {
+  groupIssues,
+  type IssueGroup,
+  type RunSummary,
+} from "../../services/requirements";
 import Button from "../ui/Button";
 
 const GROUPS: IssueGroup[] = ["coverage", "technique", "other"];
 
+// The issues of several runs, grouped, without repeats
+function mergeGroups(runs: RunSummary[]) {
+  const merged: Record<IssueGroup, string[]> = { coverage: [], technique: [], other: [] };
+
+  for (const run of runs) {
+    const groups = groupIssues(run.validation?.final);
+
+    for (const group of GROUPS) {
+      merged[group] = [...new Set([...merged[group], ...groups[group]])];
+    }
+  }
+
+  return merged;
+}
+
 type ReviewNoteProps = {
-  run: RunSummary;
+  // Usually one run; test cases come from one run per batch, shown together
+  runs: RunSummary[];
   // What the run produced: changes the title and the hints
   kind: "scenarios" | "testCases";
   // "review": NEEDS_REVIEW, open and highlighted. "notes": a PASSED run's warnings,
@@ -23,7 +43,7 @@ type ReviewNoteProps = {
 // them, and the tester decides what to do (fix it, add a scenario, or mark it
 // as reviewed).
 function ReviewNote({
-  run,
+  runs,
   kind,
   variant = "review",
   marking,
@@ -31,7 +51,8 @@ function ReviewNote({
   onAddForIssue,
 }: ReviewNoteProps) {
   const { t } = useTranslation();
-  const groups = groupIssues(run.validation?.final);
+  const groups = mergeGroups(runs);
+  const attempts = Math.max(...runs.map((run) => run.attempts));
   const count = GROUPS.reduce((sum, group) => sum + groups[group].length, 0);
 
   const body: ReactNode = (
@@ -85,7 +106,7 @@ function ReviewNote({
   return (
     <div className="rounded-2xl border border-warning/30 bg-warning/10 px-5 py-4 text-sm">
       <p className="font-medium text-ink">{t(`review.title.${kind}`)}</p>
-      <p className="mt-1 text-gray-600">{t("review.text", { count: run.attempts })}</p>
+      <p className="mt-1 text-gray-600">{t("review.text", { count: attempts })}</p>
       {body}
     </div>
   );
