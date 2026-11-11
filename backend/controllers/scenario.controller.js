@@ -2,12 +2,14 @@ import {
   createScenario as createScenarioService,
   deleteScenario as deleteScenarioService,
   getScenarioRuns as getScenarioRunsService,
+  markRunReviewed as markRunReviewedService,
   restoreScenarioRun as restoreScenarioRunService,
   updateScenario as updateScenarioService,
 } from "../services/scenario.service.js";
 
 import { validateCreateScenarioDto } from "../dto/scenario/create-scenario.dto.js";
 import { validateUpdateScenarioDto } from "../dto/scenario/update-scenario.dto.js";
+import { sendKnownError } from "./errors.js";
 import { readIds } from "./params.js";
 
 export async function createScenario(req, res) {
@@ -76,6 +78,10 @@ export async function updateScenario(req, res) {
 
     res.json(scenario);
   } catch (error) {
+    if (sendKnownError(res, error)) {
+      return;
+    }
+
     console.error("Update scenario error:", error);
 
     res.status(500).json({
@@ -171,10 +177,41 @@ export async function restoreScenarioRun(req, res) {
 
     res.json(scenarios);
   } catch (error) {
+    if (sendKnownError(res, error)) {
+      return;
+    }
+
     console.error("Restore scenario run error:", error);
 
     res.status(500).json({
       message: "Failed to restore scenarios",
+    });
+  }
+}
+
+// POST …/runs/:runId/reviewed: hides a run's "needs review" note
+export async function markRunReviewed(req, res) {
+  try {
+    const ids = readIds(req, res, ["projectId", "number", "runId"]);
+
+    if (!ids) {
+      return;
+    }
+
+    const run = await markRunReviewedService(req.user, ids.projectId, ids.number, ids.runId);
+
+    if (!run) {
+      return res.status(404).json({
+        message: "Run not found",
+      });
+    }
+
+    res.json(run);
+  } catch (error) {
+    console.error("Mark run reviewed error:", error);
+
+    res.status(500).json({
+      message: "Failed to mark the run as reviewed",
     });
   }
 }

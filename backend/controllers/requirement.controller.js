@@ -12,6 +12,7 @@ import {
 
 import { validateCreateRequirementDto } from "../dto/requirement/create-requirement.dto.js";
 import { validateUpdateRequirementDto } from "../dto/requirement/update-requirement.dto.js";
+import { sendKnownError } from "./errors.js";
 import { readIds } from "./params.js";
 
 export async function getRequirements(req, res) {
@@ -223,6 +224,10 @@ export async function draftScenarios(req, res) {
 
     res.status(201).json(result);
   } catch (error) {
+    if (sendKnownError(res, error)) {
+      return;
+    }
+
     console.error("Draft scenarios error:", error);
 
     res.status(500).json({

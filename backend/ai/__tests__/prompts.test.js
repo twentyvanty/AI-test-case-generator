@@ -44,3 +44,21 @@ test("the validator is told to fail only for concrete problems", () => {
   assert.match(system, /Never report something as missing if any item already includes it/);
   assert.match(system, /Gaps or vagueness in the REQUIREMENT itself are not problems of the output/);
 });
+
+test("the test-case validator judges coverage against the scenarios sent, not the whole requirement", () => {
+  const input = {
+    requirementText: "Users can reset a password. The link expires after 30 minutes.",
+    techniques: [],
+    scenarios: [{ key: "S1", title: "Link expiry", description: "d", technique: "boundaryValue", estimatedCases: 3 }],
+  };
+
+  const cases = validatePrompt("TEST_CASES", input, { testCases: [] });
+  assert.match(cases.system, /for the scenarios in <scenarios> only/);
+  // Extra values a scenario doesn't name are a warning, not a failure
+  assert.match(cases.system, /need only the values and conditions that scenario names/);
+  assert.match(cases.system, /warn at most in techniqueCompliance, never fail/);
+  assert.match(cases.prompt, /S1: Link expiry/);
+
+  const scenarios = validatePrompt("SCENARIOS", input, { scenarios: [] });
+  assert.doesNotMatch(scenarios.system, /for the scenarios in <scenarios> only/);
+});

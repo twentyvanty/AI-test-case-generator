@@ -5,6 +5,7 @@ import {
   createScenario,
   deleteScenario,
   getScenarioRuns,
+  markRunReviewed,
   restoreScenarioRun,
   updateScenario,
 } from "../controllers/scenario.controller.js";
@@ -40,7 +41,7 @@ const router = express.Router({ mergeParams: true });
  *     tags: [Scenarios]
  *     summary: Add a scenario by hand
  *     operationId: createScenario
- *     description: Numbered after the current scenarios. Source MANUAL.
+ *     description: Numbered after the current scenarios. Source MANUAL. Allowed even when test cases exist.
  *     parameters:
  *       - $ref: '#/components/parameters/ProjectId'
  *       - $ref: '#/components/parameters/RequirementNumber'
@@ -75,7 +76,9 @@ router.post("/scenarios", authenticateToken, createScenario);
  *     tags: [Scenarios]
  *     summary: Edit a scenario
  *     operationId: updateScenario
- *     description: Send only the fields to change (e.g. just the estimated cases).
+ *     description: |
+ *       Send only the fields to change. A scenario with test cases is locked (409):
+ *       delete it (its test cases go with it) and add a new one instead (D-029).
  *     parameters:
  *       - $ref: '#/components/parameters/ProjectId'
  *       - $ref: '#/components/parameters/RequirementNumber'
@@ -99,6 +102,8 @@ router.post("/scenarios", authenticateToken, createScenario);
  *         $ref: '#/components/responses/Unauthorized'
  *       404:
  *         $ref: '#/components/responses/NotFound'
+ *       409:
+ *         $ref: '#/components/responses/Conflict'
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
@@ -112,8 +117,9 @@ router.patch("/scenarios/:scenarioNumber", authenticateToken, updateScenario);
  *     summary: Delete a scenario (restorable for 7 days)
  *     operationId: deleteScenario
  *     description: |
- *       Moves the scenario and its test cases to Recently deleted (see /api/trash).
- *       When no scenarios are left, the requirement's status goes back to DRAFT.
+ *       Moves the scenario AND its test cases to Recently deleted (see /api/trash);
+ *       restoring the scenario brings them back. Returns the requirement's status
+ *       afterwards (DRAFT when no scenarios are left) and how many test cases went with it.
  *     parameters:
  *       - $ref: '#/components/parameters/ProjectId'
  *       - $ref: '#/components/parameters/RequirementNumber'
@@ -129,6 +135,9 @@ router.patch("/scenarios/:scenarioNumber", authenticateToken, updateScenario);
  *                 status:
  *                   type: string
  *                   enum: [DRAFT, SCENARIOS_READY, CASES_READY, REPORTED]
+ *                 deletedTestCases:
+ *                   type: integer
+ *                   description: Test cases moved to Recently deleted with it
  *       400:
  *         $ref: '#/components/responses/BadRequest'
  *       401:
@@ -179,7 +188,8 @@ router.get("/scenario-runs", authenticateToken, getScenarioRuns);
  *     operationId: restoreScenarioRun
  *     description: |
  *       Replaces the current scenarios (including manual edits) with the list saved
- *       right after that run. FAILED runs have nothing to restore (400).
+ *       right after that run. FAILED runs have nothing to restore (400). Not allowed
+ *       once test cases exist (409, D-029).
  *     parameters:
  *       - $ref: '#/components/parameters/ProjectId'
  *       - $ref: '#/components/parameters/RequirementNumber'
@@ -199,9 +209,47 @@ router.get("/scenario-runs", authenticateToken, getScenarioRuns);
  *         $ref: '#/components/responses/Unauthorized'
  *       404:
  *         $ref: '#/components/responses/NotFound'
+ *       409:
+ *         $ref: '#/components/responses/Conflict'
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
 router.post("/scenario-runs/:runId/restore", authenticateToken, restoreScenarioRun);
+
+/**
+ * @openapi
+ * /api/projects/{projectId}/requirements/{number}/runs/{runId}/reviewed:
+ *   post:
+ *     tags: [AI generation]
+ *     summary: Mark a scenario or test-case run as reviewed
+ *     operationId: markRunReviewed
+ *     description: The tester has checked a NEEDS_REVIEW result; its review note is hidden from then on.
+ *     parameters:
+ *       - $ref: '#/components/parameters/ProjectId'
+ *       - $ref: '#/components/parameters/RequirementNumber'
+ *       - $ref: '#/components/parameters/RunId'
+ *     responses:
+ *       200:
+ *         description: The run's id and reviewedAt
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 reviewedAt:
+ *                   type: string
+ *                   format: date-time
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
+ */
+router.post("/runs/:runId/reviewed", authenticateToken, markRunReviewed);
 
 export default router;

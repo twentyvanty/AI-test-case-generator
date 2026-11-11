@@ -14,6 +14,15 @@ export function validatePrompt(kind, input, output) {
 
 The <output> contains only NEW scenarios, added to the tester's scenarios in <existing_scenarios>. Judge requirementCoverage on the existing and new scenarios together. A new scenario that repeats or overlaps an existing one → rules fail. Don't report problems with the existing scenarios themselves.`
       : "";
+  // Test cases are generated per scenario (only for scenarios that don't have cases
+  // yet), so their coverage is judged against the scenarios sent, not the whole requirement
+  const casesNote =
+    kind === "TEST_CASES"
+      ? `
+
+The test cases are for the scenarios in <scenarios> only; other parts of the requirement are covered by other scenarios. Judge requirementCoverage as: does every scenario get test cases for everything it describes, using the requirement's exact values and rules? Don't report requirement rules that no scenario in <scenarios> is about.
+A scenario's test cases need only the values and conditions that scenario names (a scenario about "days 14 and 15" needs cases for days 14 and 15). Values or cases it doesn't name (e.g. days 13 or 29) are warn at most in techniqueCompliance, never fail; fail only when a value the scenario names has no case, or a case applies the technique wrongly.`
+      : "";
 
   const system = `You are a careful, fair and independent QA reviewer. Another AI generated ${what} for a software requirement. Review them and report three checks.
 
@@ -34,7 +43,7 @@ Be fair and precise — a wrong "fail" makes the AI redo good work:
 - If you're not sure something is a problem, don't fail it.
 
 Status meaning: pass = no problems; warn = minor problems, still usable; fail = must be regenerated.
-Issues: short, specific and actionable, naming the item (e.g. "Scenario 'Reset link expiry' has no case for exactly 30 minutes"). Use an empty list when status is pass.${moreNote}`;
+Issues: short, specific and actionable, naming the item (e.g. "Scenario 'Reset link expiry' has no case for exactly 30 minutes"). Use an empty list when status is pass.${moreNote}${casesNote}`;
 
   const prompt = `${techniquesBlock(input.techniques ?? [])}
 

@@ -1,4 +1,5 @@
 import prisma from "../prisma/client.js";
+import { activeTestCases, scenariosWithCounts } from "./test-case.service.js";
 import { getOrCreateUser } from "./user.service.js";
 
 // Requirements are addressed by project id + requirement number (REQ-0001 = number 1).
@@ -109,7 +110,29 @@ export async function createRequirement(keycloakUser, projectId, data) {
   }
 }
 
-// The requirement with its scenarios and the latest scenario draft run
+const runFields = {
+  id: true,
+  kind: true,
+  status: true,
+  attempts: true,
+  validation: true,
+  errorMessage: true,
+  reviewedAt: true,
+  createdAt: true,
+};
+
+// The newest run that produced any of these items (their "needs review" note
+// belongs to what's on screen, not to a later run that failed)
+function latestRunOf(items) {
+  const runIds = items.map((item) => item.runId).filter((id) => id !== null);
+
+  return runIds.length > 0
+    ? prisma.generationRun.findUnique({ where: { id: Math.max(...runIds) }, select: runFields })
+    : null;
+}
+
+// The requirement with its scenarios (each with testCaseCount), its test cases,
+// and the runs behind the current scenarios and test cases
 export async function getRequirement(keycloakUser, projectId, number) {
   const requirement = await findOwnedRequirement(keycloakUser, projectId, number);
 
@@ -117,30 +140,23 @@ export async function getRequirement(keycloakUser, projectId, number) {
     return null;
   }
 
-  const [scenarios, latestScenarioRun] = await Promise.all([
-    prisma.scenario.findMany({
-      where: { requirementId: requirement.id, deletedAt: null },
-      orderBy: { number: "asc" },
-    }),
-    prisma.generationRun.findFirst({
-      where: { requirementId: requirement.id, kind: "SCENARIOS" },
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        status: true,
-        attempts: true,
-        validation: true,
-        errorMessage: true,
-        createdAt: true,
-      },
-    }),
+  const [scenarios, testCases] = await Promise.all([
+    scenariosWithCounts(prisma, requirement.id),
+    activeTestCases(prisma, requirement.id),
+  ]);
+  const [latestScenarioRun, latestCaseRun] = await Promise.all([
+    latestRunOf(scenarios),
+    latestRunOf(testCases),
   ]);
 
   return {
     ...requirement,
     scenarioCount: scenarios.length,
+    testCaseCount: testCases.length,
     scenarios,
+    testCases,
     latestScenarioRun,
+    latestCaseRun,
   };
 }
 

@@ -234,6 +234,7 @@ router.post("/:number/technique-suggestions", authenticateToken, suggestTechniqu
  *
  *       - **mode "replace"** (default): the new scenarios replace the current ones.
  *       - **mode "more"**: the AI adds new scenarios that don't overlap the current ones.
+ *       - Once test cases exist, only "more" is allowed ("replace" → 409, D-029).
  *       - **PASSED / NEEDS_REVIEW**: the scenarios are saved and the requirement's
  *         status becomes SCENARIOS_READY.
  *       - **FAILED** (AI busy, over its limit…): the old scenarios are kept and
@@ -275,6 +276,8 @@ router.post("/:number/technique-suggestions", authenticateToken, suggestTechniqu
  *         $ref: '#/components/responses/Unauthorized'
  *       404:
  *         $ref: '#/components/responses/NotFound'
+ *       409:
+ *         $ref: '#/components/responses/Conflict'
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
