@@ -151,6 +151,7 @@ const en = {
       requirement: "Requirement",
       scenarios: "Scenarios",
       testCases: "Test cases",
+      testScripts: "Test scripts",
       report: "Report",
     },
 
@@ -180,6 +181,11 @@ const en = {
       suggesting: "Asking the AI which techniques fit…",
       missing: "Add a title and details to continue.",
       redraftNote: "Drafting again replaces the current scenarios.",
+      openScenarios: "Open scenarios",
+      lockedNote:
+        "These scenarios already have test cases, so they can't be drafted again. Add or generate more scenarios in step 2.",
+      textChangedLocked:
+        "The details changed after the test cases were generated. Existing scenarios and test cases stay as they are; add or generate more scenarios in step 2 for anything new.",
     },
 
     specificationFiles: {
@@ -214,7 +220,27 @@ const en = {
       history: "History",
       generateCases_one: "Generate {{count}} test case",
       generateCases_other: "Generate {{count}} test cases",
-      generateCasesSoon: "Test case generation comes in the next update",
+      viewCases: "View test cases",
+      generatingCases_one:
+        "Writing test cases in {{batches}} batch… about {{minutes}} minutes on the free AI models.",
+      generatingCases_other:
+        "Writing test cases in {{batches}} batches, two at a time… about {{minutes}} minutes on the free AI models.",
+      casesPartial:
+        "Test cases were saved for {{done}}. The rest couldn't be generated: {{message}} Click Generate again for the remaining scenarios.",
+      generatedCount_one: "{{count}} test case generated",
+      generatedCount_other: "{{count}} test cases generated",
+      lockedNote: "Scenarios with test cases are locked",
+      lockedCases_one: "{{count}} test case",
+      lockedCases_other: "{{count}} test cases",
+      lockedHint:
+        "Locked because it has test cases. To change it, delete it (its test cases go with it) and add a new one.",
+      redraftLocked: "Scenarios with test cases can't be redrafted. Use Generate more or Add scenario.",
+      deletedWithCases_one: "{{code}} and its {{count}} test case moved to Recently deleted. You can restore them for 7 days.",
+      deletedWithCases_other: "{{code}} and its {{count}} test cases moved to Recently deleted. You can restore them for 7 days.",
+      confirmDeleteWithCases_one:
+        "Its {{count}} test case will be deleted too, including its Pass/Fail result. Both move to History → Recently deleted, where you can restore them for 7 days.",
+      confirmDeleteWithCases_other:
+        "Its {{count}} test cases will be deleted too, including their Pass/Fail results. They move to History → Recently deleted, where you can restore them for 7 days.",
       scenarioCount_one: "{{count}} scenario",
       scenarioCount_other: "{{count}} scenarios",
       caseCount_one: "~{{count}} test case",
@@ -230,9 +256,6 @@ const en = {
       restored: "The earlier draft is back.",
       deleted: "{{code}} moved to Recently deleted. You can restore it for 7 days.",
       openHistory: "Open History",
-      needsReviewTitle: "Please review these scenarios",
-      needsReviewText:
-        "The AI checks still found problems after 3 attempts. Check the scenarios below carefully:",
       confirmDeleteTitle: "Delete {{code}}?",
       confirmDeleteText:
         "It moves to History → Recently deleted, where you can restore it for 7 days.",
@@ -265,8 +288,149 @@ const en = {
         replace: "Draft",
         more: "Generate more",
       },
+      lockedNote:
+        "Earlier drafts can't be restored once scenarios have test cases, because restoring would replace them.",
     },
 
+    review: {
+      title: {
+        scenarios: "The AI's last draft needs your review",
+        testCases: "The AI's last test cases need your review",
+      },
+      text_one:
+        "After {{count}} attempt, the AI's own checks still flagged these problems. You decide: fix them yourself, or mark them as reviewed.",
+      text_other:
+        "After {{count}} attempts, the AI's own checks still flagged these problems. You decide: fix them yourself, or mark them as reviewed.",
+      group: {
+        scenarios: {
+          coverage: "Missing from your scenarios",
+          technique: "Technique not applied correctly",
+          other: "Other things to check",
+        },
+        testCases: {
+          coverage: "Not covered by the test cases",
+          technique: "Technique not applied correctly",
+          other: "Other things to check",
+        },
+      },
+      addForIssue: "Add a scenario for this",
+      hint: {
+        scenarios: {
+          technique: "Edit the scenario named in the issue, or redraft.",
+          other: "Edit or delete the scenario mentioned.",
+        },
+        testCases: {
+          coverage: "Edit the test cases of that scenario, or delete the scenario and add a better one.",
+          technique: "Edit the test cases named in the issue.",
+          other: "Edit or delete the test cases mentioned.",
+        },
+      },
+      markReviewed: "Mark as reviewed",
+      reminder: "To cover:",
+      notesTitle_one: "AI notes to check ({{count}})",
+      notesTitle_other: "AI notes to check ({{count}})",
+      notesText: {
+        scenarios: "The AI's checks passed, but noted these points. Worth a quick look:",
+        testCases: "The AI's checks passed, but noted these points. Worth a quick look before running the tests:",
+      },
+    },
+
+    caseSync: {
+      title: "Test cases may be out of date",
+      text_one: "{{count}} scenario was added after the test cases were generated and has no test cases yet:",
+      text_other: "{{count}} scenarios were added after the test cases were generated and have no test cases yet:",
+      added: "{{code}} “{{title}}”",
+      generate_one: "Generate {{count}} test case for them",
+      generate_other: "Generate {{count}} test cases for them",
+    },
+
+    testCasesStep: {
+      title: "Test cases & validation",
+      summary_one: "{{count}} case · {{pass}} Pass · {{fail}} Fail",
+      summary_other: "{{count}} cases · {{pass}} Pass · {{fail}} Fail",
+      backToScenarios: "Back to scenarios",
+      downloadTable: "Download test case table",
+      downloadReport: "Download report",
+      exportNote: "Export includes test cases from this requirement only.",
+      empty: "No test cases yet. Go back to the scenarios to generate them.",
+      scenario: "{{title}}",
+      statusOf: "Status of {{code}}",
+      reportTitle: "Coverage & traceability report",
+      syncBanner_one: "{{count}} scenario has no test cases yet.",
+      syncBanner_other: "{{count}} scenarios have no test cases yet.",
+      syncReview: "Review changes",
+      actionsFor: "Actions for {{code}}",
+      edit: "Edit",
+      delete: "Delete",
+      editTitle: "Edit {{code}}",
+      confirmDeleteTitle: "Delete {{code}}?",
+      confirmDeleteText:
+        "It moves to History → Recently deleted, where you can restore it for 7 days. When a scenario has no test cases left, it can be edited again.",
+      fields: {
+        title: "Title",
+        precondition: "Precondition",
+        steps: "Steps",
+        stepsHint: "One step per line",
+        expected: "Expected result",
+      },
+      save: "Save",
+      saving: "Saving…",
+      errTitle: "Add a title.",
+      errSteps: "Add at least one step.",
+      errExpected: "Add the expected result.",
+      columns: {
+        id: "ID",
+        title: "Title",
+        precondition: "Precondition",
+        steps: "Steps",
+        expected: "Expected result",
+        status: "Status",
+        actions: "Actions",
+      },
+    },
+
+    testCaseStatus: {
+      OPEN: "Open",
+      PASS: "Pass",
+      FAIL: "Fail",
+    },
+
+    stepPlaceholder: {
+      testCases_one:
+        "{{count}} test case is ready. The test case page (table, Pass / Fail, edit, downloads) comes in the next update.",
+      testCases_other:
+        "{{count}} test cases are ready. The test case page (table, Pass / Fail, edit, downloads) comes in the next update.",
+      backToScenarios: "Back to scenarios",
+      testScripts: "Generating automated test scripts from your test cases comes in a later update. This step is optional.",
+      report: "The full report with defects comes in the next update. For now, download the report from the test cases step.",
+      back: "Back to test cases",
+    },
+
+    historyGenerated: {
+      title: "Generated",
+      description: "Finished AI generations of scenarios and test cases, newest first. Open one to see the result.",
+      filter: {
+        all: "All",
+        scenarios: "Scenarios",
+        testCases: "Test cases",
+      },
+      kind: {
+        scenarios: "Scenarios",
+        testCases: "Test cases",
+      },
+      scenarioCount_one: "{{count}} scenario",
+      scenarioCount_other: "{{count}} scenarios",
+      caseCount_one: "{{count}} test case",
+      caseCount_other: "{{count}} test cases",
+      mode: {
+        replace: "Draft",
+        more: "Generate more",
+      },
+      empty: "Nothing generated yet.",
+      open: "Open",
+      showAll: "Show all ({{count}})",
+      showLess: "Show less",
+    },
 
     runStatus: {
       PASSED: "Passed",
@@ -282,12 +446,15 @@ const en = {
     recentlyDeleted: {
       title: "Recently deleted",
       description:
-        "Deleted requirements and scenarios stay here for 7 days. After that they're removed for good.",
+        "Deleted requirements, scenarios and test cases stay here for 7 days. After that they're removed for good.",
       empty: "Nothing here. Items you delete appear here for 7 days.",
       type: {
         requirement: "Requirement",
         scenario: "Scenario",
+        testCase: "Test case",
       },
+      withTestCases_one: "+ {{count}} test case (restored with it)",
+      withTestCases_other: "+ {{count}} test cases (restored with it)",
       inProject: "in {{project}}",
       inRequirement: "in “{{requirement}}” · {{project}}",
       deleted: "Deleted {{time}}",

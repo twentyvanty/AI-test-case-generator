@@ -68,6 +68,8 @@ type RequirementStepProps = {
   isDirty: boolean;
   // The requirement already has scenarios (drafting again replaces them)
   hasScenarios: boolean;
+  // Its scenarios have test cases: they can't be drafted again (D-029)
+  hasTestCases: boolean;
   // The text was changed after the scenarios were drafted
   textChanged: boolean;
 
@@ -91,6 +93,7 @@ function RequirementStep({
   isSaved,
   isDirty,
   hasScenarios,
+  hasTestCases,
   textChanged,
   onSave,
   onDraft,
@@ -134,7 +137,7 @@ function RequirementStep({
 
         {textChanged && (
           <p className="mt-2 rounded-xl bg-warning/10 px-3 py-2 text-xs text-gray-700">
-            {t("requirementStep.textChanged")}
+            {hasTestCases ? t("requirementStep.textChangedLocked") : t("requirementStep.textChanged")}
           </p>
         )}
       </Section>
@@ -198,14 +201,20 @@ function RequirementStep({
           </div>
 
           <Button size="lg" onClick={onDraft} disabled={locked || !complete}>
-            {hasScenarios ? t("requirementStep.redraft") : t("requirementStep.draft")}
+            {hasTestCases
+              ? t("requirementStep.openScenarios")
+              : hasScenarios
+                ? t("requirementStep.redraft")
+                : t("requirementStep.draft")}
             <span aria-hidden="true">→</span>
           </Button>
         </div>
 
         {!complete && <p className="text-xs text-gray-500">{t("requirementStep.missing")}</p>}
         {complete && hasScenarios && (
-          <p className="text-xs text-gray-500">{t("requirementStep.redraftNote")}</p>
+          <p className="text-xs text-gray-500">
+            {hasTestCases ? t("requirementStep.lockedNote") : t("requirementStep.redraftNote")}
+          </p>
         )}
       </Card>
     </div>

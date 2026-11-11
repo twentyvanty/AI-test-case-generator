@@ -37,6 +37,9 @@ export type Scenario = {
   technique: TechniqueKey | null;
   estimatedCases: number;
   source: "AI" | "MANUAL";
+  runId: number | null;
+  // Its test cases. > 0 = locked: it can't be edited, only deleted (D-029)
+  testCaseCount: number;
 };
 
 // What the tester can set on a scenario (add / edit)
@@ -47,6 +50,32 @@ export type ScenarioInput = {
   estimatedCases: number;
 };
 
+// The value is also the i18n key under "testCaseStatus.*"
+export type TestCaseStatus = "OPEN" | "PASS" | "FAIL";
+
+export const TEST_CASE_STATUSES: TestCaseStatus[] = ["OPEN", "PASS", "FAIL"];
+
+export type TestCase = {
+  id: number;
+  number: number; // shown as TC-0001
+  scenarioId: number;
+  scenarioNumber: number;
+  runId: number | null;
+  title: string;
+  description: string;
+  precondition: string;
+  steps: string[];
+  expectedResult: string;
+  technique: TechniqueKey | null;
+  source: "AI" | "MANUAL";
+  status: TestCaseStatus;
+};
+
+// What the tester can change on a test case (Step 3)
+export type TestCaseChanges = Partial<
+  Pick<TestCase, "status" | "title" | "description" | "precondition" | "steps" | "expectedResult">
+>;
+
 // One entry of the scenario draft history (last 10)
 export type ScenarioRun = {
   id: number;
@@ -56,6 +85,7 @@ export type ScenarioRun = {
   attempts: number;
   scenarioCount: number;
   errorMessage: string | null;
+  reviewedAt: string | null;
   restorable: boolean;
 };
 
@@ -72,17 +102,24 @@ export type CheckResults = Record<string, CheckResult>;
 
 export type RunSummary = {
   id: number;
+  kind?: "TECHNIQUE_SUGGESTION" | "SCENARIOS" | "TEST_CASES";
   status: GenerationStatus;
   attempts: number;
   validation: { final: CheckResults | null } | null;
   errorMessage: string | null;
+  // Set by "Mark as reviewed": the review note is hidden
+  reviewedAt?: string | null;
   createdAt: string;
 };
 
 export type RequirementDetail = Requirement & {
   text: string;
   scenarios: Scenario[];
+  testCaseCount: number;
+  testCases: TestCase[];
+  // The runs behind the current scenarios / test cases (their review notes)
   latestScenarioRun: RunSummary | null;
+  latestCaseRun: RunSummary | null;
 };
 
 export type TechniqueSuggestion = {
@@ -177,11 +214,13 @@ export function updateScenario(
   });
 }
 
-// Moves it to Recently deleted (7 days). Returns the requirement's status afterwards.
+// Moves it AND its test cases to Recently deleted (7 days).
+// Returns the requirement's status afterwards and how many test cases went with it.
 export function deleteScenario(projectId: number, number: number, scenarioNumber: number) {
-  return request<{ status: RequirementStatus }>(scenarioPath(projectId, number, scenarioNumber), {
-    method: "DELETE",
-  });
+  return request<{ status: RequirementStatus; deletedTestCases: number }>(
+    scenarioPath(projectId, number, scenarioNumber),
+    { method: "DELETE" }
+  );
 }
 
 export function getScenarioRuns(projectId: number, number: number) {
@@ -189,9 +228,56 @@ export function getScenarioRuns(projectId: number, number: number) {
 }
 
 // Replaces the current scenarios with the ones saved right after that run
+// (not allowed once test cases exist)
 export function restoreScenarioRun(projectId: number, number: number, runId: number) {
   return request<Scenario[]>(`${base(projectId)}/${number}/scenario-runs/${runId}/restore`, {
     method: "POST",
+  });
+}
+
+// "Mark as reviewed" on a scenario or test-case run that needs review
+export function markRunReviewed(projectId: number, number: number, runId: number) {
+  return request<{ id: number; reviewedAt: string }>(
+    `${base(projectId)}/${number}/runs/${runId}/reviewed`,
+    { method: "POST" }
+  );
+}
+
+// ---- Step 3: test cases -----------------------------------------------------------
+
+const testCasePath = (projectId: number, number: number, testCaseNumber?: number) =>
+  `${base(projectId)}/${number}/test-cases${testCaseNumber === undefined ? "" : `/${testCaseNumber}`}`;
+
+// Test cases for the scenarios that don't have any yet, in small batches (two at a
+// time). Can take several minutes. `run` = the first FAILED batch if any (its
+// errorMessage says why), else the last one; batches that passed keep their cases.
+export function draftTestCases(projectId: number, number: number) {
+  return request<{
+    run: RunSummary;
+    runs: (RunSummary & { input?: { scenarioNumbers?: number[] } })[];
+    testCases: TestCase[];
+  }>(
+    `${base(projectId)}/${number}/test-case-drafts`,
+    { method: "POST" }
+  );
+}
+
+export function updateTestCase(
+  projectId: number,
+  number: number,
+  testCaseNumber: number,
+  changes: TestCaseChanges
+) {
+  return request<TestCase>(testCasePath(projectId, number, testCaseNumber), {
+    method: "PATCH",
+    body: changes,
+  });
+}
+
+// Moves it to Recently deleted (7 days). Returns the requirement's status afterwards.
+export function deleteTestCase(projectId: number, number: number, testCaseNumber: number) {
+  return request<{ status: RequirementStatus }>(testCasePath(projectId, number, testCaseNumber), {
+    method: "DELETE",
   });
 }
 
@@ -220,9 +306,65 @@ export function formatScenarioCode(number: number) {
   return `SC-${String(number).padStart(2, "0")}`;
 }
 
-// Every issue from failed or warning checks, e.g. for the "needs review" note
-export function issuesOf(checks: CheckResults | null | undefined) {
-  return Object.values(checks ?? {}).flatMap((check) =>
-    check.status === "pass" ? [] : check.issues
+// 1 → "TC-0001"
+export function formatTestCaseCode(number: number) {
+  return `TC-${String(number).padStart(4, "0")}`;
+}
+
+export type IssueGroup = "coverage" | "technique" | "other";
+
+// The "needs review" issues grouped by the check that raised them:
+// coverage → "Missing from your scenarios", technique → "Technique not applied
+// correctly", anything else (rules, format…) → "Other things to check"
+export function groupIssues(checks: CheckResults | null | undefined) {
+  const groups: Record<IssueGroup, string[]> = { coverage: [], technique: [], other: [] };
+
+  for (const [name, check] of Object.entries(checks ?? {})) {
+    if (check.status === "pass") {
+      continue;
+    }
+
+    const group: IssueGroup =
+      name === "requirementCoverage" ? "coverage" : name === "techniqueCompliance" ? "technique" : "other";
+    groups[group].push(...check.issues);
+  }
+
+  return groups;
+}
+
+// A review note is shown for a NEEDS_REVIEW run until the tester marks it reviewed
+export function needsReview(run: RunSummary | null | undefined): run is RunSummary {
+  return run?.status === "NEEDS_REVIEW" && !run.reviewedAt;
+}
+
+// A PASSED run can still carry warnings (e.g. a doubtful value the validator
+// noticed): shown as collapsed "AI notes to check" until marked reviewed
+export function hasAiNotes(run: RunSummary | null | undefined): run is RunSummary {
+  return (
+    run?.status === "PASSED" &&
+    !run.reviewedAt &&
+    Object.values(run.validation?.final ?? {}).some((check) => check.status === "warn")
   );
+}
+
+// Mirrors the backend's batching (services/test-case-rows.js): at most 8
+// estimated cases per AI request, two requests at a time, about 2 minutes each
+const MAX_CASES_PER_BATCH = 8;
+const PARALLEL_BATCHES = 2;
+
+// Roughly how long generating test cases for these scenarios takes, in minutes
+export function estimateCaseMinutes(estimates: number[]) {
+  let batches = 0;
+  let cases = 0;
+
+  for (const estimate of estimates.map((value) => value || 3)) {
+    if (batches === 0 || cases + estimate > MAX_CASES_PER_BATCH) {
+      batches += 1;
+      cases = 0;
+    }
+
+    cases += estimate;
+  }
+
+  return { batches, minutes: Math.max(1, Math.ceil(batches / PARALLEL_BATCHES) * 2) };
 }

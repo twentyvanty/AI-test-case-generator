@@ -1,5 +1,10 @@
 import { useTranslation } from "react-i18next";
-import { formatScenarioCode, type Scenario, type ScenarioInput } from "../../services/requirements";
+import {
+  formatScenarioCode,
+  type Scenario,
+  type ScenarioInput,
+} from "../../services/requirements";
+import Badge from "../ui/Badge";
 import Button from "../ui/Button";
 import ScenarioForm from "./ScenarioForm";
 
@@ -26,6 +31,8 @@ function ScenarioCard({
 }: ScenarioCardProps) {
   const { t } = useTranslation();
   const code = formatScenarioCode(scenario.number);
+  // D-029: a scenario with test cases can't be edited, only deleted
+  const locked = scenario.testCaseCount > 0;
 
   if (editing) {
     return (
@@ -50,9 +57,17 @@ function ScenarioCard({
     <div className="rounded-2xl border border-gray-200/80 bg-white/50 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="font-mono text-xs text-gray-500">
-            {code}
-            {scenario.source === "MANUAL" && ` · ${t("scenariosStep.manual")}`}
+          <p className="flex flex-wrap items-center gap-2 font-mono text-xs text-gray-500">
+            <span>
+              {code}
+              {scenario.source === "MANUAL" && ` · ${t("scenariosStep.manual")}`}
+            </span>
+            {locked && (
+              <Badge tone="info" className="font-sans">
+                <span aria-hidden="true">🔒</span>{" "}
+                {t("scenariosStep.lockedCases", { count: scenario.testCaseCount })}
+              </Badge>
+            )}
           </p>
 
           <p className="mt-1 font-semibold text-ink">{scenario.title}</p>
@@ -71,14 +86,18 @@ function ScenarioCard({
         </div>
 
         <div className="flex gap-1.5">
-          <Button variant="secondary" size="sm" onClick={onEdit} disabled={disabled}>
-            {t("scenariosStep.edit")}
-          </Button>
+          {!locked && (
+            <Button variant="secondary" size="sm" onClick={onEdit} disabled={disabled}>
+              {t("scenariosStep.edit")}
+            </Button>
+          )}
           <Button variant="danger" size="sm" onClick={onDelete} disabled={disabled}>
             {t("scenariosStep.delete")}
           </Button>
         </div>
       </div>
+
+      {locked && <p className="mt-2 text-xs text-gray-500">{t("scenariosStep.lockedHint")}</p>}
     </div>
   );
 }

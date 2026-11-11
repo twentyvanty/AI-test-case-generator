@@ -20,6 +20,7 @@ import RequirementStep, {
   type RequirementForm,
 } from "../components/requirement/RequirementStep";
 import ScenariosStep from "../components/requirement/ScenariosStep";
+import StepPlaceholder from "../components/requirement/StepPlaceholder";
 import type { Attachment } from "../components/requirement/SpecificationFiles";
 import StepTabs from "../components/requirement/StepTabs";
 import { isStepUnlocked, STEPS, type Step } from "../components/requirement/steps";
@@ -134,9 +135,15 @@ function RequirementPage() {
     !sameList(form.techniques, detail.techniques) ||
     sourceFileName !== detail.sourceFileName;
   const hasScenarios = (detail?.scenarioCount ?? 0) > 0;
+  // D-029: scenarios with test cases are locked, so they can't be drafted again
+  const hasTestCases = (detail?.testCaseCount ?? 0) > 0;
 
   const changeForm = (changes: Partial<RequirementForm>) =>
     setForm((current) => ({ ...current, ...changes }));
+
+  // Steps 2 and 3 report what changed so the header, tabs and other steps stay in sync
+  const changeDetail = (changes: Partial<RequirementDetail>) =>
+    setDetail((current) => current && { ...current, ...changes });
 
   // Saves the form (create or update) and returns the requirement number
   const save = async () => {
@@ -146,7 +153,15 @@ function RequirementPage() {
       const created = await createRequirement(projectId, input);
 
       shownNumber.current = created.number;
-      setDetail({ ...created, text: form.text.trim(), scenarios: [], latestScenarioRun: null });
+      setDetail({
+        ...created,
+        text: form.text.trim(),
+        scenarios: [],
+        testCases: [],
+        testCaseCount: 0,
+        latestScenarioRun: null,
+        latestCaseRun: null,
+      });
       navigate(`/projects/${projectId}/requirements/${created.number}`, { replace: true });
 
       return created.number;
@@ -196,6 +211,13 @@ function RequirementPage() {
 
       setSuggestions(suggested);
       changeForm({ techniques: [...new Set(suggested.map((item) => item.technique))] });
+    });
+
+  // With test cases the scenarios can't be redrafted: save, then open step 2
+  const handleOpenScenarios = () =>
+    run("saving", async () => {
+      await save();
+      goToStep("scenarios");
     });
 
   const handleDraft = () =>
@@ -347,12 +369,18 @@ function RequirementPage() {
               <>
                 {statusBadge}
 
-                {step === "requirement" && (
-                  <Button onClick={handleDraft} disabled={locked || !complete}>
-                    {hasScenarios ? t("requirementStep.redraft") : t("requirementStep.draft")}
-                    <span aria-hidden="true">→</span>
-                  </Button>
-                )}
+                {step === "requirement" &&
+                  (hasTestCases ? (
+                    <Button onClick={handleOpenScenarios} disabled={locked || !complete}>
+                      {t("requirementStep.openScenarios")}
+                      <span aria-hidden="true">→</span>
+                    </Button>
+                  ) : (
+                    <Button onClick={handleDraft} disabled={locked || !complete}>
+                      {hasScenarios ? t("requirementStep.redraft") : t("requirementStep.draft")}
+                      <span aria-hidden="true">→</span>
+                    </Button>
+                  ))}
               </>
             }
           />
@@ -375,9 +403,10 @@ function RequirementPage() {
               isSaved={detail !== null}
               isDirty={isDirty}
               hasScenarios={hasScenarios}
+              hasTestCases={hasTestCases}
               textChanged={hasScenarios && detail !== null && form.text.trim() !== detail.text}
               onSave={handleSave}
-              onDraft={handleDraft}
+              onDraft={hasTestCases ? handleOpenScenarios : handleDraft}
               onDelete={() => setConfirmDelete(true)}
             />
           )}
@@ -387,11 +416,23 @@ function RequirementPage() {
               projectId={projectId}
               requirementNumber={detail.number}
               scenarios={detail.scenarios}
+              testCases={detail.testCases}
               latestRun={detail.latestScenarioRun}
-              onChange={(changes) =>
-                setDetail((current) => current && { ...current, ...changes })
-              }
+              onChange={changeDetail}
+              onGoToTestCases={() => goToStep("testCases")}
             />
+          )}
+
+          {step === "testCases" && detail && (
+            <StepPlaceholder
+              step="testCases"
+              count={detail.testCaseCount}
+              onBack={() => goToStep("scenarios")}
+            />
+          )}
+
+          {(step === "testScripts" || step === "report") && (
+            <StepPlaceholder step={step} onBack={() => goToStep("testCases")} />
           )}
         </>
       )}

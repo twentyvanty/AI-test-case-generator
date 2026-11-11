@@ -20,6 +20,8 @@ type ScenarioHistoryProps = {
   open: boolean;
   projectId: number;
   requirementNumber: number;
+  // false once test cases exist: restoring would replace locked scenarios (D-029)
+  canRestore: boolean;
   onClose: () => void;
   onRestore: (run: ScenarioRun) => void;
 };
@@ -29,6 +31,7 @@ function ScenarioHistory({
   open,
   projectId,
   requirementNumber,
+  canRestore,
   onClose,
   onRestore,
 }: ScenarioHistoryProps) {
@@ -69,6 +72,12 @@ function ScenarioHistory({
         </Button>
       }
     >
+      {!canRestore && (
+        <p className="mb-3 rounded-xl bg-track/70 px-3 py-2 text-xs text-gray-600">
+          {t("scenarioHistory.lockedNote")}
+        </p>
+      )}
+
       {error && <p className="text-sm text-danger">{error}</p>}
 
       {!runs && !error && <Spinner label={t("common.loading")} />}
@@ -97,7 +106,7 @@ function ScenarioHistory({
                 </p>
               </div>
 
-              {run.restorable && (
+              {run.restorable && canRestore && (
                 <Button variant="secondary" size="sm" onClick={() => onRestore(run)}>
                   {t("scenarioHistory.restore")}
                 </Button>
