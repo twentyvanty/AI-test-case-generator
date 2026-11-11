@@ -40,7 +40,7 @@ const router = express.Router({ mergeParams: true });
  *     tags: [Scenarios]
  *     summary: Add a scenario by hand
  *     operationId: createScenario
- *     description: Numbered after the current scenarios. Source MANUAL, priority MEDIUM unless given.
+ *     description: Numbered after the current scenarios. Source MANUAL.
  *     parameters:
  *       - $ref: '#/components/parameters/ProjectId'
  *       - $ref: '#/components/parameters/RequirementNumber'
@@ -75,7 +75,7 @@ router.post("/scenarios", authenticateToken, createScenario);
  *     tags: [Scenarios]
  *     summary: Edit a scenario
  *     operationId: updateScenario
- *     description: Send only the fields to change (e.g. just the priority).
+ *     description: Send only the fields to change (e.g. just the estimated cases).
  *     parameters:
  *       - $ref: '#/components/parameters/ProjectId'
  *       - $ref: '#/components/parameters/RequirementNumber'

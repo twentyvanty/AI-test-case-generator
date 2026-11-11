@@ -3,7 +3,6 @@ import { TECHNIQUE_KEYS } from "../../ai/index.js";
 export const MAX_TITLE_LENGTH = 255;
 export const MAX_DESCRIPTION_LENGTH = 2000;
 export const MAX_ESTIMATED_CASES = 20;
-export const PRIORITIES = ["HIGH", "MEDIUM", "LOW"];
 
 // Each check returns an error message, or null when the value is fine.
 // Used by both the create and the update DTO.
@@ -39,10 +38,6 @@ export function checkTechnique(technique) {
   }
 
   return `Unknown technique "${technique}". Allowed: ${TECHNIQUE_KEYS.join(", ")} or null`;
-}
-
-export function checkPriority(priority) {
-  return PRIORITIES.includes(priority) ? null : `Priority must be one of: ${PRIORITIES.join(", ")}`;
 }
 
 export function checkEstimatedCases(estimatedCases) {

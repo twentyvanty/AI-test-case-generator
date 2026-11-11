@@ -88,17 +88,9 @@ function makeScenario(technique, part) {
     title: `${SCENARIO_PREFIX[technique]}: ${shorten(part, 60)}`,
     description: `${getTechnique(technique).name} for: ${part}.`,
     technique,
-    priority: MOCK_PRIORITY[technique],
     estimatedCases,
   };
 }
-
-const MOCK_PRIORITY = {
-  boundaryValue: "high",
-  decisionTable: "high",
-  stateTransition: "medium",
-  equivalencePartitioning: "medium",
-};
 
 // "Generate more": two extra scenarios, numbered after the existing ones so
 // repeated "more" runs never produce the same title
@@ -113,14 +105,12 @@ function moreScenarios({ requirementText, techniques, existingScenarios }) {
         title: `Extra check ${next}: error messages for ${part}`,
         description: `Check that every rejected input for "${part}" shows a clear error message.`,
         technique,
-        priority: "medium",
         estimatedCases: 2,
       },
       {
         title: `Extra check ${next + 1}: repeated action for ${part}`,
         description: `Check that doing the same action twice for "${part}" doesn't create a second result.`,
         technique,
-        priority: "low",
         estimatedCases: 2,
       },
     ],

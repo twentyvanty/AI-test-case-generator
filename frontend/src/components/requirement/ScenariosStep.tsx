@@ -14,7 +14,6 @@ import {
   type RunSummary,
   type Scenario,
   type ScenarioInput,
-  type ScenarioPriority,
   type ScenarioRun,
 } from "../../services/requirements";
 import Button from "../ui/Button";
@@ -29,7 +28,6 @@ const NEW_SCENARIO: ScenarioInput = {
   title: "",
   description: "",
   technique: null,
-  priority: "MEDIUM",
   estimatedCases: 1,
 };
 
@@ -53,7 +51,7 @@ type ScenariosStepProps = {
   onChange: (changes: Partial<RequirementDetail>) => void;
 };
 
-// Step 2: review the drafted scenarios — edit, add, delete, change priority,
+// Step 2: review the drafted scenarios — edit, add, delete,
 // generate more, redraft, or restore an earlier draft
 function ScenariosStep({
   projectId,
@@ -95,18 +93,6 @@ function ScenariosStep({
       setError(errorText(error));
     } finally {
       setBusy(null);
-    }
-  };
-
-  // The screen changes first; if saving fails it goes back and shows the error
-  const changePriority = async (scenario: Scenario, priority: ScenarioPriority) => {
-    replaceScenario({ ...scenario, priority });
-
-    try {
-      await updateScenario(projectId, requirementNumber, scenario.number, { priority });
-    } catch (error) {
-      replaceScenario(scenario);
-      setError(errorText(error));
     }
   };
 
@@ -268,7 +254,6 @@ function ScenariosStep({
             onEdit={() => setEditing(scenario.number)}
             onCancelEdit={() => setEditing(null)}
             onSave={(input) => saveEdit(scenario, input)}
-            onPriorityChange={(priority) => changePriority(scenario, priority)}
             onDelete={() => setConfirm({ kind: "delete", scenario })}
           />
         ))}

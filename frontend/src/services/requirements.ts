@@ -16,12 +16,6 @@ export type RequirementStatus = "DRAFT" | "SCENARIOS_READY" | "CASES_READY" | "R
 
 export type GenerationStatus = "PASSED" | "NEEDS_REVIEW" | "FAILED";
 
-// Suggested by the AI when drafting; the tester can change it.
-// The value is also the i18n key under "priority.*"
-export type ScenarioPriority = "HIGH" | "MEDIUM" | "LOW";
-
-export const PRIORITIES: ScenarioPriority[] = ["HIGH", "MEDIUM", "LOW"];
-
 export type Requirement = {
   id: number;
   projectId: number;
@@ -41,8 +35,6 @@ export type Scenario = {
   title: string;
   description: string;
   technique: TechniqueKey | null;
-  priority: ScenarioPriority;
-  selected: boolean;
   estimatedCases: number;
   source: "AI" | "MANUAL";
 };
@@ -52,7 +44,6 @@ export type ScenarioInput = {
   title: string;
   description: string;
   technique: TechniqueKey | null;
-  priority: ScenarioPriority;
   estimatedCases: number;
 };
 

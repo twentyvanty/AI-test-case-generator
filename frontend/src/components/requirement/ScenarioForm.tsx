@@ -1,13 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  PRIORITIES,
-  TECHNIQUE_KEYS,
-  type ScenarioInput,
-  type ScenarioPriority,
-  type TechniqueKey,
-} from "../../services/requirements";
+import { TECHNIQUE_KEYS, type ScenarioInput, type TechniqueKey } from "../../services/requirements";
 import Button from "../ui/Button";
 
 const fieldClasses =
@@ -22,7 +16,7 @@ type ScenarioFormProps = {
   onCancel: () => void;
 };
 
-// Add / edit a scenario: title, description, technique, priority, estimated cases
+// Add / edit a scenario: title, description, technique, estimated cases
 function ScenarioForm({ initial, saving, onSave, onCancel }: ScenarioFormProps) {
   const { t } = useTranslation();
   const [values, setValues] = useState(initial);
@@ -62,7 +56,7 @@ function ScenarioForm({ initial, saving, onSave, onCancel }: ScenarioFormProps) 
         />
       </label>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <label className="block">
           <span className={labelClasses}>{t("scenarioForm.technique")}</span>
           <select
@@ -76,21 +70,6 @@ function ScenarioForm({ initial, saving, onSave, onCancel }: ScenarioFormProps) 
             {TECHNIQUE_KEYS.map((technique) => (
               <option key={technique} value={technique}>
                 {t(`techniques.${technique}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="block">
-          <span className={labelClasses}>{t("scenarioForm.priority")}</span>
-          <select
-            value={values.priority}
-            onChange={(event) => change({ priority: event.target.value as ScenarioPriority })}
-            className={fieldClasses}
-          >
-            {PRIORITIES.map((priority) => (
-              <option key={priority} value={priority}>
-                {t(`priority.${priority}`)}
               </option>
             ))}
           </select>

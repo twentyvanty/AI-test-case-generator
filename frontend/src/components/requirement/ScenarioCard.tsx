@@ -1,12 +1,6 @@
 import { useTranslation } from "react-i18next";
-import {
-  formatScenarioCode,
-  type Scenario,
-  type ScenarioInput,
-  type ScenarioPriority,
-} from "../../services/requirements";
+import { formatScenarioCode, type Scenario, type ScenarioInput } from "../../services/requirements";
 import Button from "../ui/Button";
-import PrioritySelect from "./PrioritySelect";
 import ScenarioForm from "./ScenarioForm";
 
 type ScenarioCardProps = {
@@ -17,7 +11,6 @@ type ScenarioCardProps = {
   onEdit: () => void;
   onCancelEdit: () => void;
   onSave: (input: ScenarioInput) => void;
-  onPriorityChange: (priority: ScenarioPriority) => void;
   onDelete: () => void;
 };
 
@@ -29,7 +22,6 @@ function ScenarioCard({
   onEdit,
   onCancelEdit,
   onSave,
-  onPriorityChange,
   onDelete,
 }: ScenarioCardProps) {
   const { t } = useTranslation();
@@ -44,7 +36,6 @@ function ScenarioCard({
             title: scenario.title,
             description: scenario.description,
             technique: scenario.technique,
-            priority: scenario.priority,
             estimatedCases: scenario.estimatedCases,
           }}
           saving={saving}
@@ -64,15 +55,7 @@ function ScenarioCard({
             {scenario.source === "MANUAL" && ` · ${t("scenariosStep.manual")}`}
           </p>
 
-          <div className="mt-1 flex flex-wrap items-center gap-2">
-            <p className="font-semibold text-ink">{scenario.title}</p>
-            <PrioritySelect
-              value={scenario.priority}
-              onChange={onPriorityChange}
-              disabled={disabled}
-              label={t("scenariosStep.priorityOf", { code })}
-            />
-          </div>
+          <p className="mt-1 font-semibold text-ink">{scenario.title}</p>
 
           <p className="mt-1 text-xs text-gray-500">
             {scenario.technique

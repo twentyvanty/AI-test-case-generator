@@ -37,8 +37,8 @@ function scripted(model, answers) {
 
 const goodScenarios = {
   scenarios: [
-    { title: "Link used before 30 minutes", description: "d", technique: "boundaryValue", priority: "high", estimatedCases: 3 },
-    { title: "Sixth attempt in an hour", description: "d", technique: "boundaryValue", priority: "high", estimatedCases: 3 },
+    { title: "Link used before 30 minutes", description: "d", technique: "boundaryValue", estimatedCases: 3 },
+    { title: "Sixth attempt in an hour", description: "d", technique: "boundaryValue", estimatedCases: 3 },
   ],
 };
 
@@ -291,12 +291,11 @@ test("generate more with the mock: passes and returns only new scenarios", async
   assert.equal(result.status, "PASSED");
   assert.ok(result.output.scenarios.length > 0);
   assert.ok(result.output.scenarios.every((item) => item.title !== existingScenarios[0].title));
-  assert.ok(result.output.scenarios.every((item) => ["high", "medium", "low"].includes(item.priority)));
 });
 
 test("generate more: a new scenario that repeats an existing one fails the rules check", async () => {
   const repeat = {
-    scenarios: [{ ...existingScenarios[0], priority: "high", estimatedCases: 3 }],
+    scenarios: [{ ...existingScenarios[0], estimatedCases: 3 }],
   };
 
   const result = await runPipeline({

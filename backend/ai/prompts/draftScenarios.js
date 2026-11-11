@@ -41,7 +41,6 @@ ${coverage}
 - title: short (max ~80 characters) and specific, e.g. "Reset link expiry at 30 minutes".
 - description: 1–2 sentences on what is tested and which inputs or conditions matter.
 - technique: the key of the technique this scenario applies.
-- priority: the risk if this behaviour is broken. "high" = money, security, data loss or the main flow of the feature; "medium" = important but with a workaround or less common; "low" = cosmetic or rare edge cases.
 - estimatedCases: how many test cases this scenario needs with that technique (e.g. boundary value → usually 3–6).
 - No duplicate or overlapping scenarios.`;
 

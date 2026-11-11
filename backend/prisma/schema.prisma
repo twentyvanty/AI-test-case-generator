@@ -35,10 +35,11 @@ enum GenerationStatus {
   FAILED // provider/quota error, no usable output
 }
 
-enum ScenarioPriority {
-  HIGH
-  MEDIUM
-  LOW
+// Result of running a test case (set by the tester in Step 3)
+enum TestCaseStatus {
+  OPEN // not run yet
+  PASS
+  FAIL
 }
 
 enum ItemSource {
@@ -114,8 +115,11 @@ model GenerationRun {
   validation     Json? // check results + issues per attempt
   usage          Json? // token counts, for the future credit system
   errorMessage   String?          @db.Text
+  // "Mark as reviewed" on a NEEDS_REVIEW run (hides its review note)
+  reviewedAt     DateTime?
 
   scenarios Scenario[]
+  testCases TestCase[]
 
   createdAt DateTime @default(now())
 
@@ -135,12 +139,10 @@ model Scenario {
   // Shown as SC-01. Unique among the requirement's active (not deleted) scenarios —
   // kept by the code, because a deleted SC-02 can wait in the bin while a new SC-02 exists
   number         Int
-  title          String           @db.VarChar(255)
-  description    String           @db.Text
-  technique      String?          @db.VarChar(50)
-  priority       ScenarioPriority @default(MEDIUM) // suggested by the AI, changeable by the tester
-  selected       Boolean          @default(true)
-  estimatedCases Int              @default(0)
+  title          String     @db.VarChar(255)
+  description    String     @db.Text
+  technique      String?    @db.VarChar(50)
+  estimatedCases Int        @default(0)
   source         ItemSource
   position       Int
 
@@ -165,15 +167,23 @@ model TestCase {
   requirementId Int
   requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
 
-  number         Int // shown as TC-0001, unique among the requirement's active test cases (kept by the code)
-  title          String     @db.VarChar(255)
-  description    String     @db.Text
-  precondition   String     @db.Text
-  steps          Json // string[]
-  expectedResult String     @db.Text
-  technique      String?    @db.VarChar(50)
-  source         ItemSource
-  position       Int
+  // The generation that produced it (null for older rows or if the run is deleted)
+  runId Int?
+  run   GenerationRun? @relation(fields: [runId], references: [id], onDelete: SetNull)
+
+  number              Int // shown as TC-0001, unique among the requirement's active test cases (kept by the code)
+  title               String         @db.VarChar(255)
+  description         String         @db.Text
+  precondition        String         @db.Text
+  steps               Json // string[]
+  expectedResult      String         @db.Text
+  technique           String?        @db.VarChar(50)
+  source              ItemSource
+  position            Int
+  status              TestCaseStatus @default(OPEN)
+  // true = deleted together with its scenario (D-029), so restoring the scenario
+  // brings back exactly these cases and not ones deleted on their own
+  deletedWithScenario Boolean        @default(false)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

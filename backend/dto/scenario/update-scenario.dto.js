@@ -1,12 +1,11 @@
 import {
   checkDescription,
   checkEstimatedCases,
-  checkPriority,
   checkTechnique,
   checkTitle,
 } from "./scenario-fields.js";
 
-const FIELDS = ["title", "description", "technique", "priority", "estimatedCases"];
+const FIELDS = ["title", "description", "technique", "estimatedCases"];
 
 // Every field is optional; only the ones sent are checked
 export function validateUpdateScenarioDto(data) {
@@ -23,7 +22,6 @@ export function validateUpdateScenarioDto(data) {
     (body.title !== undefined ? checkTitle(body.title) : null) ??
     (body.description !== undefined ? checkDescription(body.description) : null) ??
     (body.technique !== undefined ? checkTechnique(body.technique) : null) ??
-    (body.priority !== undefined ? checkPriority(body.priority) : null) ??
     (body.estimatedCases !== undefined ? checkEstimatedCases(body.estimatedCases) : null);
 
   if (message) {

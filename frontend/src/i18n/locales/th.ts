@@ -200,7 +200,7 @@ const th = {
     scenariosStep: {
       title: "ตรวจสอบสถานการณ์ที่สร้างขึ้น",
       description:
-        "ตรวจสอบสถานการณ์และระดับความสำคัญ แก้ไข เพิ่ม ลบ หรือสร้างเพิ่ม ก่อนสร้าง Test Case",
+        "ตรวจสอบสถานการณ์ แก้ไข เพิ่ม ลบ หรือสร้างเพิ่ม ก่อนสร้าง Test Case",
       add: "เพิ่มสถานการณ์",
       generateMore: "สร้างเพิ่ม",
       redraft: "ร่างใหม่",
@@ -211,7 +211,6 @@ const th = {
       caseCount_other: "~{{count}} Test Case",
       estimatedCases_other: "~{{count}} Test Case",
       manual: "เพิ่มโดยคุณ",
-      priorityOf: "ระดับความสำคัญของ {{code}}",
       edit: "แก้ไข",
       delete: "ลบ",
       newScenario: "สถานการณ์ใหม่",
@@ -236,7 +235,6 @@ const th = {
       description: "คำอธิบาย",
       technique: "เทคนิค",
       noTechnique: "ไม่ระบุเทคนิค",
-      priority: "ระดับความสำคัญ",
       estimatedCases: "จำนวน Test Case โดยประมาณ",
       save: "บันทึก",
       saving: "กำลังบันทึก…",
@@ -256,11 +254,6 @@ const th = {
       },
     },
 
-    priority: {
-      HIGH: "สูง",
-      MEDIUM: "ปานกลาง",
-      LOW: "ต่ำ",
-    },
 
     runStatus: {
       PASSED: "ผ่าน",

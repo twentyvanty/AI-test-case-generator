@@ -222,7 +222,7 @@ test("model names come from .env (paid models later = only an .env change)", () 
 
 test("pipeline works end to end through the OpenRouter provider", async () => {
   const scenarios = {
-    scenarios: [{ title: "Age 17 rejected", description: "d", technique: "boundaryValue", priority: "high", estimatedCases: 3 }],
+    scenarios: [{ title: "Age 17 rejected", description: "d", technique: "boundaryValue", estimatedCases: 3 }],
   };
   const pass = { status: "pass", issues: [] };
   const generator = make(fakeClient({ main: scenarios }));

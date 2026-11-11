@@ -25,9 +25,6 @@ export const imageTextSchema = z.object({
   text: text(20_000),
 });
 
-// Risk-based priority the AI suggests for each scenario (the tester can change it)
-export const SCENARIO_PRIORITIES = ["high", "medium", "low"];
-
 export const scenarioDraftSchema = z.object({
   scenarios: z
     .array(
@@ -35,7 +32,6 @@ export const scenarioDraftSchema = z.object({
         title: text(255),
         description: text(2000),
         technique: techniqueKey,
-        priority: z.enum(SCENARIO_PRIORITIES),
         estimatedCases: z.number().int().min(1).max(20),
       })
     )

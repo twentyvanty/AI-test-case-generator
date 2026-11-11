@@ -207,7 +207,7 @@ const en = {
     scenariosStep: {
       title: "Review generated scenarios",
       description:
-        "Check the scenarios and their priority. Edit, add, delete or generate more before creating test cases.",
+        "Check the scenarios. Edit, add, delete or generate more before creating test cases.",
       add: "Add scenario",
       generateMore: "Generate more",
       redraft: "Redraft",
@@ -222,7 +222,6 @@ const en = {
       estimatedCases_one: "~{{count}} test case",
       estimatedCases_other: "~{{count}} test cases",
       manual: "added by you",
-      priorityOf: "Priority of {{code}}",
       edit: "Edit",
       delete: "Delete",
       newScenario: "New scenario",
@@ -248,7 +247,6 @@ const en = {
       description: "Description",
       technique: "Technique",
       noTechnique: "No technique",
-      priority: "Priority",
       estimatedCases: "Estimated test cases",
       save: "Save",
       saving: "Saving…",
@@ -269,11 +267,6 @@ const en = {
       },
     },
 
-    priority: {
-      HIGH: "High",
-      MEDIUM: "Medium",
-      LOW: "Low",
-    },
 
     runStatus: {
       PASSED: "Passed",
