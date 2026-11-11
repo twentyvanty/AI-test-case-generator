@@ -249,9 +249,11 @@ function ScenariosStep({
         : busy === "restoring"
           ? t("scenariosStep.restoring")
           : busy === "cases"
-            ? t("scenariosStep.generatingCases", estimateCaseMinutes(
-                pending.map((scenario) => scenario.estimatedCases)
-              ))
+            ? t("scenariosStep.generatingCases", {
+                // count picks the singular / plural text (scenario / scenarios)
+                count: pending.length,
+                minutes: estimateCaseMinutes(pending.map((scenario) => scenario.estimatedCases)).minutes,
+              })
             : null;
 
   const deleteText = (scenario: Scenario) =>

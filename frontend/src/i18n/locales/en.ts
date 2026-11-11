@@ -222,9 +222,9 @@ const en = {
       generateCases_other: "Generate {{count}} test cases",
       viewCases: "View test cases",
       generatingCases_one:
-        "Writing test cases in {{batches}} batch… about {{minutes}} minutes on the free AI models.",
+        "Writing test cases for {{count}} scenario… This usually takes up to about {{minutes}} minutes. Please keep this page open.",
       generatingCases_other:
-        "Writing test cases in {{batches}} batches, two at a time… about {{minutes}} minutes on the free AI models.",
+        "Writing test cases for {{count}} scenarios… This usually takes up to about {{minutes}} minutes. Please keep this page open.",
       casesPartial:
         "Test cases were saved for {{done}}. The rest couldn't be generated: {{message}} Click Generate again for the remaining scenarios.",
       generatedCount_one: "{{count}} test case generated",

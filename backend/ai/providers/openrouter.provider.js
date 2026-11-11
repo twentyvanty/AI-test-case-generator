@@ -227,6 +227,21 @@ export function createOpenRouterProvider({
         });
       }
 
+      // An overloaded free host sometimes answers 200 with no text at all (seen
+      // 2026-11-12: 6 empty answers in a row, 0 tokens). Asking the same host again
+      // in the next attempt doesn't help, so treat it as "busy": wait, retry, then
+      // the fallback model.
+      const choice = response?.choices?.[0];
+
+      if (!choice?.message?.content) {
+        throw Object.assign(
+          new Error(
+            `${modelName} returned an empty answer (finish reason: ${choice?.finish_reason ?? "unknown"}, ${response?.usage?.completion_tokens ?? 0} output tokens): its host is likely overloaded`
+          ),
+          { status: 503 }
+        );
+      }
+
       debug(`← ${modelName} answered in ${Date.now() - started} ms`);
       return response;
     } catch (error) {

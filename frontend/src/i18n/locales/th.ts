@@ -213,7 +213,7 @@ const th = {
       generateCases_other: "สร้าง {{count}} Test Case",
       viewCases: "ดู Test Case",
       generatingCases_other:
-        "กำลังเขียน Test Case เป็น {{batches}} ชุด ครั้งละสองชุด… ใช้เวลาประมาณ {{minutes}} นาทีบนโมเดล AI ฟรี",
+        "กำลังเขียน Test Case สำหรับ {{count}} สถานการณ์… ปกติใช้เวลาไม่เกินประมาณ {{minutes}} นาที กรุณาเปิดหน้านี้ไว้",
       casesPartial:
         "บันทึก Test Case ของ {{done}} แล้ว ส่วนที่เหลือสร้างไม่สำเร็จ: {{message}} กดสร้างอีกครั้งสำหรับสถานการณ์ที่เหลือ",
       generatedCount_other: "สร้าง Test Case แล้ว {{count}} รายการ",

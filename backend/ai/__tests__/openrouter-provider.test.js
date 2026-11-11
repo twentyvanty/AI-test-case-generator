@@ -188,6 +188,26 @@ test("an error inside a 200 answer is treated like the HTTP error", async () => 
   await assert.rejects(make(client).generateJson(request), ProviderQuotaError);
 });
 
+test("an empty answer counts as busy: retried, then the fallback model answers", async () => {
+  const empty = () => ({ choices: [{ message: { content: "" }, finish_reason: "stop" }], usage: { completion_tokens: 0 } });
+  const client = fakeClient({ main: empty, backup: { ok: true } });
+
+  const result = await make(client).generateJson(request);
+
+  assert.deepEqual(result.data, { ok: true });
+  assert.equal(result.model, "backup");
+  // main: first try + 2 busy retries, then the fallback
+  assert.deepEqual(client.calls.map((call) => call.model), ["main", "main", "main", "backup"]);
+});
+
+test("empty answers from both models → ProviderUnavailableError (the pipeline stops, no wasted attempts)", async () => {
+  const empty = () => ({ choices: [{ message: { content: null }, finish_reason: "stop" }] });
+
+  await assert.rejects(make(fakeClient({ main: empty, backup: empty })).generateJson(request), (error) =>
+    error instanceof ProviderUnavailableError && /busy/.test(error.message)
+  );
+});
+
 test("text that isn't JSON → INVALID_JSON (so the pipeline retries)", async () => {
   const client = fakeClient({ main: () => reply("Sorry, I can't help with that.") });
 
