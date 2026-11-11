@@ -437,7 +437,6 @@ const en = {
 
     historyPage: {
       title: "History",
-      moreSoon: "The full history of AI generations across your projects is coming in a later update.",
     },
 
     recentlyDeleted: {

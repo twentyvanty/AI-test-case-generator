@@ -25,6 +25,7 @@ const definition = {
     { name: "Requirements", description: "Requirements inside a project (step 1)" },
     { name: "Scenarios", description: "Editing scenarios (step 2) and their draft history" },
     { name: "Test cases", description: "Generating, running and editing test cases (step 3)" },
+    { name: "History", description: "Finished AI generations across all projects" },
     { name: "AI generation", description: "AI runs, saved as generation history" },
     { name: "Recently deleted", description: "Deleted items, restorable for 7 days" },
     { name: "Documents", description: "Reading text out of requirement documents" },
@@ -268,6 +269,29 @@ const definition = {
           steps: { type: "array", minItems: 1, maxItems: 25, items: { type: "string", maxLength: 1000 } },
           expectedResult: { type: "string", minLength: 1, maxLength: 2000 },
         },
+      },
+      GenerationHistoryItem: {
+        type: "object",
+        description:
+          "One click on Draft / Generate more / Generate test cases. Test cases are generated in batches (one run each); those runs are combined into one item.",
+        properties: {
+          id: { type: "integer", description: "The (first) run's id" },
+          runIds: { type: "array", items: { type: "integer" }, description: "Every run in this item" },
+          kind: { type: "string", enum: ["SCENARIOS", "TEST_CASES"] },
+          status: {
+            type: "string",
+            enum: ["PASSED", "NEEDS_REVIEW"],
+            description: "NEEDS_REVIEW if any run in it needs review",
+          },
+          mode: { type: "string", enum: ["replace", "more"], nullable: true, description: "Scenario runs only" },
+          itemCount: { type: "integer", description: "Scenarios or test cases produced" },
+          createdAt: { type: "string", format: "date-time", description: "When it finished" },
+          projectId: { type: "integer" },
+          projectName: { type: "string" },
+          requirementNumber: { type: "integer" },
+          requirementTitle: { type: "string" },
+        },
+        required: ["id", "runIds", "kind", "status", "itemCount", "createdAt", "projectId", "requirementNumber"],
       },
       TestCaseDraftResult: {
         type: "object",

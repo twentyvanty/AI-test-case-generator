@@ -406,7 +406,6 @@ const th = {
 
     historyPage: {
       title: "ประวัติ",
-      moreSoon: "ประวัติการสร้างด้วย AI ทั้งหมดในทุกโปรเจกต์จะมาในอัปเดตถัดไป",
     },
 
     recentlyDeleted: {

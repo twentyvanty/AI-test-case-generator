@@ -9,7 +9,9 @@ import {
   type RestoredItem,
   type TrashItem,
 } from "../services/trash";
+import { getGenerations, type GenerationHistoryItem } from "../services/history";
 import DeletedItemList from "../components/history/DeletedItemList";
+import GeneratedList from "../components/history/GeneratedList";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import CardTitle from "../components/ui/CardTitle";
@@ -25,10 +27,12 @@ const restoredLink = (item: RestoredItem) =>
     item.type === "scenario" ? "?step=scenarios" : item.type === "testCase" ? "?step=testCases" : ""
   }`;
 
-// For now: "Recently deleted" (items kept for 7 days).
-// The full generation history across projects comes in M3.
+// "Generated" (finished AI generations across projects) and "Recently deleted"
+// (items kept for 7 days)
 function HistoryPage() {
   const { t } = useTranslation();
+  const [generations, setGenerations] = useState<GenerationHistoryItem[] | null>(null);
+  const [generationsError, setGenerationsError] = useState<string | null>(null);
   const [items, setItems] = useState<TrashItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
@@ -36,6 +40,10 @@ function HistoryPage() {
   const [confirmDelete, setConfirmDelete] = useState<TrashItem | null>(null);
 
   useEffect(() => {
+    getGenerations()
+      .then(setGenerations)
+      .catch((error) => setGenerationsError(errorText(error)));
+
     getTrash()
       .then(setItems)
       .catch((error) => setError(errorText(error)));
@@ -73,6 +81,21 @@ function HistoryPage() {
       <PageHeader eyebrow={t("nav.history")} title={t("historyPage.title")} />
 
       <Card padding="md">
+        <CardTitle aside={generations?.length}>{t("historyGenerated.title")}</CardTitle>
+        <p className="mt-1 text-sm text-gray-500">{t("historyGenerated.description")}</p>
+
+        {generationsError && (
+          <p role="alert" className="mt-4 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">
+            {generationsError}
+          </p>
+        )}
+
+        {!generations && !generationsError && <Spinner className="mt-4" label={t("common.loading")} />}
+
+        {generations && <GeneratedList items={generations} />}
+      </Card>
+
+      <Card padding="md">
         <CardTitle aside={items?.length}>{t("recentlyDeleted.title")}</CardTitle>
         <p className="mt-1 text-sm text-gray-500">{t("recentlyDeleted.description")}</p>
 
@@ -108,8 +131,6 @@ function HistoryPage() {
           </div>
         )}
       </Card>
-
-      <p className="text-sm text-gray-500">{t("historyPage.moreSoon")}</p>
 
       <Modal
         open={confirmDelete !== null}

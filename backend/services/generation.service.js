@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import prisma from "../prisma/client.js";
 import { draftScenarios, generateTestCases, suggestTechniques } from "../ai/index.js";
@@ -163,13 +164,15 @@ export async function generateTestCasesFor(keycloakUser, projectId, number) {
 
   const batches = toCaseBatches(pending);
   const runs = [];
+  // Shared by every batch's run, so History shows one click as one item
+  const generationId = randomUUID();
 
   for (let start = 0; start < batches.length; start += PARALLEL_BATCHES) {
     const group = batches.slice(start, start + PARALLEL_BATCHES);
     const answers = await Promise.all(group.map((batch) => askForBatch(requirement, batch)));
 
     for (const answer of answers) {
-      runs.push(await saveBatch(requirement, answer));
+      runs.push(await saveBatch(requirement, answer, generationId));
     }
 
     if (runs.some((run) => run.status === "FAILED")) {
@@ -199,10 +202,14 @@ async function askForBatch(requirement, batch) {
 
 // Saves one batch's run and, with output, its test cases numbered after the
 // existing ones, in one short transaction. Returns the saved run.
-function saveBatch(requirement, { batch, input, scenarioIdByKey, result }) {
+function saveBatch(requirement, { batch, input, scenarioIdByKey, result }, generationId) {
   return prisma.$transaction(async (tx) => {
     const run = await tx.generationRun.create({
-      data: runData(requirement.id, { ...input, scenarioNumbers: batch.map((s) => s.number) }, result),
+      data: runData(
+        requirement.id,
+        { ...input, scenarioNumbers: batch.map((s) => s.number), generationId },
+        result
+      ),
     });
 
     if (result.output) {

@@ -12,6 +12,7 @@ import documentRoutes from "./routes/document.routes.js";
 import scenarioRoutes from "./routes/scenario.routes.js";
 import trashRoutes from "./routes/trash.routes.js";
 import testCaseRoutes from "./routes/test-case.routes.js";
+import historyRoutes from "./routes/history.routes.js";
 import { purgeExpired } from "./services/trash.service.js";
 import { openapiSpec } from "./docs/openapi.js";
 import { keycloakClientId } from "./config/keycloak.js";
@@ -47,6 +48,7 @@ app.use("/api/projects/:projectId/requirements/:number", scenarioRoutes);
 app.use("/api/projects/:projectId/requirements/:number", testCaseRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/trash", trashRoutes);
+app.use("/api/history", historyRoutes);
 
 const PORT = process.env.PORT || 5001;
 
