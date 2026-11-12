@@ -68,6 +68,9 @@ const en = {
       equivalencePartitioning: "Equivalence partitioning",
       decisionTable: "Decision table",
       stateTransition: "State transition",
+      syntax: "Syntax testing",
+      pairwise: "Combinatorial (pairwise)",
+      useCase: "Use case (scenario-based)",
     },
 
     techniqueDescriptions: {
@@ -76,6 +79,11 @@ const en = {
       boundaryValue: "Test the edges of every range: just below, on and just above each limit.",
       decisionTable: "Test each combination of conditions and the outcome it should give.",
       stateTransition: "Test the allowed and forbidden moves between the system's states.",
+      syntax:
+        "Test inputs with a set format (email, date, ID code) using valid values and values that break each format rule.",
+      pairwise:
+        "When several options combine (role, device, payment), test a small set where every pair of values appears together.",
+      useCase: "Follow whole user tasks from start to end: the main flow, other paths and error paths.",
     },
 
     days: {

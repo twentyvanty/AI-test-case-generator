@@ -67,6 +67,9 @@ const th = {
       equivalencePartitioning: "Equivalence partitioning",
       decisionTable: "Decision table",
       stateTransition: "State transition",
+      syntax: "Syntax testing",
+      pairwise: "Combinatorial (pairwise)",
+      useCase: "Use case (scenario-based)",
     },
 
     techniqueDescriptions: {
@@ -75,6 +78,10 @@ const th = {
       boundaryValue: "ทดสอบค่าที่ขอบของทุกช่วง: ต่ำกว่า เท่ากับ และสูงกว่าขีดจำกัดเล็กน้อย",
       decisionTable: "ทดสอบแต่ละชุดเงื่อนไขและผลลัพธ์ที่ควรได้",
       stateTransition: "ทดสอบการเปลี่ยนสถานะที่อนุญาตและที่ต้องถูกปฏิเสธ",
+      syntax: "ทดสอบข้อมูลที่ต้องมีรูปแบบกำหนด (อีเมล วันที่ รหัส) ด้วยค่าที่ถูกต้อง และค่าที่ผิดกฎรูปแบบทีละข้อ",
+      pairwise:
+        "เมื่อมีหลายตัวเลือกใช้ร่วมกัน (บทบาท อุปกรณ์ วิธีชำระเงิน) ทดสอบชุดเล็ก ๆ ที่ทุกคู่ของค่าปรากฏร่วมกันอย่างน้อยหนึ่งครั้ง",
+      useCase: "ทดสอบงานของผู้ใช้ตั้งแต่ต้นจนจบ: เส้นทางหลัก เส้นทางอื่น และเส้นทางเมื่อเกิดข้อผิดพลาด",
     },
 
     days: {

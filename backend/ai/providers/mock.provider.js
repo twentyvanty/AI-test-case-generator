@@ -72,6 +72,9 @@ const SCENARIO_PREFIX = {
   boundaryValue: "Boundaries",
   decisionTable: "Rule combinations",
   stateTransition: "State changes",
+  syntax: "Input format",
+  pairwise: "Option combinations",
+  useCase: "User flow",
 };
 
 function makeScenario(technique, part) {
@@ -80,9 +83,13 @@ function makeScenario(technique, part) {
       ? Math.min(Math.max(numbersIn(part).length * 3, 3), 6)
       : technique === "decisionTable"
         ? 4
-        : technique === "stateTransition"
+        : technique === "stateTransition" || technique === "useCase"
           ? 3
-          : 2;
+          : technique === "syntax"
+            ? 4
+            : technique === "pairwise"
+              ? 6
+              : 2;
 
   return {
     title: `${SCENARIO_PREFIX[technique]}: ${shorten(part, 60)}`,
@@ -139,8 +146,8 @@ function draftScenarios({ requirementText, techniques }) {
 
       scenarios.push(makeScenario(technique, part));
 
-      // One decision table / state model per requirement is enough
-      if (technique === "decisionTable" || technique === "stateTransition") {
+      // One decision table / state model / combination table per requirement is enough
+      if (technique === "decisionTable" || technique === "stateTransition" || technique === "pairwise") {
         break;
       }
     }
@@ -160,7 +167,8 @@ function caseTemplates(technique, scenario) {
   const open = `Open the feature for "${subject}"`;
 
   if (technique === "boundaryValue") {
-    const numbers = numbersIn(`${scenario.title} ${scenario.description ?? ""}`);
+    // Each limit once (the title and description often repeat the same number)
+    const numbers = [...new Set(numbersIn(`${scenario.title} ${scenario.description ?? ""}`))];
     const limits = numbers.length > 0 ? numbers.slice(0, 2) : [10];
 
     return limits.flatMap((limit) =>
@@ -205,6 +213,53 @@ function caseTemplates(technique, scenario) {
       title: `${title} — ${shorten(subject, 30)}`,
       description: `State transition check for "${subject}".`,
       precondition: "The item is in its starting state",
+      steps: [open, action],
+      expectedResult: expected,
+    }));
+  }
+
+  if (technique === "syntax") {
+    return [
+      ["Valid format is accepted", "Enter AB123456 (2 letters + 6 digits)", "The value is accepted"],
+      ["Letters part missing", "Enter 123456", "A format error is shown"],
+      ["Wrong character type", "Enter AB12345X", "A format error is shown"],
+      ["Too long", "Enter AB1234567", "A format error is shown"],
+    ].map(([title, action, expected]) => ({
+      title: `${title} — ${shorten(subject, 30)}`,
+      description: `Syntax check for "${subject}".`,
+      precondition: "The form is open",
+      steps: [open, action, "Submit the form"],
+      expectedResult: expected,
+    }));
+  }
+
+  if (technique === "pairwise") {
+    // 3 parameters × 2–3 values: every pair appears in at least one row
+    return [
+      ["Admin", "Chrome", "Card"],
+      ["Admin", "Safari", "Transfer"],
+      ["Member", "Chrome", "Transfer"],
+      ["Member", "Safari", "Card"],
+      ["Guest", "Chrome", "Card"],
+      ["Guest", "Safari", "Transfer"],
+    ].map(([role, browser, payment], index) => ({
+      title: `Combination ${index + 1}: ${role} · ${browser} · ${payment} — ${shorten(subject, 30)}`,
+      description: `Pairwise combination for "${subject}".`,
+      precondition: `Logged in as ${role} on ${browser}`,
+      steps: [open, `Pay with ${payment}`],
+      expectedResult: "The action completes as the requirement describes",
+    }));
+  }
+
+  if (technique === "useCase") {
+    return [
+      ["Main flow completes", "Complete every step with valid data", "The task finishes and the result is shown"],
+      ["Alternative flow: user goes back and changes data", "Go back one step, change the data and continue", "The task finishes with the changed data"],
+      ["Exception flow: invalid data", "Enter invalid data at the first step", "An error is shown and the flow doesn't continue"],
+    ].map(([title, action, expected]) => ({
+      title: `${title} — ${shorten(subject, 30)}`,
+      description: `Use case check for "${subject}".`,
+      precondition: "The user is logged in",
       steps: [open, action],
       expectedResult: expected,
     }));

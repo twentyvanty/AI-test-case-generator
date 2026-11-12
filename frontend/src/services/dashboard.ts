@@ -5,7 +5,10 @@ export type Technique =
   | "boundaryValue"
   | "equivalencePartitioning"
   | "decisionTable"
-  | "stateTransition";
+  | "stateTransition"
+  | "syntax"
+  | "pairwise"
+  | "useCase";
 
 // The value is also the i18n key under "days.*"
 export type Weekday = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";

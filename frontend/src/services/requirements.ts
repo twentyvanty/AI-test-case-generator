@@ -9,6 +9,9 @@ export const TECHNIQUE_KEYS: TechniqueKey[] = [
   "boundaryValue",
   "decisionTable",
   "stateTransition",
+  "syntax",
+  "pairwise",
+  "useCase",
 ];
 
 // Which steps are unlocked: DRAFT → SCENARIOS_READY → CASES_READY → REPORTED

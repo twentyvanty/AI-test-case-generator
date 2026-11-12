@@ -32,7 +32,7 @@ ${BASE_RULES}
 
 Checks (each: status "pass", "warn" or "fail" + a list of issues):
 1. requirementCoverage — does the output cover every rule, limit and condition in the requirement? Missing behaviour → fail. Content not related to the requirement → warn.
-2. techniqueCompliance — does each item correctly apply its stated technique? (e.g. boundary value must test just below, on and just above limits; equivalence partitioning needs valid and invalid partitions; decision table needs condition combinations; state transition needs valid and invalid transitions). Wrong or missing application → fail.
+2. techniqueCompliance — does each item correctly apply its stated technique? (e.g. boundary value must test just below, on and just above limits; equivalence partitioning needs valid and invalid partitions; decision table needs condition combinations; state transition needs valid and invalid transitions; syntax testing needs a valid value plus a case breaking each format element; pairwise needs every pair of parameter values to appear together in some case; use case testing needs the main flow plus alternative and exception flows). Wrong or missing application → fail.
 3. rules — duplicates or near-duplicates, contradictions, vague or untestable items${kind === "TEST_CASES" ? " (e.g. steps without concrete values, expected results that can't be observed)" : ""}, unsafe or harmful content, real-looking credentials, secrets or personal data. Serious → fail, minor → warn.
 
 Be fair and precise — a wrong "fail" makes the AI redo good work:

@@ -4,6 +4,24 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-12 — More test design techniques (syntax, pairwise, use case)
+
+**Goal.** Add techniques the team asked for, after checking which ones fit a system that works from requirement text and writes manual test cases.
+
+**What was built**
+- `ai/techniques.js`: **Syntax testing**, **Combinatorial (pairwise) testing** and **Use case (scenario-based) testing**, each with a description and AI guidance that includes when the technique applies. The validator prompt gained a rule for each.
+- Mock provider: scenario and test-case templates for the three techniques; a fix so boundary-value scenarios don't repeat the same limit (the mock read a number twice from the title and the description).
+- Frontend: the technique list, type, and EN + TH names and descriptions; the picker now has 8 cards (7 techniques + "Let AI choose").
+- README: the technique list now matches the app (it listed TDD and BDD, which the app doesn't have, and missed state transition).
+
+**Decision:** D-032 (and why cause-effect graphing, random testing and "evidence-based" weren't added yet).
+
+**How it was checked:** `npm test`: **118 tests** (4 new: the technique list, guidance and validator rules, the new keys in AI answers, and every technique end to end through the pipeline with the mock AI). Swagger lists the new keys. Frontend `tsc`, `lint`, `build` and the i18n check pass.
+
+**Follow-ups:** one real-AI run per new technique on a matching requirement, logged in the AI Test Log; the team decides about the other techniques.
+
+---
+
 ## 2026-11-12 — Slice 5: Test cases (Step 3), Report (Step 5) and History → Generated
 
 **Goal.** Finish the main tester flow from the final mock-up: generate test cases from the scenarios, run them (Open / Pass / Fail), edit or delete them, and see coverage and downloads in a Report step. Also remove scenario priority, act on the AI's review notes, and list past generations in History.

@@ -218,3 +218,12 @@ Separately, the `gemini-2.5-*` models turned out to be unavailable to new keys, 
 **Decision.** In the OpenRouter provider an empty answer is an HTTP-503-like "busy" error: wait 3 s and retry, wait 8 s and retry, then the fallback model; if both are empty, the run stops at once with "busy, try again".
 **Consequences.** A busy host no longer wastes the three attempts, and the fallback model gets its chance. A model that always answers empty for a given prompt costs two extra calls before the fallback.
 
+### D-032 — Three more test design techniques: syntax, pairwise, use case
+**Context.** The team asked for more techniques: syntax testing, combinatorial techniques, cause-effect graphing, scenario-based testing, random testing and "evidence-based". The system works only from requirement text and produces manual test cases, which a validator checks against the technique's rules, so a technique must fit that.
+**Decision.**
+- Added: **Syntax testing** (`syntax`), **Combinatorial (pairwise) testing** (`pairwise`) and **Use case (scenario-based) testing** (`useCase`, named so it isn't confused with the Scenarios step).
+- Each has AI guidance that says **when it applies** ("use ONLY when the requirement defines an input format", "…several independent parameters"), and a validator rule.
+- Not added for now (to be discussed with the team): **cause-effect graphing** (gives the same cases as a decision table; its graph can't be shown), **random testing** (needs many automated runs; a candidate for test scripts, Slice 7), and **"evidence-based"** (not a standard technique name; if experience-based was meant, error guessing fits).
+
+**Consequences.** Seven techniques. The AI's pairwise sets are a reasonable pairwise-style selection, not a computed all-pairs set; an exact set would need code. No database change: techniques are stored as keys.
+

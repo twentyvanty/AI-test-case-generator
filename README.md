@@ -32,8 +32,12 @@ The system is designed to act as an intermediary between users and AI providers.
 * **Equivalence Partitioning (EP)**: Divides input data into valid and invalid partitions
 * **Boundary Value Analysis (BVA)**: Tests values at and around the boundaries of input ranges
 * **Decision Table Testing**: Creates test cases based on combinations of conditions and actions
-* **Test-Driven Development (TDD)**: Supports RED, GREEN, and REFACTOR development stages
-* **Behavior-Driven Development (BDD)**: Supports Gherkin-based scenarios and behavior specifications
+* **State Transition Testing**: Tests allowed and forbidden moves between the system's states
+* **Syntax Testing**: Tests inputs with a defined format (email, date, ID code) with valid values and values that break each format rule
+* **Combinatorial (Pairwise) Testing**: Covers every pair of values of several parameters (role, device, payment…) with a small set of test cases
+* **Use Case (Scenario-Based) Testing**: Follows whole user tasks: the main flow, alternative flows and error flows
+
+Testers pick one or more techniques, or let the AI choose. Techniques are defined in `backend/ai/techniques.js` (see [docs/ai-providers.md](docs/ai-providers.md)).
 
 ### 🤖 AI-Assisted Test Case Generation
 
