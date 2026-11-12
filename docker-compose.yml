@@ -11,11 +11,17 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-    command: start-dev
+      # Google login secret: put it in the git-ignored .env next to this file
+      # (see .env.example). Used by keycloak/realm/ai-test-case-generator-realm.json
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    # --import-realm creates the app's realm (client, Google login, theme…) from
+    # keycloak/realm/ on the first start; an existing realm is left as it is
+    command: start-dev --import-realm
     ports:
       - 8080:8080
     volumes:
       - ./keycloak/themes:/opt/keycloak/themes
+      - ./keycloak/realm:/opt/keycloak/data/import:ro
       - keycloak_data:/opt/keycloak/data
 
 volumes:

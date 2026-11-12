@@ -121,3 +121,22 @@ Before running this application, make sure you have the following installed:
 * **Git**
 
 Depending on the AI provider being used, an appropriate AI API key may also be required.
+## 🔑 Keycloak setup (login)
+
+Keycloak runs in Docker. The app's realm (the `ai-test-case-frontend` client, the login theme, registration and **Google login**) is in `keycloak/realm/ai-test-case-generator-realm.json` and is created automatically on Keycloak's first start. Nothing has to be clicked together by hand.
+
+1. Copy `.env.example` to `.env` (in this folder, next to `docker-compose.yml`) and fill in `GOOGLE_CLIENT_SECRET`. Ask a teammate for the value: it is shared privately and never committed.
+2. Start Keycloak: `docker compose up -d`. The admin console is at http://localhost:8080 (admin / admin).
+3. Log in to the app with a new account, or with **Continue with Google**. While the team's Google OAuth app is in "Testing" mode, only Google accounts added as **test users** in Google Cloud Console can use Google login.
+
+**Already had Keycloak running before the realm file existed?** The import never overwrites an existing realm. Reset once with `docker compose down -v` (this deletes your local Keycloak accounts), then `docker compose up -d`.
+
+**Changed a Keycloak setting that the team needs?** Export the realm again and commit it:
+
+```bash
+docker exec keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password admin
+docker exec keycloak /opt/keycloak/bin/kcadm.sh create realms/ai-test-case-generator/partial-export \
+  -q exportClients=true -q exportGroupsAndRoles=true -o > keycloak/realm/ai-test-case-generator-realm.json
+```
+
+The export masks secrets as `**********`. Before committing, replace the Google one with `${GOOGLE_CLIENT_SECRET}` (Keycloak fills it in from `.env` on import), and check that no other real secret is in the file.
