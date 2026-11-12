@@ -44,6 +44,8 @@ function receiveFiles(req, res, next) {
  *     operationId: extractDocumentText
  *     description: |
  *       Upload 1–5 files and get their plain text back. The files are not stored.
+ *       Every image read is logged (file name, model, time, tokens, the text read or
+ *       why it failed) in the ImageRead table (D-033); the image itself isn't kept.
  *
  *       - **Documents** (PDF, DOCX, Markdown, TXT; up to 20 MB) are read by code
  *         (`readBy: "code"`). A PDF that only contains scanned images returns empty text.

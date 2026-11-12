@@ -4,6 +4,21 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-12 — Image reads are logged (`ImageRead`)
+
+**Goal.** Measure requirement-image reads like the other AI steps: an image test failed late at night ("Gemini is busy… Also: OpenRouter is busy…") and left no trace, because image reads weren't saved.
+
+**What was built**
+- Migration `add_image_read_log`: a new `ImageRead` table (user, file name, type, size, status, attempts, model, seconds, text, checks, tokens, error).
+- `readImageText()` also returns the pipeline result and the wall time; `services/image-read.service.js` turns it into a row and saves it. The upload controller logs every image read, success or failure. A logging error never fails the upload.
+- No API or screen change; Swagger's description of the upload endpoint mentions the log.
+
+**Decision:** D-033.
+
+**How it was checked:** `npm test`: **120 tests** (2 new: a successful and a failed read become the right rows). A database check with the mock AI: both reads saved for a temporary user (Thai file name included), and deleted with the user. Migration replay check: empty.
+
+---
+
 ## 2026-11-12 — More test design techniques (syntax, pairwise, use case)
 
 **Goal.** Add techniques the team asked for, after checking which ones fit a system that works from requirement text and writes manual test cases.

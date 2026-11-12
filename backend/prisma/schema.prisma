@@ -55,6 +55,33 @@ model User {
 
   projects   Project[]
   preference UserPreference?
+  imageReads ImageRead[]
+}
+
+// One AI read of a requirement image (Step 1, D-027), successful or not. The image
+// itself is never stored; this keeps the result and the measurements (D-033).
+// Not linked to a requirement yet: images are read before the requirement is saved.
+model ImageRead {
+  id Int @id @default(autoincrement())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fileName     String           @db.VarChar(255)
+  mimeType     String           @db.VarChar(50)
+  size         Int // bytes
+  status       GenerationStatus // PASSED; FAILED = busy, quota… (no text)
+  attempts     Int
+  model        String           @db.VarChar(100) // the model(s) that answered, e.g. a fallback
+  seconds      Float // wall time of the whole read, retries included
+  text         String?          @db.Text // what was read (null if it failed)
+  validation   Json? // format check per attempt, with each attempt's time
+  usage        Json? // tokens, for the future credit system
+  errorMessage String?          @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
 
 model Project {

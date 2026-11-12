@@ -227,3 +227,13 @@ Separately, the `gemini-2.5-*` models turned out to be unavailable to new keys, 
 
 **Consequences.** Seven techniques. The AI's pairwise sets are a reasonable pairwise-style selection, not a computed all-pairs set; an exact set would need code. No database change: techniques are stored as keys.
 
+### D-033 — Image reads are logged in their own table
+**Context.** Requirement images (D-027) were read without saving anything, so failures left no trace and time, tokens and accuracy couldn't be measured afterwards. `GenerationRun` can't hold them: every run belongs to a saved requirement, but images are read **before** the requirement is saved (the image often *is* the requirement).
+**Decision.**
+- A separate `ImageRead` table: one row per image read, **successful or failed**: user, file name, type, size, status, attempts, the model that answered, wall time, tokens, the text that was read, the format checks and the error message.
+- The image itself is still never stored (D-027 unchanged).
+- Saving the row can never fail the upload: a logging error only goes to the server log.
+- Backend only for now: nothing new on screen, and no link to a requirement yet (the browser doesn't send one).
+
+**Consequences.** Image reads can be measured like the other generations, and overloaded moments become evidence. Token counts for every AI call are now recorded, which the credit system (M5) needs. Showing image reads in History, and linking them to the requirement, would need a frontend change later.
+

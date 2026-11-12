@@ -109,7 +109,7 @@ Current endpoints (all require login):
 | GET | `/api/trash` | The user's recently deleted requirements, scenarios and test cases, with days left |
 | POST | `/api/trash/:type/:id/restore` | Restore a deleted item (`type` = `requirement`, `scenario` or `testCase`) |
 | DELETE | `/api/trash/:type/:id` | Delete an item for good now |
-| POST | `/api/documents/extract-text` | Read the text of uploaded files (not stored): PDF / DOCX / Markdown / TXT by code; PNG / JPG / WebP images by a vision AI model (D-027) |
+| POST | `/api/documents/extract-text` | Read the text of uploaded files (not stored): PDF / DOCX / Markdown / TXT by code; PNG / JPG / WebP images by a vision AI model (D-027). Each image read is logged in `ImageRead` (D-033) |
 
 Requirements are addressed by their **number inside the project**, the same number shown as REQ-0001. Ownership is checked through the project on every request. The AI endpoints always answer `201` with the saved run; an AI problem shows up as `status: "FAILED"` plus `errorMessage` (D-019). They can take a minute or more, so the server allows requests up to 10 minutes. A request that isn't allowed in the current state (e.g. editing a locked scenario) answers **409** with a message.
 
@@ -134,6 +134,7 @@ Display codes like `REQ-0001`, `SC-01` and `TC-0001` aren't stored. Each table s
 erDiagram
     User ||--o{ Project : owns
     User ||--o| UserPreference : has
+    User ||--o{ ImageRead : "image reads (log)"
     Project ||--o{ Requirement : contains
     Requirement ||--o{ GenerationRun : "AI history"
     Requirement ||--o{ Scenario : has
@@ -206,6 +207,21 @@ erDiagram
         bool deletedWithScenario "comes back with its scenario"
         datetime deletedAt "set = Recently deleted"
     }
+    ImageRead {
+        int id PK
+        int userId FK
+        string fileName
+        string mimeType
+        int size "bytes"
+        enum status "PASSED, NEEDS_REVIEW, FAILED"
+        int attempts
+        string model "the model that answered"
+        float seconds
+        text text "what was read; null if failed"
+        json validation
+        json usage "tokens"
+        text errorMessage
+    }
     UserPreference {
         int id PK
         int userId FK
@@ -220,6 +236,8 @@ Numbers aren't reused for requirements (a new one takes the highest number + 1, 
 **Scenarios with test cases are locked** (D-029): they can't be edited, and the scenario list can't be redrafted or restored. Deleting such a scenario also deletes its test cases with `deletedWithScenario = true`; restoring the scenario restores exactly those.
 
 At the database level, removing a project removes its requirements, and removing a requirement removes its runs, scenarios and test cases. Removing a run keeps its scenarios (their `runId` becomes empty).
+
+**Image reads are logged, not linked** (D-033). Every AI read of a requirement image, successful or not, is a row in `ImageRead` (who, file, model, time, tokens, the text or the error). The image itself is never stored. Rows aren't linked to a requirement yet, because images are read before the requirement is saved.
 
 **Scenario runs store a snapshot** (D-023). The `output` of every SCENARIOS run is the full scenario list right after that run (for "generate more": existing + new), so any run in the draft history can be restored the same way.
 

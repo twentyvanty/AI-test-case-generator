@@ -193,6 +193,7 @@ In Step 1, testers can attach **images** (PNG, JPG or WebP, up to 5 MB): screens
 - A **vision model** transcribes the visible text exactly, then describes diagrams and screens under a `Diagram/screen:` line (`ai/prompts/readImage.js`).
 - The text is added to the requirement details as `--- from <image> (read by AI, please check) ---`.
 - There's no validator; the tester is the check. Each image uses **one AI request** and usually takes about 10–80 s.
+- Every read is **logged** in the `ImageRead` table (D-033): model, time, tokens, the text, or why it failed. The image itself isn't stored.
 
 **Which provider reads images.** Images follow their own order, separate from the text steps:
 1. **Gemini** (`gemini-3.5-flash`, then `gemini-3.7-flash`) when `GEMINI_API_KEY` is set. It's by far the best reader we tested.

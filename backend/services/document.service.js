@@ -123,14 +123,17 @@ export async function readImageText(fileName, buffer, providers) {
     );
   }
 
+  const started = Date.now();
   const result = await readRequirementImage(
     { fileName, mimeType, base64: buffer.toString("base64") },
     providers
   );
+  // For the ImageRead log (D-033): the pipeline result and the wall time
+  const run = { ...result, mimeType, size: buffer.length, seconds: (Date.now() - started) / 1000 };
 
   if (!result.output) {
-    return { text: "", error: result.errorMessage ?? "The AI couldn't read this image." };
+    return { text: "", error: result.errorMessage ?? "The AI couldn't read this image.", run };
   }
 
-  return { text: cleanText(result.output.text), error: null };
+  return { text: cleanText(result.output.text), error: null, run };
 }
