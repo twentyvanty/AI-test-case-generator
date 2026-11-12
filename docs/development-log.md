@@ -4,6 +4,64 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-12 — Slice 5: Test cases (Step 3), Report (Step 5) and History → Generated
+
+**Goal.** Finish the main tester flow from the final mock-up: generate test cases from the scenarios, run them (Open / Pass / Fail), edit or delete them, and see coverage and downloads in a Report step. Also remove scenario priority, act on the AI's review notes, and list past generations in History.
+
+The slice was built and checked in parts, each committed on its own, because building it all at once was hard to follow: 5a, 5b, 5c-1, 5c-2, 5d-1, 5d-2 (these docs).
+
+**What was built**
+- **5a: Priority removed, database migration.**
+  - Scenario `priority` and the unused `selected` are dropped from the database, AI schema, prompt, mock, API and screens (D-028).
+  - The migration `add_test_case_flow` also adds `TestCase.status` (`OPEN` / `PASS` / `FAIL`), `TestCase.runId`, `TestCase.deletedWithScenario` and `GenerationRun.reviewedAt`.
+- **5b: Test-case API and the lock rules.**
+  - `POST …/test-case-drafts` generates cases **only for scenarios that have none yet**; new cases continue the numbering, existing ones are never replaced. `GET / PATCH / DELETE …/test-cases` list, edit (status or text) and delete (to Recently deleted).
+  - **Lock rules (D-029):** a scenario with test cases can't be edited; drafting again or restoring an earlier draft is refused once test cases exist (409); deleting a scenario takes its test cases along, and restoring it brings them back with their Pass/Fail.
+  - **Batching (D-030):** test cases are generated in batches of at most 8 estimated cases, two batches at a time, each saved as its own run. A failed batch stops the generation but keeps the earlier batches' cases.
+  - The requirement's status now follows what it has (no scenarios → DRAFT, scenarios → SCENARIOS_READY, test cases → CASES_READY).
+  - `POST …/runs/:runId/reviewed` ("Mark as reviewed").
+  - The test-case validator judges cases against the scenarios they were written for, and only fails values a scenario names (others are a warning).
+- **5c-1: Steps 1 and 2.**
+  - **Generate N test cases →** / **View test cases →**; a waiting message with an estimate; a clear message when only some batches succeeded.
+  - Locked scenarios show "🔒 N test cases", have no Edit, and warn before deleting; Redraft and History → Restore are disabled with an explanation.
+  - **"Test cases may be out of date"** panel for scenarios added after generating, with **Generate test cases for them**.
+  - **Review note** for NEEDS_REVIEW runs (issues grouped as missing / technique / other, **Add a scenario for this**, **Mark as reviewed**), and collapsed **AI notes to check** for runs that passed with warnings.
+  - Five step tabs: Requirement · Scenarios · Test cases · Test scripts · Report. Step 1 shows **Open scenarios →** once test cases exist.
+- **5c-2: Step 3, Report and Recently deleted.**
+  - Step 3 (full width, as in the mock-up): cases grouped by scenario, a pass checkbox plus an Open / Pass / Fail dropdown, a ⋯ menu with Edit (dialog) and Delete, the summary, the out-of-date banner and the notes of **every** batch's run (`caseRuns` in the requirement detail). The defect report will go under the table (Slice 6).
+  - Step 5 (Report): the Coverage & traceability card with **Download report** and **Download test case table** (CSV with a Thai-safe BOM). Step 4 is a placeholder with **Skip to report**.
+  - Recently deleted lists test cases, and scenarios show "+ N test cases (restored with it)".
+- **5d-1: History → Generated.** `GET /api/history/generations` and a Generated card (filters, counts, Open). One click is one entry: the batches of a test-case generation share a `generationId`.
+
+**Fixes along the way**
+- **Empty AI answers** (D-031): an overloaded free host sometimes answered with no text; the app retried the same model 3 times and never tried the fallback. An empty answer now counts as "busy".
+- **False "possible duplicate" notes:** the code check flagged boundary cases such as "4th / 5th / 6th link" in every real run. Titles that differ in their numbers are no longer near-duplicates.
+- The waiting message showed a translation key (a plural text used without a count); the i18n check now catches this.
+- The ⋯ menu closed when the page scrolled; it now moves with its button.
+- Thai uses **"Test Case"** everywhere (it had "กรณีทดสอบ" and "เคส" in places).
+
+**What real AI runs showed** (numbers in `docs/ai-providers.md` and the team's AI Test Log)
+- 4 English scenarios fit one request (84 s); **8 Thai scenarios timed out** on both models. Batches of 4 scenarios still failed in Thai (101 s per batch); batches of at most 8 estimated cases passed all 26 Thai cases first try.
+- **Gemini 3.5 Flash** wrote 18 test cases in about 31 s (English) and 34 s (Thai), every batch first try. OpenRouter's free models took 6.5–32 s **per case** and often needed retries. Gemini's validator, though, answered a bare "pass" every time, so it is probably a lenient judge.
+- On Gemini, Thai needed 33–53% more output tokens than English for the same requirement, in about the same time.
+- Gemini's confirmed free limits: Flash 5 requests a minute and 20 a day, Flash Lite 15 a minute and 500 a day.
+
+**Decisions:** D-028, D-029, D-030, D-031.
+
+**How it was checked**
+- `npm test`: **114 tests** pass (99 + 15 new): status rule, S-key mapping and numbering, batching, test-case DTO, validator note, empty answers, boundary titles, History grouping and counts.
+- A database check with the mock AI and a temporary user (23 checks): lock rules and 409s, cascade delete and restore, numbering across batches, unlock after the last case is deleted, Mark as reviewed, status rules.
+- Browser checks with the mock AI and temporary users (deleted afterwards), EN and TH: Steps 1–3 and 5, the notes, the menus and dialogs, downloads, Recently deleted and History.
+- Migration replay check (empty migration), Swagger lint, frontend `tsc`, `lint`, `build` and the i18n check.
+
+**Follow-ups**
+- Gemini and OpenRouter as automatic backup for each other for text, as already done for images.
+- Gemini's 5-requests-a-minute limit: wait and retry instead of stopping as "limit reached".
+- A fair Thai vs English rerun on OpenRouter at a quiet time (health check first).
+- The sidebar's "Recent runs" still shows placeholder data (Slice 8, Dashboard).
+
+---
+
 ## 2026-11-10 — Slice 4.6: Requirement images
 
 **Goal.** Let testers attach requirement **images** (screenshots, scans, UI mock-ups, diagrams) in Step 1, as the team requested.

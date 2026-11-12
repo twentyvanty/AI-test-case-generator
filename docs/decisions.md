@@ -187,3 +187,34 @@ Separately, the `gemini-2.5-*` models turned out to be unavailable to new keys, 
 - Transcriptions can contain small errors, so the "please check" marking is essential.
 - Images go to the free model hosts, so no confidential screenshots on free models.
 
+### D-028 — Priority removed from scenarios
+**Context.** Slice 4 added a risk priority (High / Medium / Low) that the AI suggested for each scenario. The final mock-up removed it from the scenarios step.
+**Decision.** Drop `Scenario.priority` (and the unused `Scenario.selected`) from the database, the AI schema and prompt, the API and the screens. Older AI answers that still contain a priority are accepted; the field is ignored.
+**Consequences.** Simpler scenario cards and a smaller AI answer. Priority returns where the mock-up has it: on defects (Slice 6).
+
+### D-029 — Scenarios lock once they have test cases
+**Context.** The mock-up regenerated **all** test cases when scenarios changed, and kept a snapshot of the scenarios to warn when they were out of date. Regenerating would throw away the tester's Pass/Fail results and edits.
+**Decision.**
+- A scenario with test cases is **locked**: it can't be edited, and the scenario list can't be drafted again or restored from an earlier draft (409).
+- New scenarios can still be added or generated. "Generate test cases" only writes cases for scenarios that have none, and never replaces existing cases.
+- Deleting a locked scenario deletes its test cases with it, after a warning; restoring the scenario brings exactly those cases back (`deletedWithScenario`). A scenario whose test cases are all deleted unlocks again.
+- "Test cases may be out of date" therefore only means "scenarios without test cases", so no snapshot or comparison is needed.
+
+**Consequences.** Test results are never lost by regenerating. To change a locked scenario, the tester deletes it (with its cases) and adds a new one. Simpler code than the mock-up's snapshot diff.
+
+### D-030 — Test cases are generated in small batches, two at a time
+**Context.** A test-case answer is the longest the AI writes. On free models, 8 scenarios in one request ran past the 120 s limit on both models; batches of 4 scenarios still failed in Thai (101 s for one batch); a whole generation took about 9 minutes when batches ran one after another.
+**Decision.**
+- Batches of at most **8 estimated test cases** (`MAX_CASES_PER_BATCH`), usually 2–3 scenarios; a scenario that alone asks for more goes in a batch of its own.
+- **Two batches at a time** (`PARALLEL_BATCHES`); results are saved in scenario order, so TC numbers follow the scenarios.
+- Each batch is its own GenerationRun; the runs of one click share a `generationId`, so History shows them as one entry.
+- A failed batch stops the generation after its pair; batches that passed keep their cases, and the rest can be generated again.
+- The 120 s limit stays: generation must not take longer than writing the cases by hand.
+
+**Consequences.** With these settings, 26 Thai cases passed first try. More requests per generation than one big request (about 2 per batch), which matters for daily limits. Gemini's free tier allows 5 requests a minute, so a large requirement can reach that limit.
+
+### D-031 — An empty AI answer counts as "busy"
+**Context.** On 2026-11-12 an overloaded OpenRouter host answered 6 times in a row with no text (0 tokens). The pipeline treated it like a bad answer and retried the same model three times, without trying the fallback model.
+**Decision.** In the OpenRouter provider an empty answer is an HTTP-503-like "busy" error: wait 3 s and retry, wait 8 s and retry, then the fallback model; if both are empty, the run stops at once with "busy, try again".
+**Consequences.** A busy host no longer wastes the three attempts, and the fallback model gets its chance. A model that always answers empty for a given prompt costs two extra calls before the fallback.
+

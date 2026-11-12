@@ -44,6 +44,27 @@ A check can be `pass`, `warn` (usable, shown to the tester) or `fail` (triggers 
 
 The **3 attempts are for quality problems only**. Problems with the AI service itself are handled separately (next section), so they don't use up those attempts. Each generation makes up to **6 AI calls** (3 attempts × generator + validator), plus any automatic retries for busy servers. Technique suggestion is a single cheap call with no AI validator.
 
+### Test cases: small batches, two at a time (D-030)
+
+A test-case answer is the longest the AI writes, so "Generate test cases" doesn't send all scenarios in one request:
+
+- Only scenarios **without** test cases are sent (scenarios with test cases are locked, D-029).
+- They are split into batches of at most **8 estimated test cases** (`MAX_CASES_PER_BATCH` in `services/test-case-rows.js`), usually 2–3 scenarios. Each batch is one full pipeline run (generator + validator, up to 3 attempts) and is saved as its own `GenerationRun`.
+- **Two batches run at the same time** (`PARALLEL_BATCHES`). Results are saved in scenario order, so TC numbers follow the scenarios.
+- A failed batch stops the generation after its pair. Batches that passed keep their test cases; the remaining scenarios can simply be generated again.
+
+**Why these numbers** (free models, 120 s limit per request):
+
+| Test | Result |
+|---|---|
+| 4 English scenarios (13 cases) in one request, OpenRouter | PASSED in 84 s |
+| 8 Thai scenarios (26 cases) in one request, OpenRouter | Both models ran past 120 s → FAILED |
+| Same 8 Thai scenarios, batches of 4 scenarios, one after another | Batch 1 passed (generator 101 s); batch 2's retry timed out → 13 of 26 cases |
+| Same, batches of at most 8 estimated cases, one after another | **PASSED, all 26 cases**, every batch first try, 541 s in total |
+| English requirement, 18 cases in 3 batches, two at a time, **Gemini** | PASSED in about 31 s (Thai: about 34 s) |
+
+Thai answers need more tokens and time than English ones, so Thai reaches the time limit first.
+
 ### When the AI service has problems
 
 | Problem (HTTP code) | What happens |
@@ -53,6 +74,7 @@ The **3 attempts are for quality problems only**. Problems with the AI service i
 | Quota / rate limit (429) | Stop at once → `FAILED`. Waiting a few seconds doesn't help |
 | Bad API key (400/401/403), model not available (404) | Stop at once → `FAILED`, with Google's explanation (e.g. "no longer available to new users") |
 | Invalid request (400) | Stop at once → `FAILED`. Sending the same request again can't work |
+| **Empty answer** (200 with no text; seen from overloaded OpenRouter hosts) | Treated like "busy" (D-031): wait and retry, then the fallback model |
 | Answer isn't valid JSON | Counts as a failed **format** check, so it's retried |
 | Validator unavailable | The draft is kept but marked `NEEDS_REVIEW`. It's never auto-approved unchecked |
 
@@ -232,7 +254,12 @@ In Step 1, testers can attach **images** (PNG, JPG or WebP, up to 5 MB): screens
    GEMINI_API_KEY=<your key>
    ```
    Never commit this file; `.env` is already in `.gitignore`.
-3. That's all. With a key set, both the generator and the validator use Gemini automatically.
+3. Without an OpenRouter key, both the generator and the validator now use Gemini. **With** an OpenRouter key, text steps stay on OpenRouter and Gemini is used for images (D-027). To use Gemini for the text steps too, add:
+   ```
+   AI_GENERATOR_PROVIDER=gemini
+   AI_VALIDATOR_PROVIDER=gemini
+   ```
+   and restart the backend. Remove the two lines to go back to OpenRouter.
 
 | Variable | Default | Meaning |
 |---|---|---|
@@ -243,11 +270,18 @@ In Step 1, testers can attach **images** (PNG, JPG or WebP, up to 5 MB): screens
 | `GEMINI_VALIDATOR_FALLBACK_MODEL` | `gemini-3.1-flash-lite` | Used when the validator model is busy or too slow. `none` disables it |
 | `AI_REQUEST_TIMEOUT_SECONDS` | `120` | Time limit for one AI request |
 | `AI_DEBUG` | off | `1` prints every AI request with timings (troubleshooting) |
-| `AI_GENERATOR_PROVIDER` / `AI_VALIDATOR_PROVIDER` | `gemini` if a key is set, else `mock` | Pick the provider per role |
+| `AI_GENERATOR_PROVIDER` / `AI_VALIDATOR_PROVIDER` | `openrouter` if its key is set, else `gemini` if its key is set, else `mock` | Pick the provider per role |
 | `MOCK_FAIL_MODE` | `never` | Mock only: `once`, `always`, `quota` or `busy` to simulate problems |
 
 **Free-tier limits and caveats**
-- Each model has requests-per-minute and requests-per-day limits. See your current limits at https://aistudio.google.com/rate-limit. When a limit is hit, the run ends as `FAILED` with "wait a minute and try again".
+- Limits are per Google Cloud project (not per key) and the daily count resets at midnight Pacific time (3 pm in Thailand). Confirmed on the project's rate-limit page (https://aistudio.google.com/rate-limit) on 2026-11-12:
+
+  | Model | Per minute | Per day |
+  |---|---|---|
+  | Flash (generator, image reader; `gemini-3.5-flash` is counted as "Gemini 3.6 Flash") | 5 | **20** |
+  | 3.5 Flash Lite (validator) | 15 | 500 |
+
+  The generator is the bottleneck: one requirement uses about 1 request for scenarios plus 1 per test-case batch, so about **5 requirements a day**, shared with image reading. When a limit is hit, the run ends as `FAILED` with "wait a minute and try again". A large requirement can also reach the **5-a-minute** limit (two batches at a time plus retries); the app currently treats that like the daily limit and stops (a follow-up).
 - ⚠️ **Privacy:** Google states that content sent on the free tier **may be used to improve its products**; paid-tier content isn't. Use only sample or non-confidential requirements until the team moves to a paid tier. Mention this as a limitation in the project report.
 - Model names change over time. On 2026-09-27 the `gemini-2.5-*` models were **no longer available to new keys**, even though the pricing page still listed them. To see which models *your* key can use, run this from `backend/`:
   ```bash
@@ -255,7 +289,16 @@ In Step 1, testers can attach **images** (PNG, JPG or WebP, up to 5 MB): screens
   ```
   Then set `GEMINI_GENERATOR_MODEL` / `GEMINI_VALIDATOR_MODEL` (and the `*_FALLBACK_MODEL` settings) in `.env`.
 - **Why not the newest model by default?** In our free-tier measurements on 2026-09-27, `gemini-3.8-flash` was often overloaded, once hung for 17 minutes, and ran out of its daily quota after a few calls. `gemini-3.5-flash` answered a 9-case request in 30–70 s. You can still choose 3.8 with `GEMINI_GENERATOR_MODEL=gemini-3.8-flash` (e.g. on a paid key).
-- **Expect 30–70 s per AI call on the free tier.** A full scenarios + test cases run makes at least 4 calls (generator + validator for each step), so a few minutes in total is normal.
+- **Measured on the website (2026-11-12), Gemini for text:**
+
+  | Same requirement (password reset) | English | Thai |
+  |---|---|---|
+  | Draft scenarios | PASSED first try, 12 s, 5 scenarios | PASSED first try, 14 s, 5 scenarios |
+  | Generate 18 test cases (3 batches) | PASSED, about 31 s | PASSED, about 34 s |
+  | Generator output tokens (scenarios / test cases) | 1,488 / 7,421 | 2,280 / 9,851 |
+
+  Compared with OpenRouter's free models (6.5–32 s per test case, often 2–3 attempts), Gemini was much faster and passed every step first try. But **its validator answered a bare 75-token "pass" every time**, while OpenRouter's validator wrote specific objections (some correct, some false). Gemini is probably the more lenient judge. It was also busy at times (6 "high demand" answers in a row on 2026-11-10; a Thai draft timed out at 01:05 on 2026-11-12 and passed on a rerun 45 minutes later).
+- The full measurements (every run, tokens, timings, availability) are in the team's **AI Test Log** (https://claude.ai/artifact/BnYqjg7YvFcPpAyxPdQoy2, visible to people it's shared with).
 
 ## 4. Trying it from the terminal (`try-ai.js`)
 

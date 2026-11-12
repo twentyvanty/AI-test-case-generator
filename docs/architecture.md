@@ -61,7 +61,8 @@ AI-test-case-generator/
 │   ├── docs/              openapi.js (Swagger base definition)
 │   └── prisma/            schema.prisma, migrations, Prisma client
 ├── keycloak/themes/       Custom Keycloak login/register theme
-├── docker-compose.yml     Runs Keycloak
+├── keycloak/realm/        The app's realm, imported on Keycloak's first start (client, theme, Google login)
+├── docker-compose.yml     Runs Keycloak (secrets from the git-ignored root .env, see .env.example)
 └── docs/                  This documentation
 ```
 
@@ -89,22 +90,28 @@ Current endpoints (all require login):
 | GET | `/api/projects/:id` | Get one project (404 if it isn't the user's) |
 | GET | `/api/projects/:projectId/requirements` | List the project's requirements (status, scenario count) |
 | POST | `/api/projects/:projectId/requirements` | Create a requirement (gets the next number: REQ-0001, REQ-0002, …) |
-| GET | `/api/projects/:projectId/requirements/:number` | One requirement with its scenarios and latest scenario draft |
+| GET | `/api/projects/:projectId/requirements/:number` | One requirement with its scenarios (each with `testCaseCount`), test cases, the run behind the scenarios and every run behind the test cases (`caseRuns`) |
 | PATCH | `/api/projects/:projectId/requirements/:number` | Edit title, details, techniques, file names |
 | DELETE | `/api/projects/:projectId/requirements/:number` | Move it to Recently deleted for 7 days (with its runs, scenarios and test cases) |
 | POST | `/api/projects/:projectId/requirements/:number/technique-suggestions` | AI suggests techniques (saved as a `GenerationRun`) |
-| POST | `/api/projects/:projectId/requirements/:number/scenario-drafts` | AI drafts scenarios, saved as a `GenerationRun`. Body `{ mode }`: `replace` (default) replaces the scenarios, `more` adds new ones that don't overlap |
+| POST | `/api/projects/:projectId/requirements/:number/scenario-drafts` | AI drafts scenarios, saved as a `GenerationRun`. Body `{ mode }`: `replace` (default) replaces the scenarios, `more` adds new ones that don't overlap. `replace` → 409 once test cases exist (D-029) |
 | POST | `/api/projects/:projectId/requirements/:number/scenarios` | Add a scenario by hand |
-| PATCH | `/api/projects/:projectId/requirements/:number/scenarios/:scenarioNumber` | Edit a scenario (title, description, technique, priority, estimated cases) |
-| DELETE | `/api/projects/:projectId/requirements/:number/scenarios/:scenarioNumber` | Move a scenario to Recently deleted for 7 days |
+| PATCH | `/api/projects/:projectId/requirements/:number/scenarios/:scenarioNumber` | Edit a scenario (title, description, technique, estimated cases); 409 if it has test cases (D-029) |
+| DELETE | `/api/projects/:projectId/requirements/:number/scenarios/:scenarioNumber` | Move a scenario **and its test cases** to Recently deleted for 7 days |
 | GET | `/api/projects/:projectId/requirements/:number/scenario-runs` | The last 10 scenario drafts (draft history) |
-| POST | `/api/projects/:projectId/requirements/:number/scenario-runs/:runId/restore` | Replace the scenarios with that draft's saved list |
-| GET | `/api/trash` | The user's recently deleted requirements and scenarios, with days left |
-| POST | `/api/trash/:type/:id/restore` | Restore a deleted item (`type` = `requirement` or `scenario`) |
+| POST | `/api/projects/:projectId/requirements/:number/scenario-runs/:runId/restore` | Replace the scenarios with that draft's saved list; 409 once test cases exist |
+| POST | `/api/projects/:projectId/requirements/:number/test-case-drafts` | AI writes test cases for the scenarios that have none yet, in batches (D-030); returns every batch's run and all test cases. Existing cases are never replaced |
+| GET | `/api/projects/:projectId/requirements/:number/test-cases` | The requirement's test cases |
+| PATCH | `/api/projects/:projectId/requirements/:number/test-cases/:testCaseNumber` | Set the status (Open / Pass / Fail) or edit title, precondition, steps, expected result |
+| DELETE | `/api/projects/:projectId/requirements/:number/test-cases/:testCaseNumber` | Move a test case to Recently deleted for 7 days |
+| POST | `/api/projects/:projectId/requirements/:number/runs/:runId/reviewed` | "Mark as reviewed" on a scenario or test-case run |
+| GET | `/api/history/generations` | History → Generated: finished generations across the user's projects, one item per click (`?kind=`, `?limit=`) |
+| GET | `/api/trash` | The user's recently deleted requirements, scenarios and test cases, with days left |
+| POST | `/api/trash/:type/:id/restore` | Restore a deleted item (`type` = `requirement`, `scenario` or `testCase`) |
 | DELETE | `/api/trash/:type/:id` | Delete an item for good now |
 | POST | `/api/documents/extract-text` | Read the text of uploaded files (not stored): PDF / DOCX / Markdown / TXT by code; PNG / JPG / WebP images by a vision AI model (D-027) |
 
-Requirements are addressed by their **number inside the project**, the same number shown as REQ-0001. Ownership is checked through the project on every request. The AI endpoints always answer `201` with the saved run; an AI problem shows up as `status: "FAILED"` plus `errorMessage` (D-019). They can take a minute or more, so the server allows requests up to 10 minutes.
+Requirements are addressed by their **number inside the project**, the same number shown as REQ-0001. Ownership is checked through the project on every request. The AI endpoints always answer `201` with the saved run; an AI problem shows up as `status: "FAILED"` plus `errorMessage` (D-019). They can take a minute or more, so the server allows requests up to 10 minutes. A request that isn't allowed in the current state (e.g. editing a locked scenario) answers **409** with a message.
 
 ### API docs (Swagger)
 
@@ -133,6 +140,7 @@ erDiagram
     Requirement ||--o{ TestCase : "numbers TCs"
     Scenario ||--o{ TestCase : has
     GenerationRun |o--o{ Scenario : produced
+    GenerationRun |o--o{ TestCase : produced
 
     User {
         int id PK
@@ -168,6 +176,7 @@ erDiagram
         json output "snapshot for restore"
         json validation "checks per attempt"
         json usage "tokens, for credits"
+        datetime reviewedAt "Mark as reviewed"
     }
     Scenario {
         int id PK
@@ -177,8 +186,6 @@ erDiagram
         string title
         text description
         string technique
-        enum priority "HIGH, MEDIUM, LOW"
-        bool selected
         int estimatedCases
         enum source "AI or MANUAL"
         datetime deletedAt "set = Recently deleted"
@@ -187,6 +194,7 @@ erDiagram
         int id PK
         int scenarioId FK
         int requirementId FK
+        int runId FK "the batch run that wrote it"
         int number "TC-0001"
         string title
         text description
@@ -194,6 +202,8 @@ erDiagram
         json steps "string list"
         text expectedResult
         enum source "AI or MANUAL"
+        enum status "OPEN, PASS, FAIL"
+        bool deletedWithScenario "comes back with its scenario"
         datetime deletedAt "set = Recently deleted"
     }
     UserPreference {
@@ -205,27 +215,29 @@ erDiagram
 
 **Deleting in the app is a soft delete** (D-024). A requirement, scenario or test case gets a `deletedAt` date, and every normal query skips it. For 7 days it appears in History → Recently deleted and can be restored (children come back with it). After 7 days `purgeExpired()` in `services/trash.service.js` removes it for good; it runs at server start and every hour. `Requirement` also has `deletedAt` (not shown above).
 
-Numbers aren't reused for requirements (a new one takes the highest number + 1, deleted ones included). For scenarios and test cases the numbers are unique among the *active* rows only, checked by the code, not by a database index. That lets a redraft create a new SC-02 while an old SC-02 waits in the bin; a restored item whose number is taken gets the next free one.
+Numbers aren't reused for requirements (a new one takes the highest number + 1, deleted ones included). Scenario numbers are unique among the *active* rows only, checked by the code, not by a database index: a redraft can create a new SC-02 while an old SC-02 waits in the bin, and a restored scenario whose number is taken gets the next free one. New test cases are numbered after the highest number **including deleted ones**, so a test case in the bin always comes back with its own number.
+
+**Scenarios with test cases are locked** (D-029): they can't be edited, and the scenario list can't be redrafted or restored. Deleting such a scenario also deletes its test cases with `deletedWithScenario = true`; restoring the scenario restores exactly those.
 
 At the database level, removing a project removes its requirements, and removing a requirement removes its runs, scenarios and test cases. Removing a run keeps its scenarios (their `runId` becomes empty).
 
 **Scenario runs store a snapshot** (D-023). The `output` of every SCENARIOS run is the full scenario list right after that run (for "generate more": existing + new), so any run in the draft history can be restored the same way.
 
-`Requirement.status` controls which steps of the tester flow are unlocked:
-`DRAFT` → `SCENARIOS_READY` → `CASES_READY` → `REPORTED`.
+`Requirement.status` controls which steps of the tester flow are unlocked, and follows what the requirement has (`services/requirement-status.js`): no scenarios → `DRAFT`; scenarios → `SCENARIOS_READY` (Step 2); test cases → `CASES_READY` (Steps 3–5). `REPORTED` is reserved for the report (Slice 6).
 
 ## Main tester flow (target for Milestone 1)
 
 ```mermaid
 flowchart LR
-    R["1. Requirement<br/>text or document +<br/>techniques"] --> S["2. Scenarios<br/>review, select,<br/>edit, redraft"]
-    S --> T["3. Test cases<br/>validation results +<br/>edit cases"]
-    T --> P["4. Report<br/>coverage, traceability,<br/>Excel/CSV export"]
+    R["1. Requirement<br/>text, documents or images +<br/>techniques"] --> S["2. Scenarios<br/>review, edit, add,<br/>generate more"]
+    S --> T["3. Test cases<br/>Pass / Fail, edit, delete<br/>(defects: Slice 6)"]
+    T --> X["4. Test scripts<br/>optional (Slice 7)"]
+    X --> P["5. Report<br/>coverage, traceability,<br/>CSV downloads"]
 ```
 
-Status: Step 1 (Slice 3) and Step 2 (Slice 4) are built; steps 3–4 come in Slices 5–6.
+Status: Steps 1–3 and 5 are built (Slices 3–5). The defect report (under Step 3, and in the report) comes in Slice 6, and test scripts in Slice 7.
 
-Each AI step goes through the same pipeline: **generate → format check → rule checks → AI validation (a different model) → retry up to 3 times**. If it still fails, the result is marked *needs review* for the tester to fix by hand. Every generation is stored as a `GenerationRun`, so the tester can restore any of the last 10.
+Each AI step goes through the same pipeline: **generate → format check → rule checks → AI validation (a different model) → retry up to 3 times**. If it still fails, the result is marked *needs review* for the tester to fix by hand. Every generation is stored as a `GenerationRun`: scenario drafts can be restored (any of the last 10, until test cases exist), and every finished generation is listed in History → Generated. Test cases are generated in batches of at most 8 estimated cases, two at a time, one run per batch (D-030).
 
 ## AI module (`backend/ai/`)
 
@@ -235,26 +247,27 @@ A self-contained module. The rest of the backend imports only `backend/ai/index.
 |---|---|---|
 | `suggestTechniques({ requirementText })` | Step 1 "Let AI suggest" | Suggested techniques with reasons |
 | `draftScenarios({ requirementText, techniques })` | Step 1 → 2 | Scenarios (title, description, technique, estimated case count) |
-| `generateTestCases({ requirementText, techniques, scenarios })` | Step 2 → 3 | Test cases linked to scenarios |
+| `generateTestCases({ requirementText, techniques, scenarios })` | Step 2 → 3 (called once per batch) | Test cases linked to scenarios |
+| `readRequirementImage({ fileName, mimeType, base64 })` | Step 1 image upload | The image's text, for the editable details (D-027) |
 
-Each returns an object shaped like a `GenerationRun` row: status, attempts, output, per-attempt check results, token usage and model names. Providers are swappable: Gemini (free tier) now, a mock for tests and offline work, and OpenAI/Claude can be added. Full details, setup and the switching guide: [ai-providers.md](ai-providers.md).
+Each returns an object shaped like a `GenerationRun` row: status, attempts, output, per-attempt check results, token usage and model names. Providers are swappable per role: OpenRouter (main, free models now), Gemini (images first; optional for text), a mock for tests and offline work, and OpenAI/Claude can be added. Full details, setup and the switching guide: [ai-providers.md](ai-providers.md).
 
 ## Frontend structure
 
-- **Routing** ([frontend/src/App.tsx](../frontend/src/App.tsx)): `/` Dashboard, `/workspace` Projects, `/projects/:projectId`, `/projects/:projectId/requirements/new` and `/projects/:projectId/requirements/:requirementNumber` (the requirement page, step in `?step=`), `/history` (Recently deleted), `/account` (coming soon). All pages share `AppLayout` (top nav + sidebar).
+- **Routing** ([frontend/src/App.tsx](../frontend/src/App.tsx)): `/` Dashboard, `/workspace` Projects, `/projects/:projectId`, `/projects/:projectId/requirements/new` and `/projects/:projectId/requirements/:requirementNumber` (the requirement page, step in `?step=`), `/history` (Generated + Recently deleted), `/account` (coming soon). All pages share `AppLayout` (top nav + sidebar).
 - **Data access:** pages only call functions in `src/services/`, which use one `request()` helper ([services/http.ts](../frontend/src/services/http.ts)). It adds the login token, sends JSON or files, and turns error answers into an `ApiError` carrying the backend's own message. Projects and requirements use the real API. Only the Dashboard still reads `src/mocks/dashboard.ts` (until M2).
-- **Requirement page** ([pages/RequirementPage.tsx](../frontend/src/pages/RequirementPage.tsx)): one page with the 4 steps (01 Requirement · 02 Scenarios · 03 Test cases · 04 Report). A step unlocks when the requirement's status reaches it (see `components/requirement/steps.ts`). Step 1 (`RequirementStep`) is three numbered cards: describe, attach files (`SpecificationFiles`), choose techniques (`TechniquePicker`). Step 2 (`ScenariosStep`) follows the white design:
-  - a toolbar: Add scenario, Generate more, Redraft, History, and Generate test cases (enabled in Slice 5)
-  - a summary line
-  - one `ScenarioCard` per scenario, with a priority dropdown (`PrioritySelect`), Edit (`ScenarioForm`) and Delete
-  - the draft history in a modal (`ScenarioHistory`)
-- **History page** ([pages/HistoryPage.tsx](../frontend/src/pages/HistoryPage.tsx)): "Recently deleted" (`components/history/DeletedItemList`) with Restore / Delete forever and the days left. The full generation history across projects comes in M3.
+- **Requirement page** ([pages/RequirementPage.tsx](../frontend/src/pages/RequirementPage.tsx)): one page with the 5 steps (01 Requirement · 02 Scenarios · 03 Test cases · 04 Test scripts · 05 Report). A step unlocks when the requirement's status reaches it (see `components/requirement/steps.ts`).
+  - Step 1 (`RequirementStep`): three numbered cards: describe, attach files or images (`SpecificationFiles`), choose techniques (`TechniquePicker`). Once test cases exist, its main button opens Step 2 instead of redrafting.
+  - Step 2 (`ScenariosStep`): a toolbar (Add scenario, Generate more, Redraft, History, Generate N test cases / View test cases), `ScenarioCard`s (a 🔒 tag and no Edit when locked), `ScenarioForm`, the draft history (`ScenarioHistory`), the out-of-date panel (`CaseSyncPanel`) and the review note / AI notes (`ReviewNote`).
+  - Step 3 (`TestCasesStep`): the table grouped by scenario with status checkbox + dropdown, the ⋯ menu (`ui/ActionMenu`) with Edit (`TestCaseForm`) and Delete, the out-of-date banner and the notes of every batch run.
+  - Step 4: a placeholder (`StepPlaceholder`) with Skip to report. Step 5 (`ReportStep`): the coverage card (`coverage/CoverageReport`) and the CSV downloads (`utils/testCaseExport.ts`, `utils/download.ts`).
+- **History page** ([pages/HistoryPage.tsx](../frontend/src/pages/HistoryPage.tsx)): "Generated" (`components/history/GeneratedList`: filters, one entry per click, Open) and "Recently deleted" (`components/history/DeletedItemList`) with Restore / Delete forever and the days left.
 - **Design system:** colors and fonts are Tailwind tokens in [frontend/src/index.css](../frontend/src/index.css) (`ink`, `brand`, `success`, `warning`, `danger`; Space Grotesk / IBM Plex Sans / IBM Plex Sans Thai / IBM Plex Mono). The shared pieces live in `components/ui/`.
 - **Languages:** every UI string comes from `i18n/locales/en.ts` and `th.ts`. The chosen language is remembered in the browser.
 
 ## Configuration
 
-Settings come from environment variables, with local-development defaults. See `frontend/.env.example` and `backend/.env.example`.
+Settings come from environment variables, with local-development defaults. See `frontend/.env.example`, `backend/.env.example` and the root `.env.example` (Keycloak).
 
 | Variable | Where | Purpose |
 |---|---|---|
@@ -264,4 +277,5 @@ Settings come from environment variables, with local-development defaults. See `
 | `PORT` | backend | API port (default 5001) |
 | `KEYCLOAK_URL`, `KEYCLOAK_REALM` | backend | Used to verify tokens (and by Swagger) |
 | `KEYCLOAK_CLIENT_ID` | backend | Client used by Swagger's "Authorize" (default `ai-test-case-frontend`) |
-| `OPENROUTER_API_KEY`, `OPENROUTER_*_MODEL`, `GEMINI_API_KEY`, `GEMINI_GENERATOR_MODEL`, `GEMINI_VALIDATOR_MODEL`, `GEMINI_*_FALLBACK_MODEL`, `AI_REQUEST_TIMEOUT_SECONDS`, `AI_GENERATOR_PROVIDER`, `AI_VALIDATOR_PROVIDER`, `MOCK_FAIL_MODE` | backend | AI settings; see [ai-providers.md](ai-providers.md#3-setting-up-the-gemini-free-tier) |
+| `GOOGLE_CLIENT_SECRET` | root `.env` (Docker) | Google login secret, filled into the imported Keycloak realm |
+| `OPENROUTER_API_KEY`, `OPENROUTER_*_MODEL`, `GEMINI_API_KEY`, `GEMINI_*_MODEL`, `GEMINI_*_FALLBACK_MODEL`, `AI_REQUEST_TIMEOUT_SECONDS`, `AI_GENERATOR_PROVIDER`, `AI_VALIDATOR_PROVIDER`, `AI_VISION_PROVIDER`, `AI_DEBUG`, `MOCK_FAIL_MODE` | backend | AI settings; see [ai-providers.md](ai-providers.md#3-setting-up-openrouter-main-provider) |
