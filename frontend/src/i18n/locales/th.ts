@@ -51,7 +51,7 @@ const th = {
       weeklyActivity: "กิจกรรมรายสัปดาห์",
       techniqueMix: "สัดส่วนเทคนิคที่ใช้",
       failingByArea: "ส่วนที่ไม่ผ่านการทดสอบ",
-      caseCount_other: "{{count}} เคส",
+      caseCount_other: "{{count}} Test Case",
       failCount_other: "ไม่ผ่าน {{count}}",
 
       quickActions: "ทางลัด",
@@ -110,8 +110,8 @@ const th = {
     coverage: {
       title: "ความครอบคลุมและการติดตาม",
       empty: "ยังไม่มี Test Case",
-      failingCases: "เคสที่ไม่ผ่าน",
-      mappedCases: "เคสที่เชื่อมโยงแล้ว",
+      failingCases: "Test Case ที่ไม่ผ่าน",
+      mappedCases: "Test Case ที่เชื่อมโยงแล้ว",
     },
 
     dropzone: {
@@ -148,7 +148,7 @@ const th = {
       requirement: "ข้อกำหนด",
       scenarios: "สถานการณ์",
       testCases: "Test Case",
-      testScripts: "สคริปต์ทดสอบ",
+      testScripts: "Test Script",
       report: "รายงาน",
     },
 
@@ -319,9 +319,9 @@ const th = {
 
     testCasesStep: {
       title: "Test Case และการตรวจสอบ",
-      summary_other: "{{count}} เคส · ผ่าน {{pass}} · ไม่ผ่าน {{fail}}",
+      summary_other: "{{count}} Test Case · ผ่าน {{pass}} · ไม่ผ่าน {{fail}}",
       backToScenarios: "กลับไปที่สถานการณ์",
-      next: "ถัดไป: สคริปต์ทดสอบ",
+      next: "ถัดไป: Test Script",
       markPassed: "ทำเครื่องหมาย {{code}} ว่าผ่าน",
       downloadTable: "ดาวน์โหลดตาราง Test Case",
       downloadReport: "ดาวน์โหลดรายงาน",
@@ -376,18 +376,18 @@ const th = {
 
     historyGenerated: {
       title: "สิ่งที่สร้างแล้ว",
-      description: "ผลการสร้างสถานการณ์และกรณีทดสอบด้วย AI ที่เสร็จแล้ว เรียงจากล่าสุด เปิดเพื่อดูผลลัพธ์",
+      description: "ผลการสร้างสถานการณ์และ Test Case ด้วย AI ที่เสร็จแล้ว เรียงจากล่าสุด เปิดเพื่อดูผลลัพธ์",
       filter: {
         all: "ทั้งหมด",
         scenarios: "สถานการณ์",
-        testCases: "กรณีทดสอบ",
+        testCases: "Test Case",
       },
       kind: {
         scenarios: "สถานการณ์",
-        testCases: "กรณีทดสอบ",
+        testCases: "Test Case",
       },
       scenarioCount_other: "{{count}} สถานการณ์",
-      caseCount_other: "{{count}} กรณีทดสอบ",
+      caseCount_other: "{{count}} Test Case",
       mode: {
         replace: "ร่าง",
         more: "สร้างเพิ่ม",
