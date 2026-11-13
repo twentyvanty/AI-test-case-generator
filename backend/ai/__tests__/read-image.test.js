@@ -18,6 +18,23 @@ test("the image prompt asks for a transcription plus diagrams, in the image's la
   assert.match(prompt, /"spec\.png"/);
 });
 
+test("the image prompt skips page furniture and rejoins split words, but keeps the exact text (Test 8)", () => {
+  const { system } = readImagePrompt({ fileName: "book-page.jpg" }, []);
+
+  // Seen in the book page of Test 8: a running header and "(Contd.)" mid-flow, 4 hyphen-split words
+  assert.match(system, /Skip page furniture/);
+  assert.match(system, /"300 Software Testing"/);
+  assert.match(system, /"\(Contd\.\)" or "\(ต่อ\)"/);
+  assert.match(system, /Rejoin a word split at the end of a line with a hyphen/);
+  assert.match(system, /Keep real hyphens/);
+  // Thai has no spaces between words, so wrapped Thai lines are joined without one
+  assert.match(system, /WITHOUT a space in Thai/);
+  assert.match(system, /If you're not sure something is page furniture, keep it/);
+  // Still an exact transcription otherwise
+  assert.match(system, /Never paraphrase, summarise, correct, translate/);
+  assert.match(system, /The only exceptions to "exactly"/);
+});
+
 test("reading an image passes it to the vision provider and returns its text", async () => {
   let received;
   const vision = {

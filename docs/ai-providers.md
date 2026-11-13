@@ -202,6 +202,7 @@ So the default validator is now **`nvidia/nemotron-3.5-super-vl:free`**. It's a 
 
 In Step 1, testers can attach **images** (PNG, JPG or WebP, up to 5 MB): screenshots of a spec, scans, UI mock-ups, flow or state diagrams.
 - A **vision model** transcribes the visible text exactly, then describes diagrams and screens under a `Diagram/screen:` line (`ai/prompts/readImage.js`).
+- The only exceptions to "exactly" are page layout: running headers and footers, page numbers and "(Contd.)" markers are skipped, words split with a hyphen at a line end are rejoined, and lines that only wrap inside a paragraph are joined (without a space in Thai). If unsure, the reader keeps the text. Added 2026-11-14 after the book page in Test 8 of the AI Test Log.
 - The text is added to the requirement details as `--- from <image> (read by AI, please check) ---`.
 - There's no validator; the tester is the check. Each image uses **one AI request** and usually takes about 10–80 s.
 - Every read is **logged** in the `ImageRead` table (D-033): model, time, tokens, the text, or why it failed. The image itself isn't stored.

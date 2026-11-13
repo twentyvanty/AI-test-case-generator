@@ -4,6 +4,19 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-14 — The image reader skips page furniture
+
+**Goal.** Improvement 3 from Test 8 of the AI Test Log. The three stored reads of the book page (`ImageRead` #9–11, Gemini 4 Carbon, 683 words each) were otherwise exact, but contained:
+- `(Contd.)`, `300 Software Testing` (running header + page number), `(Contd.)` in the middle of the Edit flow
+- 4 words split at line ends (`updat-`/`ing`, `informa-`/`tion`, `mes-`/`sage`, `can-`/`celled`)
+- the book's line wrapping inside sentences
+
+**What was built** (prompt only): `ai/prompts/readImage.js` gained one rule with the only exceptions to "transcribe exactly": skip page furniture, rejoin hyphen-split words (keeping real hyphens like "e-mail" or "8-20"), join lines that only wrap inside a paragraph (without a space in Thai), and keep anything that might not be furniture.
+
+**How it was checked:** `npm test`: **132 tests** (1 new: the rules are in the prompt, and the exact-transcription rule is still there). The mock can't read images, so the real effect needs one upload of the same page. Its `ImageRead` row can then be compared with #9–11 without another AI call.
+
+---
+
 ## 2026-11-14 — One test-data plan for all test-case batches
 
 **Goal.** Improvement 2 from Test 8 of the AI Test Log: batches made up their own test data (mixed school codes), and one case deleted a record other cases needed.
