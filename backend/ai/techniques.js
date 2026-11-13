@@ -60,7 +60,7 @@ export const TECHNIQUES = [
     description:
       "Follow whole user tasks from start to end: the main flow, alternative flows and error or exception flows.",
     guidance:
-      "Use when the requirement describes a user task, user story or flow of steps. For each use case, test the main (happy) flow end to end, each alternative flow, and the important exception flows (e.g. invalid data, cancel, timeout, a step that fails). Each test case follows the flow step by step from its start state to the visible end result, with concrete data.",
+      "Use when the requirement describes a user task, user story or flow of steps. Scenarios: one per flow of each use case (the main (happy) flow, each alternative flow, and the important exception flows, e.g. invalid data, cancel, timeout, a step that fails), naming the flow, where it starts and its visible end result, without made-up test data. Test cases: follow the flow step by step from its start state to the visible end result, with concrete test data.",
   },
 ];
 

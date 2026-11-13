@@ -4,6 +4,23 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-14 — Scenarios no longer fail for "no concrete test data"
+
+**Goal.** Fix the first of three improvements found in Test 8 of the AI Test Log: the GPT validator applied the use-case rule "concrete data" to scenarios, so good scenarios failed all 3 attempts.
+
+**What was built** (prompts only, no code or API change)
+- `ai/techniques.js`: the use-case guidance separates scenarios (one per flow, no made-up test data) from test cases (step by step, concrete test data).
+- `ai/prompts/draftScenarios.js`: scenario descriptions name the requirement's inputs, conditions and values but don't invent test data.
+- `ai/prompts/validate.js`: a scenario-only note: scenarios are outlines; missing test data or steps is never a fail or a warning; technique guidance about steps, test data or preconditions applies to test cases.
+
+**Decision:** D-034.
+
+**How it was checked:** `npm test`: **121 tests** (1 new: the note is in the scenario validator only, the test-case validator still asks for concrete values, and the generator prompt and use-case guidance say the same).
+
+**Follow-ups:** one paid run of the same school use case to compare with Test 8 (only with the user's go-ahead). Improvements 2 (shared test-data plan across batches) and 3 (image prompt skips page furniture) come next, one at a time.
+
+---
+
 ## 2026-11-12 — Image reads are logged (`ImageRead`)
 
 **Goal.** Measure requirement-image reads like the other AI steps: an image test failed late at night ("Gemini is busy… Also: OpenRouter is busy…") and left no trace, because image reads weren't saved.

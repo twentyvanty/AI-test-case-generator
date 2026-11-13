@@ -24,6 +24,16 @@ The test cases are for the scenarios in <scenarios> only; other parts of the req
 A scenario's test cases need only the values and conditions that scenario names (a scenario about "days 14 and 15" needs cases for days 14 and 15). Values or cases it doesn't name (e.g. days 13 or 29) are warn at most in techniqueCompliance, never fail; fail only when a value the scenario names has no case, or a case applies the technique wrongly.`
       : "";
 
+  // Scenarios are outlines: concrete test data is a test-case rule. Without this note,
+  // strict validators (GPT, Test 8 in the AI Test Log) failed good use-case scenarios
+  // for "no concrete data" and used up all 3 attempts.
+  const scenariosNote =
+    kind === "SCENARIOS"
+      ? `
+
+Scenarios are short outlines, not test cases: each names one behaviour, flow, rule or condition to test and the requirement's values or conditions it is about. Concrete test data (example names, codes, records, exact input strings) and steps are added later in the test cases. A scenario without them is not vague or untestable and not a technique problem: never fail or warn for it. Technique guidance about steps, test data or preconditions applies to the test cases, not to the scenarios.`
+      : "";
+
   const system = `You are a careful, fair and independent QA reviewer. Another AI generated ${what} for a software requirement. Review them and report three checks.
 
 Rules:
@@ -43,7 +53,7 @@ Be fair and precise — a wrong "fail" makes the AI redo good work:
 - If you're not sure something is a problem, don't fail it.
 
 Status meaning: pass = no problems; warn = minor problems, still usable; fail = must be regenerated.
-Issues: short, specific and actionable, naming the item (e.g. "Scenario 'Reset link expiry' has no case for exactly 30 minutes"). Use an empty list when status is pass.${moreNote}${casesNote}`;
+Issues: short, specific and actionable, naming the item (e.g. "Scenario 'Reset link expiry' has no case for exactly 30 minutes"). Use an empty list when status is pass.${scenariosNote}${moreNote}${casesNote}`;
 
   const prompt = `${techniquesBlock(input.techniques ?? [])}
 

@@ -237,3 +237,13 @@ Separately, the `gemini-2.5-*` models turned out to be unavailable to new keys, 
 
 **Consequences.** Image reads can be measured like the other generations, and overloaded moments become evidence. Token counts for every AI call are now recorded, which the credit system (M5) needs. Showing image reads in History, and linking them to the requirement, would need a frontend change later.
 
+### D-034 — Concrete test data is a test-case rule, not a scenario rule
+**Context.** In Test 8 of the AI Test Log (2026-11-13), the GPT validator failed good use-case scenarios three times in a row because they "lack concrete school data". The use-case guidance asked for concrete data without saying at which level, and other guidance (boundary values "in the steps", pairwise combinations "in the precondition") also talks about test cases. Each failure made the AI rewrite every scenario. The scenarios ended "Needs review" after 3 attempts (140–158 s instead of 63 s), and the two real gaps the validator found were buried among these complaints.
+**Decision.**
+- The use-case guidance names both levels: **scenarios**, one per flow (main, alternative, exception), naming its start and visible end result, without made-up test data; **test cases** follow the flow step by step with concrete test data.
+- The scenario prompt says not to invent test data (example names, codes, records) in scenario descriptions.
+- The scenario validator is told that scenarios are outlines: missing test data or steps is never a fail or a warning, and technique guidance about steps, test data or preconditions applies to test cases. Values from the requirement (limits, conditions) still count for coverage.
+- The test-case validator is unchanged: steps without concrete values are still a problem there.
+
+**Consequences.** Scenario checks should pass sooner with a strict validator, and the review note should keep the real gaps. To be confirmed with one paid run of the same use case (logged in the AI Test Log).
+

@@ -39,7 +39,7 @@ ${BASE_RULES}
 - Each scenario covers ONE testable behaviour, rule or condition of the requirement.
 ${coverage}
 - title: short (max ~80 characters) and specific, e.g. "Reset link expiry at 30 minutes".
-- description: 1–2 sentences on what is tested and which inputs or conditions matter.
+- description: 1–2 sentences on what is tested and which inputs, conditions or values of the requirement matter. Don't invent test data (example names, codes, records); that is added in the test cases.
 - technique: the key of the technique this scenario applies.
 - estimatedCases: how many test cases this scenario needs with that technique (e.g. boundary value → usually 3–6).
 - No duplicate or overlapping scenarios.`;

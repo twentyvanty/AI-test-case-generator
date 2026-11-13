@@ -62,3 +62,21 @@ test("the test-case validator judges coverage against the scenarios sent, not th
   const scenarios = validatePrompt("SCENARIOS", input, { scenarios: [] });
   assert.doesNotMatch(scenarios.system, /for the scenarios in <scenarios> only/);
 });
+
+test("scenarios are outlines: concrete test data is only asked for in test cases", () => {
+  const input = { requirementText: english, techniques: ["useCase"] };
+
+  // The scenario validator must not fail scenarios for missing test data
+  const scenarios = validatePrompt("SCENARIOS", input, { scenarios: [] });
+  assert.match(scenarios.system, /Scenarios are short outlines, not test cases/);
+  assert.match(scenarios.system, /A scenario without them is not vague or untestable/);
+  const cases = validatePrompt("TEST_CASES", { ...input, scenarios: [] }, { testCases: [] });
+  assert.doesNotMatch(cases.system, /Scenarios are short outlines/);
+  assert.match(cases.system, /steps without concrete values/);
+
+  // The generator is told the same, and the use-case guidance splits the two levels
+  const draft = draftScenariosPrompt(input, []);
+  assert.match(draft.system, /Don't invent test data/);
+  assert.match(draft.prompt, /Scenarios: one per flow of each use case/);
+  assert.match(draft.prompt, /without made-up test data\. Test cases: .*with concrete test data/);
+});
