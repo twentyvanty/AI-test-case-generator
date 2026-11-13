@@ -50,7 +50,8 @@ test("the plan is one call with no AI validator, and passes with the mock", asyn
 test("a plan with a real-looking secret or a repeated record id is rejected", async () => {
   const secret = await planTestData(
     { requirementText, scenarios },
-    answering({ ...plan, conventions: ["Admin API key: AIzaSyA1234567890abcdefghijklmnopqrstuv"] })
+    // A fake key built at runtime, so secret scanners don't flag the source (as in checks.test.js)
+    answering({ ...plan, conventions: [`Admin API key: ${"AI" + "za"}${"x".repeat(35)}`] })
   );
   // After 3 attempts the draft is kept for the log, but never handed to the batches
   assert.equal(secret.status, "NEEDS_REVIEW");
