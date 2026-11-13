@@ -58,6 +58,9 @@ export function toAiScenarios(scenarios) {
 
     return {
       key,
+      // The scenario's own number (S1… restart in every batch): test cases name the
+      // records they set up after it, so names never clash across batches (D-035)
+      number: scenario.number,
       title: scenario.title,
       description: scenario.description,
       technique: scenario.technique ?? null,

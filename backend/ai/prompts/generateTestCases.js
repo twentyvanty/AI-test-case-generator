@@ -5,18 +5,21 @@ import {
   requirementBlock,
   techniquesBlock,
 } from "./shared.js";
+import { TEST_DATA_RULES, testDataPlanBlock } from "./planTestData.js";
 
 export function scenariosBlock(scenarios) {
   return `<scenarios>\n${scenarios
     .map(
       (scenario) =>
-        `${scenario.key}: ${scenario.title}\n  technique: ${scenario.technique ?? "any"}\n  about ${scenario.estimatedCases ?? 3} test cases\n  ${scenario.description ?? ""}`.trimEnd()
+        `${scenario.key}: ${scenario.title}${scenario.number ? ` (scenario no. ${scenario.number})` : ""}\n  technique: ${scenario.technique ?? "any"}\n  about ${scenario.estimatedCases ?? 3} test cases\n  ${scenario.description ?? ""}`.trimEnd()
     )
     .join("\n")}\n</scenarios>`;
 }
 
-// input: { requirementText, techniques: string[], scenarios: [{ key, title, description, technique, estimatedCases }] }
+// input: { requirementText, techniques: string[], scenarios: [{ key, number?, title, description, technique, estimatedCases }],
+//          testDataPlan? } — the plan shared by every batch (D-035)
 export function generateTestCasesPrompt(input, previousIssues) {
+  const plan = input.testDataPlan ?? null;
   const system = `You are a senior QA engineer. Expand the selected test scenarios into detailed, executable TEST CASES for a software requirement.
 
 Rules:
@@ -28,13 +31,13 @@ ${BASE_RULES}
 - steps: concrete actions a manual tester can follow, one action per step, with exact test values (e.g. "Enter 17 in the Age field").
 - expectedResult: the observable outcome that decides pass/fail.
 - technique: normally the scenario's technique. Apply it correctly (e.g. boundary value → just below, on, and just above each limit).
-- No duplicate test cases.`;
+- No duplicate test cases.${plan ? `\n${TEST_DATA_RULES}` : ""}`;
 
   const prompt = `${techniquesBlock(input.techniques ?? [])}
 
 ${requirementBlock(input.requirementText)}
 
-${scenariosBlock(input.scenarios)}${previousIssuesBlock(previousIssues)}
+${scenariosBlock(input.scenarios)}${plan ? `\n\n${testDataPlanBlock(plan)}` : ""}${previousIssuesBlock(previousIssues)}
 
 ${languageBlock(input.requirementText)}`;
 

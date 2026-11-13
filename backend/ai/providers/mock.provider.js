@@ -294,6 +294,26 @@ function generateTestCases({ scenarios, techniques }) {
   return { testCases };
 }
 
+// ---- test-data plan (D-035) ----------------------------------------------------
+
+function planTestData({ scenarios, existingPlan }) {
+  const records = existingPlan?.records ?? [];
+  const next = records.filter((record) => record.state === "exists").length + 1;
+  const id = `TEST-${String(next).padStart(3, "0")}`;
+
+  return {
+    conventions: [
+      ...(existingPlan?.conventions ?? []),
+      ...(existingPlan ? [] : ["Shared records: TEST- + 3 digits", "Records a test case sets up itself: TEST-T<scenario number>-<case position>", "Emails: <name>@example.com"]),
+    ],
+    records: [
+      ...records,
+      { id, type: "Sample record", details: shorten(`Used by: ${scenarios.map((s) => s.title).join("; ")}`, 500), state: "exists" },
+      ...(existingPlan ? [] : [{ id: "TEST-999", type: "Sample record", details: "Never created, for \"not found\" checks", state: "doesNotExist" }]),
+    ],
+  };
+}
+
 // ---- provider ----------------------------------------------------------------------
 
 const MALFORMED = {
@@ -301,6 +321,7 @@ const MALFORMED = {
   SCENARIOS: { scenarios: [{ title: "Incomplete scenario" }] },
   TEST_CASES: { testCases: [{ title: "Incomplete test case" }] },
   IMAGE_TEXT: { text: "" },
+  TEST_DATA_PLAN: { records: [{ id: "" }] },
 };
 
 // Image reading: the mock can't see the image, so it returns clearly fake text
@@ -351,6 +372,8 @@ export function createMockProvider({ role, failMode = "never" }) {
         data = readImage(input);
       } else if (kind === "TECHNIQUE_SUGGESTION") {
         data = suggestTechniques(input.requirementText);
+      } else if (kind === "TEST_DATA_PLAN") {
+        data = planTestData(input);
       } else if (kind === "SCENARIOS") {
         data = input.existingScenarios?.length > 0 ? moreScenarios(input) : draftScenarios(input);
       } else {

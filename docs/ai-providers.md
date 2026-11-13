@@ -65,6 +65,16 @@ A test-case answer is the longest the AI writes, so "Generate test cases" doesn'
 
 Thai answers need more tokens and time than English ones, so Thai reaches the time limit first.
 
+### One test-data plan for all batches (D-035)
+
+Batches can't see each other, so each one used to make up its own test data (in Test 8 of the AI Test Log, batches used different school codes, and one case deleted a school other cases still needed). Now one short call comes first:
+
+- `planTestData` (kind `TEST_DATA_PLAN`) writes **conventions** (naming and formats) and **shared records** (`exists` = set up before testing; `doesNotExist` = a value for "not found" checks). Generator only, no AI validator; format check (unique record ids) + sensitive-data check. **At most 2 tries** (each batch still has its own 3). About 10–30 s per try.
+- Every batch gets the same plan and two rules: shared records are **read-only**; a case that adds, edits or deletes data sets up its **own** record in its precondition, named with its scenario number and position (e.g. `SCH-T3-2`), so names never clash across batches.
+- The validator gets the plan too; breaking it is a **warning**, never a fail, so it costs no retry.
+- The plan is saved on the requirement (`Requirement.testDataPlan`). Later clicks send it back and **only add** records (the code keeps existing ones even if the AI changes them). When no test cases are left, it's cleared.
+- Only a PASSED plan is used. If planning fails (busy, quota, a failed check), the batches run without a plan, as before.
+
 ### When the AI service has problems
 
 | Problem (HTTP code) | What happens |
@@ -113,7 +123,8 @@ Taking `try-ai.js cases "Users must reset their password…"` as the example:
 
 | File | Role |
 |---|---|
-| `ai/index.js` | Public API: `suggestTechniques`, `draftScenarios`, `generateTestCases`. The rest of the backend imports only this |
+| `ai/index.js` | Public API: `suggestTechniques`, `draftScenarios`, `planTestData`, `generateTestCases`, `readRequirementImage`. The rest of the backend imports only this |
+| `ai/test-data-plan.js` | Keeps the test-data plan add-only (`mergeTestDataPlans`) and picks the plan the batches get (`nextTestDataPlan`) |
 | `ai/orchestrator.js` | The pipeline above |
 | `ai/techniques.js` | Technique list and prompt guidance. **Add new techniques here** (plus frontend translations) |
 | `ai/schemas.js` | zod schemas for every AI answer. Also sent to the model as a JSON schema |

@@ -57,6 +57,28 @@ export const testCaseSetSchema = z.object({
     .max(300),
 });
 
+// Before test cases: one test-data plan shared by every batch (D-035), so all
+// batches use the same records and naming. Shared records are read-only for the
+// test cases; a case that adds, edits or deletes data sets up its own record.
+export const TEST_DATA_STATES = ["exists", "doesNotExist"];
+
+export const testDataPlanSchema = z.object({
+  // Naming and format rules for test data, e.g. "School codes: SCH-0xx"
+  conventions: z.array(text(300)).max(10),
+  records: z
+    .array(
+      z.object({
+        id: text(60), // e.g. "SCH-001"
+        type: text(100), // e.g. "School"
+        details: text(500),
+        // exists = set up before testing, read-only; doesNotExist = a value that is
+        // guaranteed to be missing, for "not found" checks
+        state: z.enum(TEST_DATA_STATES),
+      })
+    )
+    .max(20),
+});
+
 export const CHECK_STATUSES = ["pass", "warn", "fail"];
 
 export const checkResultSchema = z.object({

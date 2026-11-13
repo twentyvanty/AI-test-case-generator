@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE `GenerationRun` MODIFY `kind` ENUM('TECHNIQUE_SUGGESTION', 'SCENARIOS', 'TEST_CASES', 'TEST_DATA_PLAN') NOT NULL;
+
+-- AlterTable
+ALTER TABLE `Requirement` ADD COLUMN `testDataPlan` JSON NULL;

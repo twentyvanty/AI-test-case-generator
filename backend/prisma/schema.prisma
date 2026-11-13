@@ -27,6 +27,7 @@ enum GenerationKind {
   TECHNIQUE_SUGGESTION
   SCENARIOS
   TEST_CASES
+  TEST_DATA_PLAN // the test data shared by one click's test-case batches (D-035)
 }
 
 enum GenerationStatus {
@@ -110,6 +111,9 @@ model Requirement {
   sourceFileName String?           @db.VarChar(255)
   techniques     Json // technique keys, e.g. ["boundaryValue"] — strings so new techniques need no migration
   status         RequirementStatus @default(DRAFT)
+  // The test data every test case shares (D-035): { conventions, records }. Only
+  // grows while test cases exist; cleared when the last one is deleted.
+  testDataPlan   Json?
 
   scenarios Scenario[]
   testCases TestCase[]

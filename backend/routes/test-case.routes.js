@@ -33,6 +33,9 @@ const router = express.Router({ mergeParams: true });
  *     summary: Generate test cases for the scenarios that don't have any yet
  *     operationId: draftTestCases
  *     description: |
+ *       First, one short AI call writes the test-data plan every batch shares (saved
+ *       run of kind TEST_DATA_PLAN, stored as the requirement's testDataPlan; it only
+ *       grows on later calls; D-035). If it fails, the batches run without a plan.
  *       Sends only the scenarios without test cases to the AI (generator + validator,
  *       up to 3 attempts), in small batches (at most 8 estimated test cases, usually
  *       2–3 scenarios), two batches at a time: one saved run per batch. Results are

@@ -130,6 +130,28 @@ const definition = {
               },
               scenarios: { type: "array", items: { $ref: "#/components/schemas/Scenario" } },
               testCaseCount: { type: "integer", example: 12 },
+              testDataPlan: {
+                type: "object",
+                nullable: true,
+                description:
+                  "The test data every test case shares (D-035), written before the test-case batches. " +
+                  "Only grows while test cases exist; null when there are none.",
+                properties: {
+                  conventions: { type: "array", items: { type: "string" }, example: ["School codes: SCH- + 3 digits"] },
+                  records: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        id: { type: "string", example: "SCH-001" },
+                        type: { type: "string", example: "School" },
+                        details: { type: "string", example: "Green Valley School, 120 students" },
+                        state: { type: "string", enum: ["exists", "doesNotExist"] },
+                      },
+                    },
+                  },
+                },
+              },
               testCases: { type: "array", items: { $ref: "#/components/schemas/TestCase" } },
               latestScenarioRun: {
                 type: "object",
@@ -404,7 +426,7 @@ const definition = {
         properties: {
           id: { type: "integer" },
           requirementId: { type: "integer" },
-          kind: { type: "string", enum: ["TECHNIQUE_SUGGESTION", "SCENARIOS", "TEST_CASES"] },
+          kind: { type: "string", enum: ["TECHNIQUE_SUGGESTION", "SCENARIOS", "TEST_CASES", "TEST_DATA_PLAN"] },
           status: { $ref: "#/components/schemas/GenerationStatus" },
           attempts: { type: "integer", minimum: 1, maximum: 3 },
           generatorModel: { type: "string", example: "gemini-3.5-flash" },

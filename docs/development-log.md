@@ -4,6 +4,28 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-14 — One test-data plan for all test-case batches
+
+**Goal.** Improvement 2 from Test 8 of the AI Test Log: batches made up their own test data (mixed school codes), and one case deleted a record other cases needed.
+
+**What was built** (backend only)
+- Migration `add_test_data_plan`: `Requirement.testDataPlan` (JSON, nullable) and the run kind `TEST_DATA_PLAN`.
+- AI: `planTestData()` with a new prompt (`prompts/planTestData.js`) and schema (conventions + up to 20 records); format check for repeated ids and the sensitive-data check; at most 2 tries (the batches wait for it, and run without it if it fails); a mock answer. `ai/test-data-plan.js` keeps the plan add-only and uses only a PASSED plan.
+- The test-case prompt gets the plan and the rules (shared records are read-only; a case that changes data sets up its own record, named with its scenario number). Batches now see each scenario's number. The validator gets the plan and only warns when a case breaks it.
+- `generateTestCasesFor`: plan first (its own run, same `generationId`), saved on the requirement, then the batches with the plan. `refreshStatus` clears the plan when no test cases are left. History → Generated doesn't list plan runs.
+- Swagger: the run kind, `testDataPlan` in the requirement detail, and the generation description.
+
+**Decision:** D-035.
+
+**How it was checked:**
+- `npm test`: **131 tests** (10 new: the plan pipeline without a validator, at most 2 tries, secrets and repeated ids rejected and never used, add-only merge, a failed plan keeps the old one, the prompts with and without a plan, the validator only warns, the plan cleared with the last test case, History ignores plan runs).
+- Migration SQL read before applying (one enum value, one nullable column); replay check empty.
+- A database check with the mock AI and a temporary user (deleted afterwards): the plan is saved, both batches get the same plan, a second click only adds a record, History doesn't list it, and deleting every scenario clears it. With the AI "busy", the plan run is saved as FAILED and the batches still run without a plan.
+
+**Follow-ups:** one paid run of the school use case to compare with Test 8 (only with the user's go-ahead); show the plan on screen later; improvement 3 (image prompt) next.
+
+---
+
 ## 2026-11-14 — Scenarios no longer fail for "no concrete test data"
 
 **Goal.** Fix the first of three improvements found in Test 8 of the AI Test Log: the GPT validator applied the use-case rule "concrete data" to scenarios, so good scenarios failed all 3 attempts.

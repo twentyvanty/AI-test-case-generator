@@ -10,6 +10,7 @@ import { runPipeline } from "./orchestrator.js";
 import { getProviders } from "./providers/index.js";
 
 export { TECHNIQUES, TECHNIQUE_KEYS } from "./techniques.js";
+export { mergeTestDataPlans, nextTestDataPlan } from "./test-data-plan.js";
 
 // Step 0: read a requirement image into text (vision model). The text goes into
 // the editable requirement details; there's no AI validator for it.
@@ -56,11 +57,39 @@ export function draftScenarios(
   });
 }
 
+// Step 2 → 3, first: one test-data plan shared by every test-case batch (D-035).
+// scenarios: [{ title, description, technique }]; existingPlan: the plan earlier
+// test cases use (only records are added). No AI validator, like suggestions.
+// At most PLAN_MAX_ATTEMPTS tries: the batches wait for it, and without a plan
+// they still run as before, so a 3rd try isn't worth the wait.
+export const PLAN_MAX_ATTEMPTS = 2;
+
+export function planTestData(
+  { requirementText, scenarios, existingPlan = null },
+  providers = getProviders()
+) {
+  return runPipeline({
+    kind: "TEST_DATA_PLAN",
+    maxAttempts: PLAN_MAX_ATTEMPTS,
+    input: {
+      requirementText,
+      scenarios: scenarios.map(({ title, description, technique }) => ({
+        title,
+        description,
+        technique: technique ?? null,
+      })),
+      ...(existingPlan && { existingPlan }),
+    },
+    ...providers,
+  });
+}
+
 // Step 2 → 3: expand the selected scenarios into test cases.
-// scenarios: [{ key?, title, description, technique, estimatedCases }]
+// scenarios: [{ key?, number?, title, description, technique, estimatedCases }]
+// testDataPlan: the shared plan from planTestData (optional).
 // Each output test case has scenarioKey = the scenario's key ("S1", "S2", … if not given).
 export function generateTestCases(
-  { requirementText, techniques = [], scenarios },
+  { requirementText, techniques = [], scenarios, testDataPlan = null },
   providers = getProviders()
 ) {
   return runPipeline({
@@ -68,6 +97,7 @@ export function generateTestCases(
     input: {
       requirementText,
       techniques,
+      ...(testDataPlan && { testDataPlan }),
       scenarios: scenarios.map((scenario, index) => ({
         ...scenario,
         key: scenario.key ?? `S${index + 1}`,

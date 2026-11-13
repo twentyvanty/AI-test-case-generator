@@ -7,6 +7,7 @@ import {
   toJsonSchema,
   validatorReportSchema,
   imageTextSchema,
+  testDataPlanSchema,
 } from "./schemas.js";
 import { countFailures, mergeResults, pass } from "./checks/result.js";
 import { checkStructure } from "./checks/structure.js";
@@ -17,6 +18,7 @@ import { draftScenariosPrompt } from "./prompts/draftScenarios.js";
 import { generateTestCasesPrompt } from "./prompts/generateTestCases.js";
 import { validatePrompt } from "./prompts/validate.js";
 import { readImagePrompt } from "./prompts/readImage.js";
+import { planTestDataPrompt } from "./prompts/planTestData.js";
 
 export const MAX_ATTEMPTS = 3;
 
@@ -30,6 +32,12 @@ const KINDS = {
     schema: techniqueSuggestionSchema,
     buildPrompt: suggestTechniquesPrompt,
     aiValidation: false, // cheap helper call: format check only
+  },
+  TEST_DATA_PLAN: {
+    schema: testDataPlanSchema,
+    buildPrompt: planTestDataPrompt,
+    aiValidation: false, // a short helper step before test cases (D-035)
+    sensitiveCheck: true, // its records go into every test case
   },
   SCENARIOS: {
     schema: scenarioDraftSchema,
@@ -165,8 +173,8 @@ export async function runPipeline({ kind, input, generator, validator, maxAttemp
     const format = checkStructure(kind, output, input);
 
     if (!config.aiValidation) {
-      const checks = { format };
-      const passed = format.status !== "fail";
+      const checks = config.sensitiveCheck ? { format, rules: checkSensitiveData(output) } : { format };
+      const passed = countFailures(checks) === 0;
 
       attempts.push({ attempt, passed, seconds, checks, output });
 

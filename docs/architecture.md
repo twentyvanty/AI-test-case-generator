@@ -100,7 +100,7 @@ Current endpoints (all require login):
 | DELETE | `/api/projects/:projectId/requirements/:number/scenarios/:scenarioNumber` | Move a scenario **and its test cases** to Recently deleted for 7 days |
 | GET | `/api/projects/:projectId/requirements/:number/scenario-runs` | The last 10 scenario drafts (draft history) |
 | POST | `/api/projects/:projectId/requirements/:number/scenario-runs/:runId/restore` | Replace the scenarios with that draft's saved list; 409 once test cases exist |
-| POST | `/api/projects/:projectId/requirements/:number/test-case-drafts` | AI writes test cases for the scenarios that have none yet, in batches (D-030); returns every batch's run and all test cases. Existing cases are never replaced |
+| POST | `/api/projects/:projectId/requirements/:number/test-case-drafts` | AI writes a shared test-data plan (D-035), then test cases for the scenarios that have none yet, in batches (D-030); returns every batch's run and all test cases. Existing cases are never replaced |
 | GET | `/api/projects/:projectId/requirements/:number/test-cases` | The requirement's test cases |
 | PATCH | `/api/projects/:projectId/requirements/:number/test-cases/:testCaseNumber` | Set the status (Open / Pass / Fail) or edit title, precondition, steps, expected result |
 | DELETE | `/api/projects/:projectId/requirements/:number/test-cases/:testCaseNumber` | Move a test case to Recently deleted for 7 days |
@@ -164,11 +164,12 @@ erDiagram
         string sourceFileName
         json techniques "technique keys"
         enum status "DRAFT to REPORTED"
+        json testDataPlan "shared test data (D-035)"
     }
     GenerationRun {
         int id PK
         int requirementId FK
-        enum kind "TECHNIQUE_SUGGESTION, SCENARIOS, TEST_CASES"
+        enum kind "TECHNIQUE_SUGGESTION, SCENARIOS, TEST_CASES, TEST_DATA_PLAN"
         enum status "PASSED, NEEDS_REVIEW, FAILED"
         int attempts "1 to 3"
         string generatorModel
@@ -255,7 +256,7 @@ flowchart LR
 
 Status: Steps 1–3 and 5 are built (Slices 3–5). The defect report (under Step 3, and in the report) comes in Slice 6, and test scripts in Slice 7.
 
-Each AI step goes through the same pipeline: **generate → format check → rule checks → AI validation (a different model) → retry up to 3 times**. If it still fails, the result is marked *needs review* for the tester to fix by hand. Every generation is stored as a `GenerationRun`: scenario drafts can be restored (any of the last 10, until test cases exist), and every finished generation is listed in History → Generated. Test cases are generated in batches of at most 8 estimated cases, two at a time, one run per batch (D-030).
+Each AI step goes through the same pipeline: **generate → format check → rule checks → AI validation (a different model) → retry up to 3 times**. If it still fails, the result is marked *needs review* for the tester to fix by hand. Every generation is stored as a `GenerationRun`: scenario drafts can be restored (any of the last 10, until test cases exist), and every finished generation is listed in History → Generated. Test cases are generated in batches of at most 8 estimated cases, two at a time, one run per batch (D-030). Before the batches, one short call writes the test-data plan they all share (D-035).
 
 ## AI module (`backend/ai/`)
 
@@ -265,7 +266,8 @@ A self-contained module. The rest of the backend imports only `backend/ai/index.
 |---|---|---|
 | `suggestTechniques({ requirementText })` | Step 1 "Let AI suggest" | Suggested techniques with reasons |
 | `draftScenarios({ requirementText, techniques })` | Step 1 → 2 | Scenarios (title, description, technique, estimated case count) |
-| `generateTestCases({ requirementText, techniques, scenarios })` | Step 2 → 3 (called once per batch) | Test cases linked to scenarios |
+| `planTestData({ requirementText, scenarios, existingPlan })` | Step 2 → 3, before the batches | The shared test-data plan: conventions + records (D-035) |
+| `generateTestCases({ requirementText, techniques, scenarios, testDataPlan })` | Step 2 → 3 (called once per batch) | Test cases linked to scenarios |
 | `readRequirementImage({ fileName, mimeType, base64 })` | Step 1 image upload | The image's text, for the editable details (D-027) |
 
 Each returns an object shaped like a `GenerationRun` row: status, attempts, output, per-attempt check results, token usage and model names. Providers are swappable per role: OpenRouter (main, free models now), Gemini (images first; optional for text), a mock for tests and offline work, and OpenAI/Claude can be added. Full details, setup and the switching guide: [ai-providers.md](ai-providers.md).

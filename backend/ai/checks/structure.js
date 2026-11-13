@@ -41,5 +41,22 @@ export function checkStructure(kind, output, input) {
     return fromIssues({ failures });
   }
 
+  if (kind === "TEST_DATA_PLAN") {
+    const seen = new Set();
+    const failures = [];
+
+    for (const record of output.records) {
+      const id = record.id.toLowerCase();
+
+      if (seen.has(id)) {
+        failures.push(`Test-data record "${record.id}" is listed twice; every record needs its own id`);
+      }
+
+      seen.add(id);
+    }
+
+    return fromIssues({ failures });
+  }
+
   return pass();
 }

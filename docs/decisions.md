@@ -247,3 +247,15 @@ Separately, the `gemini-2.5-*` models turned out to be unavailable to new keys, 
 
 **Consequences.** Scenario checks should pass sooner with a strict validator, and the review note should keep the real gaps. To be confirmed with one paid run of the same use case (logged in the AI Test Log).
 
+### D-035 — One test-data plan shared by every test-case batch
+**Context.** Test cases are written in batches (D-030) that can't see each other, so each batch made up its own test data. In Test 8 of the AI Test Log (2026-11-13), runs 1 and 3 used different school codes and formats across batches, and in run 2 one case deleted a school that later cases still needed, so the cases depended on their order.
+**Decision.**
+- Before the batches, one short AI call (`planTestData`, kind `TEST_DATA_PLAN`) writes a **test-data plan**: naming conventions and shared records (`exists` or `doesNotExist`). Generator only, no AI validator (like technique suggestion); format check (unique ids) and sensitive-data check; **at most 2 tries** (not 3), because the batches wait for it and still run without it.
+- Every batch gets the same plan. **Shared records are read-only.** A case that adds, edits or deletes data sets up its own record in its precondition, with an id that includes its scenario number and position, so ids never clash across batches or later clicks.
+- The test-case validator gets the plan; breaking it is a **warning only**, so it never costs a retry.
+- The plan is stored on the requirement (`Requirement.testDataPlan`). Later clicks send it back and only add records; the code keeps existing records even if the AI changes them. It's cleared when no test cases are left.
+- Only a PASSED plan is used. If planning fails, the batches run without a plan, as before: a plan must never block test cases.
+- Backend only for now; the plan isn't shown on screen yet.
+
+**Consequences.** One extra call per click (about 10–30 s and a few cents). Test cases share one set of data and can run in any order. Test cases restored from Recently deleted after the plan was cleared may use the old records. Showing the plan (in Step 3 or the downloaded table) is a later frontend part. To be confirmed with one paid run.
+

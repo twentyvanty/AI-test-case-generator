@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { statusFor } from "../requirement-status.js";
+import { refreshStatus, statusFor } from "../requirement-status.js";
+import { HISTORY_KINDS } from "../history.service.js";
 import {
   scenariosWithoutCases,
   MAX_CASES_PER_BATCH,
@@ -39,6 +40,7 @@ test("scenarios are sent to the AI as S1, S2… and mapped back to their ids", (
   assert.deepEqual(aiScenarios.map((item) => item.key), ["S1", "S2"]);
   assert.equal(aiScenarios[0].estimatedCases, 3, "0 estimated cases → ask for about 3");
   assert.equal("id" in aiScenarios[0], false, "database ids aren't sent to the AI");
+  assert.equal(aiScenarios[0].number, 2, "the scenario's own number names the records its cases set up");
   assert.equal(scenarioIdByKey.get("S1"), 11);
   assert.equal(scenarioIdByKey.get("S2"), 12);
 });
@@ -87,4 +89,41 @@ test("scenarios are batched by estimated test cases, at most 8 per AI request", 
   // No estimate counts as 3
   assert.deepEqual(numbers(toCaseBatches([scenario(1, 0), scenario(2, 0), scenario(3, 0)])), [[1, 2], [3]]);
   assert.deepEqual(toCaseBatches([]), []);
+});
+
+// A fake transaction holding one requirement and its counts; records updates
+function fakeTx({ status, testDataPlan, scenarios, testCases }) {
+  const updates = [];
+
+  return {
+    updates,
+    requirement: {
+      findUnique: async () => ({ status, testDataPlan }),
+      update: async ({ data }) => updates.push(data),
+    },
+    scenario: { count: async () => scenarios },
+    testCase: { count: async () => testCases },
+  };
+}
+
+test("the test-data plan is cleared when no test cases are left, and kept otherwise (D-035)", async () => {
+  const plan = { conventions: [], records: [] };
+
+  const emptied = fakeTx({ status: "CASES_READY", testDataPlan: plan, scenarios: 2, testCases: 0 });
+  assert.equal(await refreshStatus(emptied, 1), "SCENARIOS_READY");
+  assert.equal(emptied.updates.length, 1);
+  assert.equal(emptied.updates[0].status, "SCENARIOS_READY");
+  assert.ok("testDataPlan" in emptied.updates[0], "plan cleared");
+
+  const kept = fakeTx({ status: "CASES_READY", testDataPlan: plan, scenarios: 2, testCases: 4 });
+  await refreshStatus(kept, 1);
+  assert.deepEqual(kept.updates, [], "nothing changes while test cases exist");
+
+  const noPlan = fakeTx({ status: "SCENARIOS_READY", testDataPlan: null, scenarios: 2, testCases: 0 });
+  await refreshStatus(noPlan, 1);
+  assert.deepEqual(noPlan.updates, [], "no write when there is no plan to clear");
+});
+
+test("History → Generated doesn't list test-data plan runs", () => {
+  assert.equal(HISTORY_KINDS.includes("TEST_DATA_PLAN"), false);
 });
