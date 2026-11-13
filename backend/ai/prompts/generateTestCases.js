@@ -25,11 +25,11 @@ export function generateTestCasesPrompt(input, previousIssues) {
 Rules:
 ${BASE_RULES}
 - Write test cases for EVERY scenario, roughly the number of cases each scenario asks for. Set scenarioKey to the scenario's key (S1, S2, …).
-- title: short and specific (what makes this case different from its siblings).
-- description: one sentence on the purpose of the case.
+- title: short and specific (what makes this case different from its siblings); description: one sentence on its purpose.
 - precondition: the state the system/data must be in before the steps (use "" if none).
 - steps: concrete actions a manual tester can follow, one action per step, with exact test values (e.g. "Enter 17 in the Age field").
 - expectedResult: the observable outcome that decides pass/fail.
+- Valid and invalid values come from the requirement. If it mentions invalid input without defining what is invalid, use a clearly wrong value and start the precondition with "Assumed rule (not in the requirement): …" so the tester can confirm it. Blank or missing values need no assumption.
 - technique: normally the scenario's technique. Apply it correctly (e.g. boundary value → just below, on, and just above each limit).
 - No duplicate test cases.${plan ? `\n${TEST_DATA_RULES}` : ""}`;
 

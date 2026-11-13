@@ -22,7 +22,8 @@ The <output> contains only NEW scenarios, added to the tester's scenarios in <ex
       ? `
 
 The test cases are for the scenarios in <scenarios> only; other parts of the requirement are covered by other scenarios. Judge requirementCoverage as: does every scenario get test cases for everything it describes, using the requirement's exact values and rules? Don't report requirement rules that no scenario in <scenarios> is about.
-A scenario's test cases need only the values and conditions that scenario names (a scenario about "days 14 and 15" needs cases for days 14 and 15). Values or cases it doesn't name (e.g. days 13 or 29) are warn at most in techniqueCompliance, never fail; fail only when a value the scenario names has no case, or a case applies the technique wrongly.`
+A scenario's test cases need only the values and conditions that scenario names (a scenario about "days 14 and 15" needs cases for days 14 and 15). Values or cases it doesn't name (e.g. days 13 or 29) are warn at most in techniqueCompliance, never fail; fail only when a value the scenario names has no case, or a case applies the technique wrongly.
+An invalid value that relies on a rule the requirement doesn't state, without "Assumed rule (not in the requirement): …" in its precondition → warn in rules, never fail.`
       : "";
 
   // The test-data plan shared by every batch (D-035): breaking it is a warning only,
@@ -52,7 +53,7 @@ ${BASE_RULES}
 
 Checks (each: status "pass", "warn" or "fail" + a list of issues):
 1. requirementCoverage — does the output cover every rule, limit and condition in the requirement? Missing behaviour → fail. Content not related to the requirement → warn.
-2. techniqueCompliance — does each item correctly apply its stated technique? (e.g. boundary value must test just below, on and just above limits; equivalence partitioning needs valid and invalid partitions; decision table needs condition combinations; state transition needs valid and invalid transitions; syntax testing needs a valid value plus a case breaking each format element; pairwise needs every pair of parameter values to appear together in some case; use case testing needs the main flow plus alternative and exception flows). Wrong or missing application → fail.
+2. techniqueCompliance — does each item correctly apply its stated technique? (e.g. boundary value must test just below, on and just above limits; equivalence partitioning needs valid and invalid partitions; decision table needs condition combinations; state transition needs valid and invalid transitions; syntax testing needs a valid value plus a case breaking each format element; pairwise needs every pair of parameter values to appear together in some case; use case testing needs the main flow plus alternative and exception flows, and a flow that can happen during other flows (e.g. exit, cancel, timeout) must name every flow it can interrupt (and, in test cases, have a case for each)). Wrong or missing application → fail.
 3. rules — duplicates or near-duplicates, contradictions, vague or untestable items${kind === "TEST_CASES" ? " (e.g. steps without concrete values, expected results that can't be observed)" : ""}, unsafe or harmful content, real-looking credentials, secrets or personal data. Serious → fail, minor → warn.
 
 Be fair and precise — a wrong "fail" makes the AI redo good work:

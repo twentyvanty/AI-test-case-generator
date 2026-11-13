@@ -259,3 +259,15 @@ Separately, the `gemini-2.5-*` models turned out to be unavailable to new keys, 
 
 **Consequences.** One extra call per click (about 10–30 s and a few cents). Test cases share one set of data and can run in any order. Test cases restored from Recently deleted after the plan was cleared may use the old records. Showing the plan (in Step 3 or the downloaded table) is a later frontend part. To be confirmed with one paid run.
 
+
+
+### D-036 — An assumed validation rule is stated, never invented silently
+**Context.** The school use case says a name or code can be "invalid" but never says what makes it invalid. Every model invented a rule anyway: Hydrogen used values like "12345!@#" and "###$$$"; GPT-6 Luna (Test 9) treated its own test-data naming rules ("Test School" + a word, "SCH-" + 3 digits) as the system's rules. A tester can't tell a real rule from a guess. In the same runs, "exit at any point" got cases for only some of the flows it can interrupt (Luna missed View; Hydrogen covered only Edit).
+**Decision.**
+- Valid and invalid values come from the requirement. If it mentions invalid input without defining it, the case still uses a clearly wrong value, and its precondition starts with "Assumed rule (not in the requirement): …" so the tester can confirm it. Blank or missing values need no assumption.
+- The test-data plan's conventions only name test data; they are never validation rules.
+- The test-case validator **warns** (never fails) on an invalid value without a stated assumption.
+- Use case: a flow that can happen during other flows (exit, cancel, timeout) names every flow it can interrupt and estimates one case per flow; the validator fails a scenario that doesn't name them, and then (existing rule) a named flow without a case.
+- Prompt examples were made neutral (no school codes, page headers or words from the test page), and the rule count of every prompt stayed the same: the new rules were merged into existing lines.
+
+**Consequences.** Cases with guessed rules stay (the book has "invalid name" and "invalid code" cases too) but are marked. Prompts grew by about 240 words in total. To be confirmed with one run of the school use case (the user runs paid tests).

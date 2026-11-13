@@ -4,6 +4,26 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-14 — Stated assumptions, interrupting flows, neutral prompt examples
+
+**Goal.** Two problems seen in Test 9 (GPT-6 Luna) and run 5 (Gemini 4 Hydrogen) of the AI Test Log, fixed as general rules rather than school-specific ones, without growing the prompts' rule count.
+
+**What was built** (prompts only)
+- `prompts/generateTestCases.js`: valid and invalid values come from the requirement; an undefined "invalid" gets a clearly wrong value and an "Assumed rule (not in the requirement): …" precondition. (Title and description rules merged to keep the count.)
+- `prompts/planTestData.js`: conventions only name test data, never validation rules (in the plan prompt and the batch rules).
+- `prompts/validate.js`: test cases → warn on an unstated assumption; use case → a flow that can happen during other flows must name every flow it can interrupt (and, in test cases, have a case for each).
+- `techniques.js`: the same interrupting-flow rule in the use-case guidance.
+- Neutral examples: "BK-" book ids instead of "SCH-" school codes; "Chapter 4 · 112", "(continued)" and "regis-tration" in the image reader instead of words from the test page.
+- `docs/ai-providers.md`: "Changing a prompt: rules of thumb".
+
+**Rule count** (rule lines per system prompt), before → after: scenarios 12 → 12, plan 11 → 11, test cases 15 → 15, scenario validator 13 → 13, test-case validator 13 → 13, image 11 → 11. Words: about +240 in total. Read through every prompt for contradictions: one found and fixed (the scenario validator was told to check "a case for each" flow, which only applies to test cases).
+
+**Decision:** D-036.
+
+**How it was checked:** `npm test`: **135 tests** (3 new: the assumption rule and its warn-only check; the interrupting-flow rule; no prompt contains words from the test documents). The mock can't judge prompts; the real check is one run of the school use case, which the user runs.
+
+---
+
 ## 2026-11-14 — The image reader skips page furniture
 
 **Goal.** Improvement 3 from Test 8 of the AI Test Log. The three stored reads of the book page (`ImageRead` #9–11, Gemini 4 Carbon, 683 words each) were otherwise exact, but contained:

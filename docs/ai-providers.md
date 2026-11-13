@@ -119,6 +119,15 @@ Taking `try-ai.js cases "Users must reset their password…"` as the example:
 - Answers are written in the requirement's language (Thai in → Thai out).
 - Only fake test data is allowed (`@example.com`, published test card numbers).
 
+### Changing a prompt: rules of thumb
+
+Prompts are tuned from real runs (AI Test Log), which risks rules that clash or only fit the documents we test with. Before adding a rule:
+- **Prefer a general rule** ("don't invent rules the requirement doesn't state") over a fix for one document.
+- **Examples never come from test documents** (the school use case): models copy examples word for word (Test 9: the plan copied "SCH- + 3 digits"). A unit test checks this.
+- **Keep the rule count steady**: merge the new rule into an existing line or replace one. Count rules before and after.
+- **Read the whole prompt for clashes** (two real failures were contradictions: "concrete data" for scenarios vs test cases; "each line" vs "join wrapped lines").
+- **Prefer code** for anything code can check (structure, ids, merging), and **warn instead of fail** in the validator unless the problem would mislead a tester, so a rule never costs retries for little gain.
+
 ## 2. Files
 
 | File | Role |

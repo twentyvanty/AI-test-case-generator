@@ -23,8 +23,7 @@ test("the image prompt skips page furniture and rejoins split words, but keeps t
 
   // Seen in the book page of Test 8: a running header and "(Contd.)" mid-flow, 4 hyphen-split words
   assert.match(system, /Skip page furniture/);
-  assert.match(system, /"300 Software Testing"/);
-  assert.match(system, /"\(Contd\.\)" or "\(ต่อ\)"/);
+  assert.match(system, /"\(continued\)", "\(cont\.\)" or "\(ต่อ\)"/);
   assert.match(system, /Rejoin a word split at the end of a line with a hyphen/);
   assert.match(system, /Keep real hyphens/);
   // Thai has no spaces between words, so wrapped Thai lines are joined without one
