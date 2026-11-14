@@ -24,6 +24,7 @@ import {
   toAiScenarios,
   toCaseBatches,
   toTestCaseRows,
+  withScenarioCodes,
 } from "./test-case-rows.js";
 
 // Runs the AI pipeline (backend/ai) for a requirement and saves the result as a
@@ -259,7 +260,14 @@ function saveBatch(requirement, { batch, input, scenarioIdByKey, result }, gener
       data: runData(
         requirement.id,
         { ...input, scenarioNumbers: batch.map((s) => s.number), generationId },
-        result
+        // Notes say "SC-14", not the batch's own "S7"
+        {
+          ...result,
+          validation: withScenarioCodes(
+            result.validation,
+            new Map(input.scenarios.map((scenario) => [scenario.key, scenario.number]))
+          ),
+        }
       ),
     });
 

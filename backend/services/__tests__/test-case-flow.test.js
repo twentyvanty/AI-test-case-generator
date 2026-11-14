@@ -9,6 +9,7 @@ import {
   toAiScenarios,
   toCountMap,
   toTestCaseRows,
+  withScenarioCodes,
 } from "../test-case-rows.js";
 
 test("the requirement status follows what it has", () => {
@@ -126,4 +127,42 @@ test("the test-data plan is cleared when no test cases are left, and kept otherw
 
 test("History → Generated doesn't list test-data plan runs", () => {
   assert.equal(HISTORY_KINDS.includes("TEST_DATA_PLAN"), false);
+});
+
+test("AI notes name the real scenario codes, not the batch's own keys", () => {
+  // A batch of scenarios 8 to 14: S1 = SC-08 … S7 = SC-14
+  const keyToNumber = new Map([8, 9, 10, 11, 12, 13, 14].map((number, index) => [`S${index + 1}`, number]));
+  const validation = {
+    final: {
+      format: { status: "pass", issues: [] },
+      rules: {
+        status: "warn",
+        issues: [
+          "Scenario S7 step 'Confirm deletion if prompted' is conditional",
+          "Several steps in S1 to S4 do not name the records",
+          "S9 is not in this batch; codes SC001 and S1A stay",
+        ],
+      },
+    },
+    attempts: [{ attempt: 1, passed: true, seconds: { generator: 37 }, checks: { rules: { status: "warn", issues: ["'S2' case X"] } } }],
+  };
+
+  const renamed = withScenarioCodes(validation, keyToNumber);
+
+  assert.deepEqual(renamed.final.rules.issues, [
+    "Scenario SC-14 step 'Confirm deletion if prompted' is conditional",
+    "Several steps in SC-08 to SC-11 do not name the records",
+    "S9 is not in this batch; codes SC001 and S1A stay",
+  ]);
+  assert.deepEqual(renamed.final.format, { status: "pass", issues: [] });
+  assert.deepEqual(renamed.attempts[0], {
+    attempt: 1,
+    passed: true,
+    seconds: { generator: 37 },
+    checks: { rules: { status: "warn", issues: ["'SC-09' case X"] } },
+  });
+  // The original isn't changed, and a failed run (no validation) is fine
+  assert.equal(validation.final.rules.issues[0].startsWith("Scenario S7"), true);
+  assert.equal(withScenarioCodes(null, keyToNumber), null);
+  assert.deepEqual(withScenarioCodes({ final: null, attempts: [] }, keyToNumber), { final: null, attempts: [] });
 });

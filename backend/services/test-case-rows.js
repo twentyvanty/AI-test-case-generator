@@ -95,6 +95,40 @@ export function toTestCaseRows({ requirementId, runId, testCases, scenarioIdByKe
   }));
 }
 
+// "SC-01", as the frontend shows a scenario number
+const scenarioCode = (number) => `SC-${String(number).padStart(2, "0")}`;
+
+// The AI's notes name scenarios by their batch key ("S7", "S1 to S4"), and every
+// batch starts again at S1, so a tester can't match them to the screen. Replaces
+// each key of this batch with the scenario's real code (S7 → SC-14) in every
+// note of the validation. Words that aren't a key of this batch stay as they are.
+//   keyToNumber: Map "S1" → scenario number
+export function withScenarioCodes(validation, keyToNumber) {
+  if (!validation || keyToNumber.size === 0) {
+    return validation;
+  }
+
+  const rename = (text) =>
+    typeof text === "string"
+      ? text.replace(/\bS\d+\b/g, (key) => (keyToNumber.has(key) ? scenarioCode(keyToNumber.get(key)) : key))
+      : text;
+
+  const renameChecks = (checks) =>
+    checks &&
+    Object.fromEntries(
+      Object.entries(checks).map(([name, check]) => [
+        name,
+        Array.isArray(check?.issues) ? { ...check, issues: check.issues.map(rename) } : check,
+      ])
+    );
+
+  return {
+    ...validation,
+    final: renameChecks(validation.final),
+    attempts: (validation.attempts ?? []).map((attempt) => ({ ...attempt, checks: renameChecks(attempt.checks) })),
+  };
+}
+
 // Map scenarioId → number of active test cases, from a groupBy result
 export function toCountMap(groups) {
   return new Map(groups.map((group) => [group.scenarioId, group._count._all]));

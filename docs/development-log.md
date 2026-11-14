@@ -4,6 +4,20 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-14 — AI notes name the real scenario codes
+
+**Goal.** The "AI notes to check" in Step 3 named scenarios as "S7" or "S1 to S4". Those are the keys of one AI request: each test-case batch numbers its scenarios from S1 again, so "S1" in two notes could mean SC-01 and SC-06. A tester couldn't match them to the screen. Found in a real run (AI Test Log, Test 10).
+
+**What was built**
+- `withScenarioCodes` in `services/test-case-rows.js`: replaces each key of the batch with the scenario's real code (S7 → SC-14) in every note of the validation (final result and each attempt). Text that isn't a key of that batch (e.g. "S9" in a 7-scenario batch, or test data like "SC001") stays as it is.
+- `saveBatch` applies it before saving the run, so the notes are stored with the real codes. The prompts and the keys the AI uses are unchanged, so no new real-AI run is needed.
+- Runs saved before this change keep their old "S" notes.
+
+**How it was checked**
+- A new unit test (keys, ranges, quoted keys, keys not in the batch, test-data codes, attempts, no validation). Backend tests: 150 pass.
+
+---
+
 ## 2026-11-14 — Slice 6b-1: Defect report under Step 3
 
 **Goal.** The defect UI from the final mock-up, under the test-case table. Screenshots in the form and table are part 6b-2.
