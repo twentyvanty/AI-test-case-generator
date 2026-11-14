@@ -161,6 +161,7 @@ function RequirementPage() {
         scenarios: [],
         testCases: [],
         testCaseCount: 0,
+        defectCount: 0,
         latestScenarioRun: null,
         latestCaseRun: null,
         caseRuns: [],

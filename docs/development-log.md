@@ -4,6 +4,25 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-14 — Slice 6b-1: Defect report under Step 3
+
+**Goal.** The defect UI from the final mock-up, under the test-case table. Screenshots in the form and table are part 6b-2.
+
+**What was built**
+- `DefectReport`: "Defect report" card with "Download defects" and "+ Add defect", the summary ("3 defects · 2 still open"; open = Open or In progress), the empty state, and the table (ID, defect + notes, test case, severity, priority, status, open → close, Edit / Delete). Badge colours from the mock-up (Critical red, Major amber; High red, Medium amber; Open amber, In progress blue, Fixed green, Closed grey).
+- `DefectForm`, inline as in the mock-up (at the top for a new defect, in place of the row for an edit): name, linked test case (this requirement's test cases, or "Not linked"; a linked case in Recently deleted stays selectable), severity, priority, status, open date (today) and close date, notes. The backend's date rules are mirrored so the tester sees them before saving (Closed → closed today; back to Open / In progress → no close date; close before open → message). An edit sends only the fields that changed.
+- Delete with a confirmation; it goes to Recently deleted.
+- CSV with the mock-up's columns (BOM for Thai in Excel).
+- Not in the mock-up, added: "Log a defect" in each test case's ⋯ menu (opens the form with that case linked and scrolls to it), and a "1 defect" badge on test cases that have defects. `ActionMenu` items can now be disabled (while a defect form is open).
+- EN + TH texts from the mock-up. Thai calls a defect "ข้อบกพร่อง", so the Recently deleted label from 6a-1 changed from "Defect" to match. The requirement detail type gained `defectCount`.
+
+**How it was checked**
+- Frontend `tsc`, `lint`, `build` and the i18n check pass.
+- A browser check (headless Chrome, a temporary Keycloak user, the mock AI and a test backend on port 5099; all removed afterwards): 18 checks — empty state, next ID shown, open date today, empty name refused and the message cleared when typing, a defect linked to a test case with Critical / High, "Log a defect" preselecting the case, the badge on the test case, Closed filling the close date, close before open refused, the CSV (BOM, rows, labels), delete → Recently deleted ("Defect · REQ-0001 · DEF-2") → restore, a deleted linked test case shown as "(deleted)", and the Thai summary. Screenshots in EN and TH compared with the mock-up.
+- Two details fixed during the check: the browser's own date limit blocked our clearer "close date before open date" message (removed), and the error message now disappears once the tester changes a field.
+
+---
+
 ## 2026-11-14 — Slice 6a-2: Defect screenshots (backend)
 
 **Goal.** Up to 3 screenshots per defect, stored safely (D-037). Backend only; the upload button and viewer are part 6b.

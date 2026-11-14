@@ -6,6 +6,7 @@ export type ActionMenuItem = {
   label: string;
   onSelect: () => void;
   danger?: boolean;
+  disabled?: boolean;
 };
 
 type ActionMenuProps = {
@@ -104,12 +105,13 @@ function ActionMenu({ label, items, disabled = false }: ActionMenuProps) {
                 key={item.label}
                 type="button"
                 role="menuitem"
+                disabled={item.disabled}
                 onClick={() => {
                   close();
                   item.onSelect();
                 }}
                 className={cn(
-                  "block w-full rounded-lg px-3 py-1.5 text-left text-sm transition hover:bg-gray-100",
+                  "block w-full rounded-lg px-3 py-1.5 text-left text-sm transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent",
                   item.danger ? "text-danger" : "text-ink"
                 )}
               >

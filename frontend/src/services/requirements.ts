@@ -120,6 +120,8 @@ export type RequirementDetail = Requirement & {
   scenarios: Scenario[];
   testCaseCount: number;
   testCases: TestCase[];
+  // Active defects (Slice 6); the list itself: services/defects
+  defectCount: number;
   // The runs behind the current scenarios / test cases (their review notes)
   latestScenarioRun: RunSummary | null;
   latestCaseRun: RunSummary | null;

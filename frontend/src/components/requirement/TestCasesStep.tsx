@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   deleteTestCase,
@@ -16,12 +16,15 @@ import {
   type TestCaseChanges,
   type TestCaseStatus,
 } from "../../services/requirements";
+import { getDefects, type Defect } from "../../services/defects";
 import { cn } from "../../utils/cn";
 import { countStatus, downloadCaseTable, groupByScenario } from "../../utils/testCaseExport";
 import ActionMenu from "../ui/ActionMenu";
 import Button from "../ui/Button";
 import Card from "../ui/Card";
+import Badge from "../ui/Badge";
 import Modal from "../ui/Modal";
+import DefectReport, { type DefectFormState } from "./DefectReport";
 import ReviewNote from "./ReviewNote";
 import TestCaseForm from "./TestCaseForm";
 
@@ -49,9 +52,8 @@ type TestCasesStepProps = {
 };
 
 // Step 3: the generated test cases, grouped by scenario, with a status (Open /
-// Pass / Fail) for each, edit and delete, and the table download. Coverage and
-// the report download live in Step 5; the defect report comes under the table
-// in Slice 6.
+// Pass / Fail) for each, edit and delete, and the table download; under them the
+// defect report (Slice 6). Coverage and the report download live in Step 5.
 function TestCasesStep({
   projectId,
   requirementNumber,
@@ -67,6 +69,41 @@ function TestCasesStep({
   const [editing, setEditing] = useState<TestCase | null>(null);
   const [deleting, setDeleting] = useState<TestCase | null>(null);
   const [busy, setBusy] = useState(false);
+  const [defects, setDefects] = useState<Defect[] | null>(null);
+  const [defectError, setDefectError] = useState<string | null>(null);
+  const [defectForm, setDefectForm] = useState<DefectFormState>(null);
+  const defectReportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    getDefects(projectId, requirementNumber)
+      .then((list) => active && setDefects(list))
+      .catch((error) => active && setDefectError(errorText(error)));
+
+    return () => {
+      active = false;
+    };
+  }, [projectId, requirementNumber]);
+
+  const changeDefects = (next: Defect[]) => {
+    setDefects(next);
+    onChange({ defectCount: next.length });
+  };
+
+  // Active defects per test case number, for the small badge in the table
+  const defectsByCase = new Map<number, number>();
+  for (const defect of defects ?? []) {
+    if (defect.testCaseNumber !== null) {
+      defectsByCase.set(defect.testCaseNumber, (defectsByCase.get(defect.testCaseNumber) ?? 0) + 1);
+    }
+  }
+
+  // "Log a defect" in a test case's ⋯ menu: the add form, with that case linked
+  const logDefect = (testCase: TestCase) => {
+    setDefectForm({ kind: "new", testCaseNumber: testCase.number });
+    requestAnimationFrame(() => defectReportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  };
 
   // Scenarios added after the test cases were generated (D-029)
   const pending = scenarios.filter((scenario) => scenario.testCaseCount === 0);
@@ -260,7 +297,14 @@ function TestCasesStep({
                       return (
                         <tr key={item.id} className="border-b border-gray-200/80 align-top last:border-0">
                           <td className="whitespace-nowrap px-2 py-4 font-mono text-xs leading-5 text-gray-500">{code}</td>
-                          <td className="px-2 py-4 font-medium leading-5 text-ink">{item.title}</td>
+                          <td className="px-2 py-4 font-medium leading-5 text-ink">
+                            {item.title}
+                            {defectsByCase.has(item.number) && (
+                              <Badge tone="danger" className="ml-2 whitespace-nowrap px-2 py-0.5 text-[0.6875rem]">
+                                {t("testCasesStep.defectCount", { count: defectsByCase.get(item.number) })}
+                              </Badge>
+                            )}
+                          </td>
                           <td className="px-2 py-4 text-xs leading-5 text-gray-600">{item.precondition}</td>
                           <td className="px-2 py-4 text-xs leading-5 text-gray-600">
                             <ol className="list-decimal space-y-0.5 pl-4">
@@ -303,6 +347,11 @@ function TestCasesStep({
                               items={[
                                 { label: t("testCasesStep.edit"), onSelect: () => setEditing(item) },
                                 {
+                                  label: t("testCasesStep.logDefect"),
+                                  onSelect: () => logDefect(item),
+                                  disabled: defectForm !== null || defects === null,
+                                },
+                                {
                                   label: t("testCasesStep.delete"),
                                   onSelect: () => setDeleting(item),
                                   danger: true,
@@ -320,6 +369,18 @@ function TestCasesStep({
           </div>
         )}
       </Card>
+
+      <DefectReport
+        ref={defectReportRef}
+        projectId={projectId}
+        requirementNumber={requirementNumber}
+        testCases={testCases}
+        defects={defects}
+        loadError={defectError}
+        onDefectsChange={changeDefects}
+        form={defectForm}
+        onFormChange={setDefectForm}
+      />
 
       <Modal
         open={editing !== null}
