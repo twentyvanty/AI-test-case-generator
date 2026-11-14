@@ -107,7 +107,10 @@ Current endpoints (all require login):
 | GET | `/api/projects/:projectId/requirements/:number/defects` | The requirement's defects (Slice 6), in DEF order, with the linked test case number |
 | POST | `/api/projects/:projectId/requirements/:number/defects` | Log a defect: title required; severity, priority, status, linked test case, dates and notes optional |
 | PATCH | `/api/projects/:projectId/requirements/:number/defects/:defectNumber` | Edit a defect (only the fields sent) |
-| DELETE | `/api/projects/:projectId/requirements/:number/defects/:defectNumber` | Move a defect to Recently deleted for 7 days |
+| DELETE | `/api/projects/:projectId/requirements/:number/defects/:defectNumber` | Move a defect (with its screenshots) to Recently deleted for 7 days |
+| POST | `/api/projects/:projectId/requirements/:number/defects/:defectNumber/images` | Attach 1–3 screenshots (multipart `files`; PNG / JPG / WebP by content, ≤ 5 MB, max 3 per defect, D-037) |
+| GET | `/api/projects/:projectId/requirements/:number/defects/:defectNumber/images/:imageId` | One screenshot, for its owner only (nosniff, no-store) |
+| DELETE | `/api/projects/:projectId/requirements/:number/defects/:defectNumber/images/:imageId` | Remove a screenshot and its file |
 | POST | `/api/projects/:projectId/requirements/:number/runs/:runId/reviewed` | "Mark as reviewed" on a scenario or test-case run |
 | GET | `/api/history/generations` | History → Generated: finished generations across the user's projects, one item per click (`?kind=`, `?limit=`) |
 | GET | `/api/trash` | The user's recently deleted requirements, scenarios, test cases and defects, with days left |
@@ -146,6 +149,7 @@ erDiagram
     Scenario ||--o{ TestCase : has
     Requirement ||--o{ Defect : "numbers DEFs"
     TestCase |o--o{ Defect : "found by (optional)"
+    Defect ||--o{ DefectImage : "max 3 screenshots"
     GenerationRun |o--o{ Scenario : produced
     GenerationRun |o--o{ TestCase : produced
 
@@ -227,6 +231,14 @@ erDiagram
         date closedOn "set to today when Closed without one"
         text notes
         datetime deletedAt "set = Recently deleted"
+    }
+    DefectImage {
+        int id PK
+        int defectId FK
+        string fileName "shown only"
+        string mimeType "png, jpeg or webp (by content)"
+        int size
+        string storedName "random name on disk"
     }
     ImageRead {
         int id PK
@@ -319,3 +331,7 @@ Settings come from environment variables, with local-development defaults. See `
 | `KEYCLOAK_CLIENT_ID` | backend | Client used by Swagger's "Authorize" (default `ai-test-case-frontend`) |
 | `GOOGLE_CLIENT_SECRET` | root `.env` (Docker) | Google login secret, filled into the imported Keycloak realm |
 | `OPENROUTER_API_KEY`, `OPENROUTER_*_MODEL`, `GEMINI_API_KEY`, `GEMINI_*_MODEL`, `GEMINI_*_FALLBACK_MODEL`, `AI_REQUEST_TIMEOUT_SECONDS`, `AI_GENERATOR_PROVIDER`, `AI_VALIDATOR_PROVIDER`, `AI_VISION_PROVIDER`, `AI_DEBUG`, `MOCK_FAIL_MODE` | backend | AI settings; see [ai-providers.md](ai-providers.md#3-setting-up-openrouter-main-provider) |
+
+## Uploaded files (D-037)
+
+Defect screenshots are the only files the app keeps (requirement documents and images are read and thrown away). They live on disk under `UPLOAD_DIR/defects/<defectId>/<random>.png|jpg|webp` (default `backend/uploads`, git-ignored) and are served only through the logged-in image endpoint. `services/defect-image-store.js` checks the type by content, names the files, and sweeps files whose defect is gone (after "Delete forever" and in the hourly purge). If the backend runs in Docker, mount `UPLOAD_DIR` as a volume.

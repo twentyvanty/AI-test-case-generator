@@ -4,6 +4,29 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-14 — Slice 6a-2: Defect screenshots (backend)
+
+**Goal.** Up to 3 screenshots per defect, stored safely (D-037). Backend only; the upload button and viewer are part 6b.
+
+**What was built**
+- Migration `add_defect_images`: a `DefectImage` table (defect, file name, type, size, stored name), deleted with its defect.
+- `services/defect-image-store.js`: type check by content (PNG, JPEG, WebP; SVG, GIF and others refused), random stored names (never the tester's, never a path), save without overwrite, remove, and a sweep for files whose defect is gone or that no database row knows (older than 10 minutes).
+- Endpoints `POST …/defects/:n/images` (multipart `files`, 1–3, ≤ 5 MB each, ≤ 3 per defect), `GET …/images/:imageId` (owner only; nosniff, CSP `default-src 'none'`, private no-store, inline with the real file name), `DELETE …/images/:imageId`. The defect list returns `images` (details only). `@openapi` for all three.
+- Every file is checked before any is saved; if saving the rows fails, the saved files are removed.
+- Delete forever and the hourly purge run the sweep, so files of defects removed with their requirement, project or user (database cascade) go too. A failed sweep never fails the delete.
+- `UPLOAD_DIR` in `.env.example`; `uploads/` git-ignored.
+- **Fix found by the check:** Thai file names arrived garbled ("à¹à¸à¸¢.png"), because the upload parser reads names as Latin-1. The fix the document upload already had moved to `controllers/upload-names.js`, shared by both uploads.
+
+**Decision:** D-037.
+
+**How it was checked**
+- `npm test`: **149 tests** (5 new: content check incl. an SVG with a script and a renamed text file, stored names and path safety, the sweep's choices, save / no overwrite / remove / sweep on a temporary folder).
+- Migration SQL read before applying; replay check empty.
+- An HTTP check through the real routes, multer and database, with only the login replaced by a fake user and a temporary upload folder (users and folder deleted afterwards): 19 checks — upload 2 with a Thai name, a 3rd and 4th refused, SVG-as-PNG and > 5 MB refused with no files left behind, download returns the same bytes with the safety headers, another user 404, delete one, no upload to a deleted defect, files kept in Recently deleted and back on restore, delete forever removes the folder, a requirement deleted for good sweeps its defects' folders.
+- The 6a-1 defect check still passes (20 checks).
+
+---
+
 ## 2026-11-14 — Slice 6a-1: Defects (backend)
 
 **Goal.** First part of Slice 6: testers can log defects for a requirement. Backend only; the defect table under Step 3 is part 6b, screenshots part 6a-2.

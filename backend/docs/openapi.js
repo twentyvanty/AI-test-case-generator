@@ -297,6 +297,21 @@ const definition = {
           notes: { type: "string" },
           testCaseNumber: { type: "integer", nullable: true, example: 4, description: "Linked test case (TC-0004), or null" },
           testCaseDeleted: { type: "boolean", description: "true when the linked test case is in Recently deleted" },
+          images: {
+            type: "array",
+            maxItems: 3,
+            description: "Screenshot details; the file: GET …/images/{imageId}",
+            items: {
+              type: "object",
+              properties: {
+                id: { type: "integer", example: 5 },
+                fileName: { type: "string", example: "error-blank-code.png", description: "The tester's file name (shown only)" },
+                mimeType: { type: "string", enum: ["image/png", "image/jpeg", "image/webp"] },
+                size: { type: "integer", example: 183402, description: "Bytes" },
+                createdAt: { type: "string", format: "date-time" },
+              },
+            },
+          },
           createdAt: { type: "string", format: "date-time" },
           updatedAt: { type: "string", format: "date-time" },
         },

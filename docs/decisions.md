@@ -271,3 +271,14 @@ Separately, the `gemini-2.5-*` models turned out to be unavailable to new keys, 
 - Prompt examples were made neutral (no school codes, page headers or words from the test page), and the rule count of every prompt stayed the same: the new rules were merged into existing lines.
 
 **Consequences.** Cases with guessed rules stay (the book has "invalid name" and "invalid code" cases too) but are marked. Prompts grew by about 240 words in total. To be confirmed with one run of the school use case (the user runs paid tests).
+
+### D-037 — Defect screenshots on disk, served only through login
+**Context.** Testers attach up to 3 screenshots to a defect (Slice 6). Screenshots of a system under test can show confidential screens, and uploaded files are a classic attack route: a file named `.png` can be anything, and an SVG can carry scripts that run when opened in the browser.
+**Decision.**
+- Files are stored on the server's disk under `UPLOAD_DIR/defects/<defectId>/` (default `backend/uploads`, git-ignored), under **random names**; the tester's file name is stored for display only. The database (`DefectImage`) holds the details.
+- **No public folder:** an image is served only by `GET …/defects/:n/images/:id`, after login, to the defect's owner (404 for anyone else), with `nosniff`, `Content-Security-Policy: default-src 'none'` and `Cache-Control: private, no-store`.
+- **Checked by content:** only PNG, JPEG and WebP, recognised by their first bytes, never by name or the browser's claimed type; SVG, GIF and anything else are refused. At most 5 MB each and 3 per defect.
+- **Cleanup:** deleting a screenshot removes its file; a defect in Recently deleted keeps its files; deleting for good (the defect, or its requirement, project or user, through the database cascade) and the hourly purge run a **sweep** that removes folders of defects that no longer exist and stray files older than 10 minutes.
+
+**Consequences.** No extra service or cloud storage is needed for the demo. Images can't be shown with a plain `<img src>` (the browser must send the login token), so the frontend fetches them (6b). Moving the backend into Docker or to several servers needs a shared volume, or object storage later.
+

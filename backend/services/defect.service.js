@@ -1,5 +1,13 @@
 import prisma from "../prisma/client.js";
 import { resolveDefectDates, toDefectItem, todayIso, fromIsoDate, toIsoDate } from "./defect-rows.js";
+import {
+  MAX_DEFECT_IMAGES,
+  detectImageType,
+  imagePath,
+  newStoredName,
+  removeImageFile,
+  saveImageFile,
+} from "./defect-image-store.js";
 import { BadRequestError } from "./errors.js";
 import { findOwnedRequirement } from "./requirement.service.js";
 
@@ -7,7 +15,10 @@ import { findOwnedRequirement } from "./requirement.service.js";
 // the requirement (DEF-1 = 1). null = requirement or defect not found (or not
 // the user's).
 
-const withTestCase = { testCase: { select: { number: true, deletedAt: true } } };
+const withTestCase = {
+  testCase: { select: { number: true, deletedAt: true } },
+  images: { orderBy: { id: "asc" } },
+};
 
 const formatTestCaseCode = (number) => `TC-${String(number).padStart(4, "0")}`;
 
@@ -158,4 +169,97 @@ export async function deleteDefect(keycloakUser, projectId, requirementNumber, n
 
   await prisma.defect.update({ where: { id: defect.id }, data: { deletedAt: new Date() } });
   return true;
+}
+
+// ---- Screenshots (D-037) ------------------------------------------------------
+
+function activeDefectOf(keycloakUser, projectId, requirementNumber, number) {
+  return findOwnedRequirement(keycloakUser, projectId, requirementNumber).then(
+    (requirement) => requirement && findActiveDefect(requirement.id, number)
+  );
+}
+
+// files: multer files ({ originalname, buffer, size }). Every file is checked
+// before any is saved: an accepted image type by content, and at most
+// MAX_DEFECT_IMAGES per defect in total. Returns the defect, or null if not found.
+export async function addDefectImages(keycloakUser, projectId, requirementNumber, number, files) {
+  const defect = await activeDefectOf(keycloakUser, projectId, requirementNumber, number);
+
+  if (!defect) {
+    return null;
+  }
+
+  if (!files || files.length === 0) {
+    throw new BadRequestError('Send 1 to 3 images in the form field "files"');
+  }
+
+  const existing = await prisma.defectImage.count({ where: { defectId: defect.id } });
+
+  if (existing + files.length > MAX_DEFECT_IMAGES) {
+    throw new BadRequestError(
+      `A defect can have at most ${MAX_DEFECT_IMAGES} screenshots (it has ${existing}; you sent ${files.length})`
+    );
+  }
+
+  const checked = files.map((file) => {
+    const mimeType = detectImageType(file.buffer);
+
+    if (!mimeType) {
+      throw new BadRequestError(`"${file.originalname}" isn't a PNG, JPG or WebP image`);
+    }
+
+    return { file, mimeType, storedName: newStoredName(mimeType) };
+  });
+
+  const saved = [];
+
+  try {
+    for (const { file, storedName } of checked) {
+      await saveImageFile(defect.id, storedName, file.buffer);
+      saved.push(storedName);
+    }
+
+    await prisma.defectImage.createMany({
+      data: checked.map(({ file, mimeType, storedName }) => ({
+        defectId: defect.id,
+        // Shown only; the name on disk is our own
+        fileName: (file.originalname || "screenshot").slice(0, 255),
+        mimeType,
+        size: file.buffer.length,
+        storedName,
+      })),
+    });
+  } catch (error) {
+    // Don't leave files the database doesn't know about
+    await Promise.all(saved.map((storedName) => removeImageFile(defect.id, storedName)));
+    throw error;
+  }
+
+  const updated = await prisma.defect.findUnique({ where: { id: defect.id }, include: withTestCase });
+  return toDefectItem(updated);
+}
+
+// The file to send for one screenshot: { path, mimeType, fileName }, or null
+export async function getDefectImage(keycloakUser, projectId, requirementNumber, number, imageId) {
+  const defect = await activeDefectOf(keycloakUser, projectId, requirementNumber, number);
+  const image = defect && (await prisma.defectImage.findFirst({ where: { id: imageId, defectId: defect.id } }));
+  const file = image && imagePath(defect.id, image.storedName);
+
+  return file ? { path: file, mimeType: image.mimeType, fileName: image.fileName } : null;
+}
+
+// Removes one screenshot and its file. Returns the defect, or null if not found.
+export async function deleteDefectImage(keycloakUser, projectId, requirementNumber, number, imageId) {
+  const defect = await activeDefectOf(keycloakUser, projectId, requirementNumber, number);
+  const image = defect && (await prisma.defectImage.findFirst({ where: { id: imageId, defectId: defect.id } }));
+
+  if (!image) {
+    return null;
+  }
+
+  await prisma.defectImage.delete({ where: { id: image.id } });
+  await removeImageFile(defect.id, image.storedName);
+
+  const updated = await prisma.defect.findUnique({ where: { id: defect.id }, include: withTestCase });
+  return toDefectItem(updated);
 }

@@ -4,6 +4,7 @@ const LABELS = {
   scenarioNumber: "scenario number",
   testCaseNumber: "test case number",
   defectNumber: "defect number",
+  imageId: "screenshot id",
   runId: "run id",
   id: "id",
 };

@@ -270,6 +270,8 @@ model Defect {
   closedOn DateTime?      @db.Date
   notes    String         @db.Text
 
+  images DefectImage[]
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   // Set = in "Recently deleted"; permanently removed 7 days later
@@ -278,6 +280,24 @@ model Defect {
   // Numbers are never reused, not even by deleted defects, so they can be unique
   @@unique([requirementId, number])
   @@index([deletedAt])
+}
+
+// A screenshot attached to a defect (max 3, D-037). The file lives on disk under
+// UPLOAD_DIR/defects/<defectId>/<storedName>; only its details are stored here.
+model DefectImage {
+  id Int @id @default(autoincrement())
+
+  defectId Int
+  defect   Defect @relation(fields: [defectId], references: [id], onDelete: Cascade)
+
+  fileName   String @db.VarChar(255) // the tester's file name, shown only
+  mimeType   String @db.VarChar(50) // image/png, image/jpeg or image/webp (checked by content)
+  size       Int // bytes
+  storedName String @db.VarChar(100) // random name on disk, never the tester's
+
+  createdAt DateTime @default(now())
+
+  @@index([defectId])
 }
 
 model UserPreference {

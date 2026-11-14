@@ -3,3 +3,6 @@ node_modules
 .env
 
 /generated/prisma
+
+# Defect screenshots (D-037) — user data, never committed
+uploads/

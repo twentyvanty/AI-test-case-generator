@@ -5,12 +5,7 @@ import {
   readImageText,
 } from "../services/document.service.js";
 import { recordImageRead } from "../services/image-read.service.js";
-
-// Browsers send non-English file names as UTF-8, but the upload parser reads
-// them as Latin-1 — turn "à¸..." back into the real (e.g. Thai) name
-function originalName(file) {
-  return Buffer.from(file.originalname, "latin1").toString("utf8");
-}
+import { originalName } from "./upload-names.js";
 
 export async function extractText(req, res) {
   try {

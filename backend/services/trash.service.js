@@ -2,6 +2,7 @@ import prisma from "../prisma/client.js";
 import { refreshStatus } from "./requirement-status.js";
 import { getOrCreateUser } from "./user.service.js";
 import { daysLeft, purgeCutoff, purgeDate } from "./trash-dates.js";
+import { sweepOrphanImages } from "./defect-image-store.js";
 
 // "Recently deleted": deleting a requirement, scenario, test case or defect only sets its
 // deletedAt. For 7 days the user can restore it here (children come back with it),
@@ -257,8 +258,10 @@ export async function deleteForever(keycloakUser, type, id) {
     return false;
   }
 
-  // The database cascades to runs / scenarios / test cases / defects
+  // The database cascades to runs / scenarios / test cases / defects; the
+  // screenshot files of defects that went with it are removed here (D-037)
   await prisma[type].delete({ where: { id } });
+  await sweepImagesSafely();
 
   return true;
 }
@@ -274,10 +277,24 @@ export async function purgeExpired(now = new Date()) {
     prisma.requirement.deleteMany({ where }),
   ]);
 
+  const images = await sweepImagesSafely();
+
   return {
     defects: defects.count,
+    imageFolders: images.folders,
     testCases: testCases.count,
     scenarios: scenarios.count,
     requirements: requirements.count,
   };
+}
+
+// File clean-up never fails the delete itself: a leftover file is removed by the
+// next sweep (every purge, hourly)
+async function sweepImagesSafely() {
+  try {
+    return await sweepOrphanImages(prisma);
+  } catch (error) {
+    console.error("Clean-up of defect screenshot files failed:", error);
+    return { folders: 0, files: 0 };
+  }
 }

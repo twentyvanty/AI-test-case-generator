@@ -44,10 +44,18 @@ export function resolveDefectDates(current, changes, today) {
   return { status, openedOn, closedOn };
 }
 
-// A database row (with testCase { number, deletedAt } included) → the API shape
-export function toDefectItem({ testCase, testCaseId: _testCaseId, openedOn, closedOn, ...defect }) {
+// A database row (with testCase { number, deletedAt } and images included) → the API shape
+export function toDefectItem({ testCase, testCaseId: _testCaseId, openedOn, closedOn, images, ...defect }) {
   return {
     ...defect,
+    // Screenshot details; the file itself comes from GET …/images/:imageId (D-037)
+    images: (images ?? []).map(({ id, fileName, mimeType, size, createdAt }) => ({
+      id,
+      fileName,
+      mimeType,
+      size,
+      createdAt,
+    })),
     openedOn: toIsoDate(openedOn),
     closedOn: toIsoDate(closedOn),
     // The linked test case's number, and whether it's in Recently deleted
