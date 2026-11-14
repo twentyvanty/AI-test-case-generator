@@ -4,6 +4,19 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-14 — Exit sentence removed: use-case prompt back to version A (D-038)
+
+**Goal.** The soft exit sentence from the previous entry over-expanded with GPT-6.1 Terra Pro + Gemini 4 Carbon (tenth try): "tested in the main places it can occur" became the main stages of each flow, 8 exit and 5 cancel cases (the book has 4 + 2), 40 estimated cases against 30 in the first run with the same models. The strong models covered every exit without any sentence (runs 1–3).
+
+**What was changed**
+- `techniques.js`: the sentence removed. The use-case guidance is version A (commit `ecee711`) plus only the D-034 split (scenarios without made-up data, test cases with concrete data). The validator was already back to version A.
+- `prompts.test.js`: the test now checks that the use-case guidance has no exit / "at any point" rule.
+- D-038 updated (title, decision and the principle: prompts are written for capable models).
+
+**How it was checked:** `npm test`: 150 pass. To be confirmed with one paid run (the user runs it).
+
+---
+
 ## 2026-11-14 — "Exit at any point" softened (D-038)
 
 **Goal.** Stop a strict validator from blowing up the exit scenario. In the eighth try (Meta Muse Ember + GPT-6.1 Terra Pro), the validator failed the scenarios because "exit" didn't name the alternative flows it can interrupt, and the retry estimated 14 exit cases (the book has 4).

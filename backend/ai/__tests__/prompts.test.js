@@ -104,9 +104,8 @@ test("invalid values come from the requirement; an assumed rule is stated, never
   assert.doesNotMatch(validatePrompt("SCENARIOS", input, { scenarios: [] }).system, /Assumed rule/);
 });
 
-test("a flow that can happen at any point is a soft hint, never a validator fail (D-038)", () => {
-  assert.match(techniquesBlock(["useCase"]), /should be tested in the main places it can occur/);
-  assert.doesNotMatch(techniquesBlock(["useCase"]), /every flow it can interrupt/);
+test("no extra rule for flows that can happen at any point (exit): back to version A (D-038)", () => {
+  assert.doesNotMatch(techniquesBlock(["useCase"]), /interrupt|at any point|main places/);
 
   // The validator's use-case check is back to the original wording
   for (const kind of ["SCENARIOS", "TEST_CASES"]) {
