@@ -417,12 +417,13 @@ const th = {
 
     recentlyDeleted: {
       title: "รายการที่เพิ่งลบ",
-      description: "ข้อกำหนด สถานการณ์ และ Test Case ที่ลบจะเก็บไว้ที่นี่ 7 วัน หลังจากนั้นจะถูกลบถาวร",
+      description: "ข้อกำหนด สถานการณ์ Test Case และ Defect ที่ลบจะเก็บไว้ที่นี่ 7 วัน หลังจากนั้นจะถูกลบถาวร",
       empty: "ไม่มีรายการ สิ่งที่คุณลบจะแสดงที่นี่เป็นเวลา 7 วัน",
       type: {
         requirement: "ข้อกำหนด",
         scenario: "สถานการณ์",
         testCase: "Test Case",
+        defect: "Defect",
       },
       withTestCases_other: "+ Test Case {{count}} รายการ (กู้คืนพร้อมกัน)",
       inProject: "ใน {{project}}",

@@ -158,16 +158,19 @@ export async function getRequirement(keycloakUser, projectId, number) {
     scenariosWithCounts(prisma, requirement.id),
     activeTestCases(prisma, requirement.id),
   ]);
-  const [latestScenarioRun, latestCaseRun, caseRuns] = await Promise.all([
+  const [latestScenarioRun, latestCaseRun, caseRuns, defectCount] = await Promise.all([
     latestRunOf(scenarios),
     latestRunOf(testCases),
     runsOf(testCases),
+    // Active defects (Slice 6); the list itself comes from GET …/defects
+    prisma.defect.count({ where: { requirementId: requirement.id, deletedAt: null } }),
   ]);
 
   return {
     ...requirement,
     scenarioCount: scenarios.length,
     testCaseCount: testCases.length,
+    defectCount,
     scenarios,
     testCases,
     latestScenarioRun,

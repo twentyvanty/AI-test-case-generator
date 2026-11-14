@@ -25,6 +25,7 @@ const definition = {
     { name: "Requirements", description: "Requirements inside a project (step 1)" },
     { name: "Scenarios", description: "Editing scenarios (step 2) and their draft history" },
     { name: "Test cases", description: "Generating, running and editing test cases (step 3)" },
+    { name: "Defects", description: "Defects found while testing (step 3, Slice 6)" },
     { name: "History", description: "Finished AI generations across all projects" },
     { name: "AI generation", description: "AI runs, saved as generation history" },
     { name: "Recently deleted", description: "Deleted items, restorable for 7 days" },
@@ -130,6 +131,7 @@ const definition = {
               },
               scenarios: { type: "array", items: { $ref: "#/components/schemas/Scenario" } },
               testCaseCount: { type: "integer", example: 12 },
+              defectCount: { type: "integer", example: 2, description: "Active defects (list: GET …/defects)" },
               testDataPlan: {
                 type: "object",
                 nullable: true,
@@ -280,6 +282,54 @@ const definition = {
         },
         required: ["id", "scenarioNumber", "number", "title", "precondition", "steps", "expectedResult", "status"],
       },
+      Defect: {
+        type: "object",
+        properties: {
+          id: { type: "integer", example: 3 },
+          requirementId: { type: "integer", example: 7 },
+          number: { type: "integer", example: 1, description: "Shown as DEF-1" },
+          title: { type: "string", example: "Error message missing when the school code is blank" },
+          severity: { type: "string", enum: ["CRITICAL", "MAJOR", "MINOR", "TRIVIAL"] },
+          priority: { type: "string", enum: ["HIGH", "MEDIUM", "LOW"] },
+          status: { type: "string", enum: ["OPEN", "IN_PROGRESS", "FIXED", "CLOSED"] },
+          openedOn: { type: "string", format: "date", example: "2026-11-14" },
+          closedOn: { type: "string", format: "date", nullable: true },
+          notes: { type: "string" },
+          testCaseNumber: { type: "integer", nullable: true, example: 4, description: "Linked test case (TC-0004), or null" },
+          testCaseDeleted: { type: "boolean", description: "true when the linked test case is in Recently deleted" },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
+        required: ["id", "number", "title", "severity", "priority", "status", "openedOn", "notes", "testCaseNumber"],
+      },
+      CreateDefectRequest: {
+        type: "object",
+        required: ["title"],
+        properties: {
+          title: { type: "string", minLength: 1, maxLength: 255 },
+          severity: { type: "string", enum: ["CRITICAL", "MAJOR", "MINOR", "TRIVIAL"], default: "MAJOR" },
+          priority: { type: "string", enum: ["HIGH", "MEDIUM", "LOW"], default: "MEDIUM" },
+          status: { type: "string", enum: ["OPEN", "IN_PROGRESS", "FIXED", "CLOSED"], default: "OPEN" },
+          testCaseNumber: { type: "integer", minimum: 1, nullable: true, description: "Link to a test case (1 = TC-0001)" },
+          openedOn: { type: "string", format: "date", description: "Default: today" },
+          closedOn: { type: "string", format: "date", nullable: true },
+          notes: { type: "string", maxLength: 5000 },
+        },
+      },
+      UpdateDefectRequest: {
+        type: "object",
+        description: "Send at least one field",
+        properties: {
+          title: { type: "string", minLength: 1, maxLength: 255 },
+          severity: { type: "string", enum: ["CRITICAL", "MAJOR", "MINOR", "TRIVIAL"] },
+          priority: { type: "string", enum: ["HIGH", "MEDIUM", "LOW"] },
+          status: { type: "string", enum: ["OPEN", "IN_PROGRESS", "FIXED", "CLOSED"] },
+          testCaseNumber: { type: "integer", minimum: 1, nullable: true, description: "null removes the link" },
+          openedOn: { type: "string", format: "date" },
+          closedOn: { type: "string", format: "date", nullable: true },
+          notes: { type: "string", maxLength: 5000 },
+        },
+      },
       UpdateTestCaseRequest: {
         type: "object",
         description: "Send at least one field (e.g. just the status)",
@@ -385,7 +435,7 @@ const definition = {
       TrashItem: {
         type: "object",
         properties: {
-          type: { type: "string", enum: ["requirement", "scenario", "testCase"] },
+          type: { type: "string", enum: ["requirement", "scenario", "testCase", "defect"] },
           id: { type: "integer" },
           title: { type: "string" },
           deletedAt: { type: "string", format: "date-time" },
@@ -397,6 +447,7 @@ const definition = {
           requirementTitle: { type: "string" },
           scenarioNumber: { type: "integer", nullable: true },
           testCaseNumber: { type: "integer", nullable: true },
+          defectNumber: { type: "integer", nullable: true, description: "Defects: shown as DEF-1" },
           testCaseCount: {
             type: "integer",
             description: "Scenarios: test cases deleted together with it (restored with it)",
@@ -407,11 +458,12 @@ const definition = {
       RestoredItem: {
         type: "object",
         properties: {
-          type: { type: "string", enum: ["requirement", "scenario", "testCase"] },
+          type: { type: "string", enum: ["requirement", "scenario", "testCase", "defect"] },
           projectId: { type: "integer" },
           requirementNumber: { type: "integer" },
           scenarioNumber: { type: "integer", nullable: true },
           testCaseNumber: { type: "integer", nullable: true },
+          defectNumber: { type: "integer", nullable: true },
         },
       },
       GenerationStatus: {

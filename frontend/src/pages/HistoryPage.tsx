@@ -22,9 +22,10 @@ import Spinner from "../components/ui/Spinner";
 const errorText = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
 // Link to a restored item: the requirement, or its scenarios / test cases step
+// (defects live under the test-case table)
 const restoredLink = (item: RestoredItem) =>
   `/projects/${item.projectId}/requirements/${item.requirementNumber}${
-    item.type === "scenario" ? "?step=scenarios" : item.type === "testCase" ? "?step=testCases" : ""
+    item.type === "scenario" ? "?step=scenarios" : item.type === "testCase" || item.type === "defect" ? "?step=testCases" : ""
   }`;
 
 // "Generated" (finished AI generations across projects) and "Recently deleted"

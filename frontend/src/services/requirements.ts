@@ -312,6 +312,10 @@ export function formatScenarioCode(number: number) {
 }
 
 // 1 → "TC-0001"
+export function formatDefectCode(number: number) {
+  return `DEF-${number}`;
+}
+
 export function formatTestCaseCode(number: number) {
   return `TC-${String(number).padStart(4, "0")}`;
 }

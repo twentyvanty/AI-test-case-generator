@@ -12,6 +12,7 @@ import documentRoutes from "./routes/document.routes.js";
 import scenarioRoutes from "./routes/scenario.routes.js";
 import trashRoutes from "./routes/trash.routes.js";
 import testCaseRoutes from "./routes/test-case.routes.js";
+import defectRoutes from "./routes/defect.routes.js";
 import historyRoutes from "./routes/history.routes.js";
 import { purgeExpired } from "./services/trash.service.js";
 import { openapiSpec } from "./docs/openapi.js";
@@ -46,6 +47,7 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/projects/:projectId/requirements", requirementRoutes);
 app.use("/api/projects/:projectId/requirements/:number", scenarioRoutes);
 app.use("/api/projects/:projectId/requirements/:number", testCaseRoutes);
+app.use("/api/projects/:projectId/requirements/:number", defectRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/trash", trashRoutes);
 app.use("/api/history", historyRoutes);
@@ -65,7 +67,7 @@ async function purge() {
   try {
     const removed = await purgeExpired();
 
-    if (removed.requirements + removed.scenarios + removed.testCases > 0) {
+    if (Object.values(removed).some((count) => count > 0)) {
       console.log("🗑️  Removed for good (deleted over 7 days ago):", removed);
     }
   } catch (error) {

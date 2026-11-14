@@ -450,12 +450,13 @@ const en = {
     recentlyDeleted: {
       title: "Recently deleted",
       description:
-        "Deleted requirements, scenarios and test cases stay here for 7 days. After that they're removed for good.",
+        "Deleted requirements, scenarios, test cases and defects stay here for 7 days. After that they're removed for good.",
       empty: "Nothing here. Items you delete appear here for 7 days.",
       type: {
         requirement: "Requirement",
         scenario: "Scenario",
         testCase: "Test case",
+        defect: "Defect",
       },
       withTestCases_one: "+ {{count}} test case (restored with it)",
       withTestCases_other: "+ {{count}} test cases (restored with it)",

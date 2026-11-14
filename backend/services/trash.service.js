@@ -3,14 +3,14 @@ import { refreshStatus } from "./requirement-status.js";
 import { getOrCreateUser } from "./user.service.js";
 import { daysLeft, purgeCutoff, purgeDate } from "./trash-dates.js";
 
-// "Recently deleted": deleting a requirement, scenario or test case only sets its
+// "Recently deleted": deleting a requirement, scenario, test case or defect only sets its
 // deletedAt. For 7 days the user can restore it here (children come back with it),
 // then purgeExpired() removes it for good.
 //
 // A scenario deleted with its test cases is ONE entry ("SC-03 + 5 test cases");
 // those cases (deletedWithScenario) aren't listed separately and come back with it.
 
-export const TRASH_TYPES = ["requirement", "scenario", "testCase"];
+export const TRASH_TYPES = ["requirement", "scenario", "testCase", "defect"];
 
 function entry(type, item, extra) {
   return {
@@ -20,6 +20,7 @@ function entry(type, item, extra) {
     deletedAt: item.deletedAt,
     purgeAt: purgeDate(item.deletedAt),
     daysLeft: daysLeft(item.deletedAt),
+    defectNumber: null,
     ...extra,
   };
 }
@@ -32,7 +33,7 @@ export async function listDeleted(keycloakUser) {
     select: { number: true, title: true, project: { select: { id: true, name: true } } },
   };
 
-  const [requirements, scenarios, testCases] = await Promise.all([
+  const [requirements, scenarios, testCases, defects] = await Promise.all([
     prisma.requirement.findMany({
       where: { deletedAt: { not: null }, project: { userId: user.id } },
       include: { project: { select: { id: true, name: true } } },
@@ -58,6 +59,13 @@ export async function listDeleted(keycloakUser) {
         requirement: requirementInfo,
         scenario: { select: { number: true } },
       },
+    }),
+    prisma.defect.findMany({
+      where: {
+        deletedAt: { not: null },
+        requirement: { deletedAt: null, project: { userId: user.id } },
+      },
+      include: { requirement: requirementInfo },
     }),
   ]);
 
@@ -97,6 +105,15 @@ export async function listDeleted(keycloakUser) {
         testCaseCount: 0,
       })
     ),
+    ...defects.map((item) =>
+      entry("defect", item, {
+        ...where(item),
+        scenarioNumber: null,
+        testCaseNumber: null,
+        testCaseCount: 0,
+        defectNumber: item.number,
+      })
+    ),
   ].sort((a, b) => b.deletedAt - a.deletedAt);
 }
 
@@ -112,6 +129,13 @@ async function findDeleted(keycloakUser, type, id) {
 
   const owned = { deletedAt: null, project: { userId: user.id } };
   const requirement = { select: { projectId: true, number: true } };
+
+  if (type === "defect") {
+    return prisma.defect.findFirst({
+      where: { id, deletedAt: { not: null }, requirement: owned },
+      include: { requirement },
+    });
+  }
 
   if (type === "testCase") {
     return prisma.testCase.findFirst({
@@ -149,6 +173,21 @@ export async function restoreDeleted(keycloakUser, type, id) {
       requirementNumber: item.number,
       scenarioNumber: null,
       testCaseNumber: null,
+      defectNumber: null,
+    };
+  }
+
+  if (type === "defect") {
+    // DEF numbers are never reused, so it keeps its number
+    await prisma.defect.update({ where: { id }, data: { deletedAt: null } });
+
+    return {
+      type,
+      projectId: item.requirement.projectId,
+      requirementNumber: item.requirement.number,
+      scenarioNumber: null,
+      testCaseNumber: null,
+      defectNumber: item.number,
     };
   }
 
@@ -165,6 +204,7 @@ export async function restoreDeleted(keycloakUser, type, id) {
         requirementNumber: item.requirement.number,
         scenarioNumber: item.scenario.number,
         testCaseNumber: item.number,
+        defectNumber: null,
       };
     });
   }
@@ -204,6 +244,7 @@ export async function restoreDeleted(keycloakUser, type, id) {
       requirementNumber: item.requirement.number,
       scenarioNumber: number,
       testCaseNumber: null,
+      defectNumber: null,
     };
   });
 }
@@ -216,7 +257,7 @@ export async function deleteForever(keycloakUser, type, id) {
     return false;
   }
 
-  // The database cascades to runs / scenarios / test cases
+  // The database cascades to runs / scenarios / test cases / defects
   await prisma[type].delete({ where: { id } });
 
   return true;
@@ -226,13 +267,15 @@ export async function deleteForever(keycloakUser, type, id) {
 export async function purgeExpired(now = new Date()) {
   const where = { deletedAt: { lt: purgeCutoff(now) } };
 
-  const [testCases, scenarios, requirements] = await prisma.$transaction([
+  const [defects, testCases, scenarios, requirements] = await prisma.$transaction([
+    prisma.defect.deleteMany({ where }),
     prisma.testCase.deleteMany({ where }),
     prisma.scenario.deleteMany({ where }),
     prisma.requirement.deleteMany({ where }),
   ]);
 
   return {
+    defects: defects.count,
     testCases: testCases.count,
     scenarios: scenarios.count,
     requirements: requirements.count,

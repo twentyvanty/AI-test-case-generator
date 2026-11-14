@@ -3,6 +3,7 @@ const LABELS = {
   number: "requirement number",
   scenarioNumber: "scenario number",
   testCaseNumber: "test case number",
+  defectNumber: "defect number",
   runId: "run id",
   id: "id",
 };

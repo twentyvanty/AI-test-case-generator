@@ -104,10 +104,14 @@ Current endpoints (all require login):
 | GET | `/api/projects/:projectId/requirements/:number/test-cases` | The requirement's test cases |
 | PATCH | `/api/projects/:projectId/requirements/:number/test-cases/:testCaseNumber` | Set the status (Open / Pass / Fail) or edit title, precondition, steps, expected result |
 | DELETE | `/api/projects/:projectId/requirements/:number/test-cases/:testCaseNumber` | Move a test case to Recently deleted for 7 days |
+| GET | `/api/projects/:projectId/requirements/:number/defects` | The requirement's defects (Slice 6), in DEF order, with the linked test case number |
+| POST | `/api/projects/:projectId/requirements/:number/defects` | Log a defect: title required; severity, priority, status, linked test case, dates and notes optional |
+| PATCH | `/api/projects/:projectId/requirements/:number/defects/:defectNumber` | Edit a defect (only the fields sent) |
+| DELETE | `/api/projects/:projectId/requirements/:number/defects/:defectNumber` | Move a defect to Recently deleted for 7 days |
 | POST | `/api/projects/:projectId/requirements/:number/runs/:runId/reviewed` | "Mark as reviewed" on a scenario or test-case run |
 | GET | `/api/history/generations` | History → Generated: finished generations across the user's projects, one item per click (`?kind=`, `?limit=`) |
-| GET | `/api/trash` | The user's recently deleted requirements, scenarios and test cases, with days left |
-| POST | `/api/trash/:type/:id/restore` | Restore a deleted item (`type` = `requirement`, `scenario` or `testCase`) |
+| GET | `/api/trash` | The user's recently deleted requirements, scenarios, test cases and defects, with days left |
+| POST | `/api/trash/:type/:id/restore` | Restore a deleted item (`type` = `requirement`, `scenario`, `testCase` or `defect`) |
 | DELETE | `/api/trash/:type/:id` | Delete an item for good now |
 | POST | `/api/documents/extract-text` | Read the text of uploaded files (not stored): PDF / DOCX / Markdown / TXT by code; PNG / JPG / WebP images by a vision AI model (D-027). Each image read is logged in `ImageRead` (D-033) |
 
@@ -140,6 +144,8 @@ erDiagram
     Requirement ||--o{ Scenario : has
     Requirement ||--o{ TestCase : "numbers TCs"
     Scenario ||--o{ TestCase : has
+    Requirement ||--o{ Defect : "numbers DEFs"
+    TestCase |o--o{ Defect : "found by (optional)"
     GenerationRun |o--o{ Scenario : produced
     GenerationRun |o--o{ TestCase : produced
 
@@ -206,6 +212,20 @@ erDiagram
         enum source "AI or MANUAL"
         enum status "OPEN, PASS, FAIL"
         bool deletedWithScenario "comes back with its scenario"
+        datetime deletedAt "set = Recently deleted"
+    }
+    Defect {
+        int id PK
+        int requirementId FK
+        int testCaseId FK "optional; cleared if the case is deleted for good"
+        int number "DEF-1, never reused"
+        string title
+        enum severity "CRITICAL, MAJOR, MINOR, TRIVIAL"
+        enum priority "HIGH, MEDIUM, LOW"
+        enum status "OPEN, IN_PROGRESS, FIXED, CLOSED"
+        date openedOn
+        date closedOn "set to today when Closed without one"
+        text notes
         datetime deletedAt "set = Recently deleted"
     }
     ImageRead {

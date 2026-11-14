@@ -43,6 +43,27 @@ enum TestCaseStatus {
   FAIL
 }
 
+// Defects found while testing (Slice 6, D-037)
+enum DefectSeverity {
+  CRITICAL
+  MAJOR
+  MINOR
+  TRIVIAL
+}
+
+enum DefectPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum DefectStatus {
+  OPEN
+  IN_PROGRESS
+  FIXED
+  CLOSED
+}
+
 enum ItemSource {
   AI
   MANUAL
@@ -118,6 +139,7 @@ model Requirement {
   scenarios Scenario[]
   testCases TestCase[]
   runs      GenerationRun[]
+  defects   Defect[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -221,7 +243,40 @@ model TestCase {
   // Set = in "Recently deleted"; permanently removed 7 days later
   deletedAt DateTime?
 
+  defects Defect[]
+
   @@index([requirementId, number])
+  @@index([deletedAt])
+}
+
+// A defect the tester found (Slice 6). Numbered DEF-1, DEF-2… per requirement,
+// never reused (deleted ones count too). Linking a test case is optional.
+model Defect {
+  id Int @id @default(autoincrement())
+
+  requirementId Int
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  // The test case that found it. Deleting the case for good clears the link.
+  testCaseId Int?
+  testCase   TestCase? @relation(fields: [testCaseId], references: [id], onDelete: SetNull)
+
+  number   Int // shown as DEF-1
+  title    String         @db.VarChar(255)
+  severity DefectSeverity @default(MAJOR)
+  priority DefectPriority @default(MEDIUM)
+  status   DefectStatus   @default(OPEN)
+  openedOn DateTime       @db.Date
+  closedOn DateTime?      @db.Date
+  notes    String         @db.Text
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  // Set = in "Recently deleted"; permanently removed 7 days later
+  deletedAt DateTime?
+
+  // Numbers are never reused, not even by deleted defects, so they can be unique
+  @@unique([requirementId, number])
   @@index([deletedAt])
 }
 

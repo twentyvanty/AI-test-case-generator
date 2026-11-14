@@ -15,7 +15,7 @@ const router = express.Router();
  *       required: true
  *       schema:
  *         type: string
- *         enum: [requirement, scenario, testCase]
+ *         enum: [requirement, scenario, testCase, defect]
  *     TrashId:
  *       in: path
  *       name: id
@@ -33,7 +33,7 @@ const router = express.Router();
  *     summary: List my recently deleted items
  *     operationId: listTrash
  *     description: |
- *       Deleted requirements, scenarios and test cases, kept for 7 days, most recently
+ *       Deleted requirements, scenarios, test cases and defects, kept for 7 days, most recently
  *       deleted first. A scenario deleted with its test cases is one item (testCaseCount).
  *     responses:
  *       200:

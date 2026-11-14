@@ -4,6 +4,26 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-14 — Slice 6a-1: Defects (backend)
+
+**Goal.** First part of Slice 6: testers can log defects for a requirement. Backend only; the defect table under Step 3 is part 6b, screenshots part 6a-2.
+
+**What was built**
+- Migration `add_defects`: a `Defect` table. Number DEF-1, DEF-2… per requirement, unique and never reused (deleted ones count). Severity (Critical / Major / Minor / Trivial, default Major), priority (High / Medium / Low, default Medium), status (Open / In progress / Fixed / Closed, default Open), opened on (default today), closed on, notes, an optional linked test case.
+- Rules (`services/defect-rows.js`): Closed without a date → closed today; back to Open / In progress → the close date is cleared (unless one is sent); the close date can't be before the open date. A new link must point at an active test case of the same requirement. If the linked case is deleted, the defect shows it as deleted; deleted for good → the link is cleared and the defect stays.
+- Endpoints `GET/POST …/defects`, `PATCH/DELETE …/defects/:defectNumber` with `@openapi` (new Swagger tag "Defects"). A new `BadRequestError` answers 400 for a request that doesn't fit (a test case not in the requirement, dates in the wrong order).
+- Recently deleted: new type `defect` (list, restore with its number, delete forever, 7-day purge). The requirement detail gains `defectCount`.
+- Frontend (small): History → Recently deleted shows deleted defects as "Defect · REQ-0001 · DEF-2" and links a restored one to Step 3. EN + TH ("Defect" kept in English in Thai, like "Test Case").
+
+**How it was checked**
+- `npm test`: **144 tests** (9 new: field checks, dates, the close-date rules, API shape, the trash type).
+- Migration SQL read before applying; replay check empty.
+- A database check with the mock AI and two temporary users (deleted afterwards): 20 checks, including numbering after a delete, restore keeping DEF-2, another user getting 404, the linked test case deleted and then deleted for good, delete forever and the 7-day purge.
+- The controllers answer 400 / 404 / 201 / 204 as documented; Swagger lists both paths.
+- Frontend `tsc`, `lint`, `build` and the i18n check pass.
+
+---
+
 ## 2026-11-14 — Stated assumptions, interrupting flows, neutral prompt examples
 
 **Goal.** Two problems seen in Test 9 (GPT-6 Luna) and run 5 (Gemini 4 Hydrogen) of the AI Test Log, fixed as general rules rather than school-specific ones, without growing the prompts' rule count.

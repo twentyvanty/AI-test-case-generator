@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import {
+  formatDefectCode,
   formatRequirementCode,
   formatScenarioCode,
   formatTestCaseCode,
@@ -25,8 +26,10 @@ function DeletedItemList({ items, busyKey, onRestore, onDeleteForever }: Deleted
       {items.map((item) => {
         const code = [
           formatRequirementCode(item.requirementNumber),
-          item.type !== "requirement" && formatScenarioCode(item.scenarioNumber ?? 0),
+          (item.type === "scenario" || item.type === "testCase") &&
+            formatScenarioCode(item.scenarioNumber ?? 0),
           item.type === "testCase" && formatTestCaseCode(item.testCaseNumber ?? 0),
+          item.type === "defect" && formatDefectCode(item.defectNumber ?? 0),
         ]
           .filter(Boolean)
           .join(" · ");
