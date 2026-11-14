@@ -4,6 +4,19 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-14 — "Exit at any point" softened (D-038)
+
+**Goal.** Stop a strict validator from blowing up the exit scenario. In the eighth try (Meta Muse Ember + GPT-6.1 Terra Pro), the validator failed the scenarios because "exit" didn't name the alternative flows it can interrupt, and the retry estimated 14 exit cases (the book has 4).
+
+**What was changed**
+- `prompts/validate.js`: the use-case compliance check is back to "the main flow plus alternative and exception flows" (the "must name every flow it can interrupt" fail condition from D-036 removed).
+- `techniques.js`: the use-case guidance says "A flow that can happen at any point (e.g. exit, cancel, timeout) should be tested in the main places it can occur" instead of "names every flow it can interrupt and estimates one case per flow".
+- The rest of D-036 is unchanged.
+
+**How it was checked:** `npm test`: 150 pass (the D-036 interrupting-flow test replaced by one for the soft hint, for both the scenario and the test-case validator). The real check is one paid run (the user runs it).
+
+---
+
 ## 2026-11-14 — AI notes name the real scenario codes
 
 **Goal.** The "AI notes to check" in Step 3 named scenarios as "S7" or "S1 to S4". Those are the keys of one AI request: each test-case batch numbers its scenarios from S1 again, so "S1" in two notes could mean SC-01 and SC-06. A tester couldn't match them to the screen. Found in a real run (AI Test Log, Test 10).

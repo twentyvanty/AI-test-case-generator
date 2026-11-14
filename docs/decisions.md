@@ -267,7 +267,7 @@ Separately, the `gemini-2.5-*` models turned out to be unavailable to new keys, 
 - Valid and invalid values come from the requirement. If it mentions invalid input without defining it, the case still uses a clearly wrong value, and its precondition starts with "Assumed rule (not in the requirement): …" so the tester can confirm it. Blank or missing values need no assumption.
 - The test-data plan's conventions only name test data; they are never validation rules.
 - The test-case validator **warns** (never fails) on an invalid value without a stated assumption.
-- Use case: a flow that can happen during other flows (exit, cancel, timeout) names every flow it can interrupt and estimates one case per flow; the validator fails a scenario that doesn't name them, and then (existing rule) a named flow without a case.
+- Use case: a flow that can happen during other flows (exit, cancel, timeout) names every flow it can interrupt and estimates one case per flow; the validator fails a scenario that doesn't name them, and then (existing rule) a named flow without a case. _(Replaced by D-038.)_
 - Prompt examples were made neutral (no school codes, page headers or words from the test page), and the rule count of every prompt stayed the same: the new rules were merged into existing lines.
 
 **Consequences.** Cases with guessed rules stay (the book has "invalid name" and "invalid code" cases too) but are marked. Prompts grew by about 240 words in total. To be confirmed with one run of the school use case (the user runs paid tests).
@@ -282,3 +282,11 @@ Separately, the `gemini-2.5-*` models turned out to be unavailable to new keys, 
 
 **Consequences.** No extra service or cloud storage is needed for the demo. Images can't be shown with a plain `<img src>` (the browser must send the login token), so the frontend fetches them (6b). Moving the backend into Docker or to several servers needs a shared volume, or object storage later.
 
+### D-038 — "Exit at any point" is a soft hint, not a validator rule
+**Context.** D-036 made a flow that can happen at any point (exit, cancel) name every flow it can interrupt, and the validator failed scenarios that didn't. Two runs of the school use case with the rule (AI Test Log, Tests 10 and the eighth try) went opposite ways, decided by the judge: with Claude Haiku 5.5 as validator, Terra Pro wrote the ideal 5 exit cases; with GPT-6.1 Terra Pro as validator, it read "every flow" to include the alternative flows (invalid entry, not found, cancelled…), failed Meta Muse Ember's first attempt, and the retry estimated 14 exit cases (the book has 4). Without the rule, the strong generators (Terra Pro, Opus, Fable) covered every exit case anyway; only the cheaper Luna (1) and Hydrogen (3) missed some. The rule was also tuned to one test document.
+**Decision.**
+- The validator's use-case check is back to the original wording: "the main flow plus alternative and exception flows". A missed exit case no longer fails a run.
+- The generator's use-case guidance keeps one general sentence: "A flow that can happen at any point (e.g. exit, cancel, timeout) should be tested in the main places it can occur" (standard use-case practice, not school-specific).
+- The rest of D-036 (stated "Assumed rule" values, plan conventions aren't system rules, warn-only check) is unchanged.
+
+**Consequences.** No forced retries or blown-up exit scenarios from a strict judge. A weaker model may sometimes miss one exit case (as Luna did, 17/18). To be confirmed with one paid run; a clean comparison is the same generator and validator before and after this change. Future prompt changes should be checked on more than the school use case (the fixed test set in the roadmap ideas).

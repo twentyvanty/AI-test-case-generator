@@ -104,11 +104,16 @@ test("invalid values come from the requirement; an assumed rule is stated, never
   assert.doesNotMatch(validatePrompt("SCENARIOS", input, { scenarios: [] }).system, /Assumed rule/);
 });
 
-test("a flow that can interrupt other flows (exit, cancel) names each of them", () => {
-  assert.match(techniquesBlock(["useCase"]), /names every flow it can interrupt and estimates one case per flow/);
+test("a flow that can happen at any point is a soft hint, never a validator fail (D-038)", () => {
+  assert.match(techniquesBlock(["useCase"]), /should be tested in the main places it can occur/);
+  assert.doesNotMatch(techniquesBlock(["useCase"]), /every flow it can interrupt/);
 
-  const scenarioCheck = validatePrompt("SCENARIOS", { requirementText: english, techniques: ["useCase"] }, { scenarios: [] });
-  assert.match(scenarioCheck.system, /must name every flow it can interrupt \(and, in test cases, have a case for each\)/);
+  // The validator's use-case check is back to the original wording
+  for (const kind of ["SCENARIOS", "TEST_CASES"]) {
+    const check = validatePrompt(kind, { requirementText: english, techniques: ["useCase"], scenarios: [] }, { scenarios: [], testCases: [] });
+    assert.match(check.system, /use case testing needs the main flow plus alternative and exception flows\)/);
+    assert.doesNotMatch(check.system, /interrupt/);
+  }
 });
 
 test("prompt examples never come from the documents we test with (the models copy examples)", () => {
