@@ -5,6 +5,7 @@ import { finalizeReport, saveConclusion, type LiveReport } from "../../services/
 import Button from "../ui/Button";
 import Card from "../ui/Card";
 import Modal from "../ui/Modal";
+import { ConclusionText } from "./ConclusionText";
 import { formatDay, verdictReasonText } from "./reportLabels";
 
 // Saved this long after the tester stops typing
@@ -177,8 +178,13 @@ function ReportConclusion({
         rows={5}
         onChange={(event) => change(event.target.value)}
         placeholder={t("report.conclusion.placeholder")}
-        className="mt-3 w-full resize-y rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft"
+        className="mt-3 w-full resize-y print:hidden rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft"
       />
+
+      {/* On paper: the text itself, not an empty-looking text box */}
+      <div className="mt-3 hidden print:block">
+        <ConclusionText text={text} />
+      </div>
 
       {error && (
         <p role="alert" className="mt-3 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">
@@ -187,7 +193,7 @@ function ReportConclusion({
       )}
 
       {notice && (
-        <p role="status" className="mt-3 rounded-xl bg-success/10 px-3 py-2 text-sm text-success">
+        <p role="status" className="mt-3 rounded-xl print:hidden bg-success/10 px-3 py-2 text-sm text-success">
           {notice}
         </p>
       )}

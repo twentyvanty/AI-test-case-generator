@@ -101,3 +101,14 @@ export function finalizeReport(
 ) {
   return request<LiveReport>(`${base(projectId, requirementNumber)}/finalize`, { method: "POST", body: input });
 }
+
+// One finalized version, exactly as it was saved (6d-2b)
+export type ReportVersion = ReportVersionSummary & {
+  withOpenRisks: boolean;
+  conclusion: string;
+  snapshot: TestReport & { conclusion: string };
+};
+
+export function getReportVersion(projectId: number, requirementNumber: number, version: number) {
+  return request<ReportVersion>(`${base(projectId, requirementNumber)}/versions/${version}`);
+}

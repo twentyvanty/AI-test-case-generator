@@ -231,6 +231,7 @@ const en = {
         less: "Show less",
       },
       conclusion: {
+        none: "No conclusion was written.",
         title: "Conclusion",
         description: "Your own assessment of the results. It's saved with the report when you finalize it.",
         placeholder: "Your assessment of the results, anything that blocked testing, and lessons learned. E.g. Ready to release once DEF-2 is retested. The payment test server was down for a day. Next time, prepare the test data earlier.",
@@ -247,6 +248,21 @@ const en = {
         confirmButton: "Finalize anyway",
       },
       changed: "Changed since version {{version}} was finalized ({{date}}). Finalize again to save the current results.",
+      view: {
+        label: "Show",
+        live: "Live report",
+        version: "Version {{version}} · {{date}} · {{verdict}}",
+        banner: "Finalized version {{version}} · {{date}} · {{verdict}} · read-only",
+        backToLive: "Back to the live report",
+        loading: "Loading the finalized version…",
+        loadError: "The finalized version couldn't be loaded: {{message}}",
+      },
+      print: {
+        button: "Print / Save as PDF",
+        live: "Live report",
+        version: "Version {{version}}, finalized {{date}}",
+        printed: "Printed {{date}}",
+      },
       results: { title: "Results by scenario" },
       traceability: {
         title: "Traceability",

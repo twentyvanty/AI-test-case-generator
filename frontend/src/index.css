@@ -43,3 +43,28 @@ body {
   outline: 2px solid var(--color-brand);
   outline-offset: 2px;
 }
+
+/* Printing / Save as PDF (the Step 5 report; the menus hide themselves with
+   print:hidden): white page, colours kept, sections not split where avoidable */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  body {
+    background: none;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .report-section {
+    break-inside: avoid;
+    box-shadow: none;
+    backdrop-filter: none;
+    background-color: #fff;
+  }
+
+  .report-trace {
+    break-inside: avoid;
+  }
+}

@@ -394,7 +394,10 @@ function RequirementPage() {
 
   return (
     <main className="space-y-5">
-      <BackLink to={`/projects/${projectId}`}>{t("requirementPage.backToProject")}</BackLink>
+      {/* The page's own navigation isn't printed: on paper the report stands alone */}
+      <div className="print:hidden">
+        <BackLink to={`/projects/${projectId}`}>{t("requirementPage.backToProject")}</BackLink>
+      </div>
 
       {loading && <Spinner label={t("common.loading")} />}
 
@@ -402,6 +405,7 @@ function RequirementPage() {
 
       {!loading && !notFound && (
         <>
+          <div className="space-y-5 print:hidden">
           <PageHeader
             eyebrow={detail ? formatRequirementCode(detail.number) : t("requirementPage.newEyebrow")}
             eyebrowMono={detail !== null}
@@ -443,6 +447,7 @@ function RequirementPage() {
               {t("generationRunning.finished")}
             </p>
           )}
+          </div>
 
           {step === "requirement" && (
             <RequirementStep

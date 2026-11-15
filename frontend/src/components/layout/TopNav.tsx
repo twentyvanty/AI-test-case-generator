@@ -9,7 +9,7 @@ function TopNav() {
   const { t } = useTranslation();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/80 bg-white/70 backdrop-blur-md">
+    <header className="sticky top-0 z-40 print:hidden border-b border-white/80 bg-white/70 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-10 gap-y-2 px-4 py-3 sm:px-6 lg:px-8">
         <Link
           to="/"

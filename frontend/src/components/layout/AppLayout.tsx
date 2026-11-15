@@ -9,8 +9,8 @@ function AppLayout() {
     <div className="min-h-screen">
       <TopNav />
 
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-6 lg:px-8 lg:py-8">
-        <aside className="hidden self-start lg:block">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-6 lg:px-8 lg:py-8 print:block print:max-w-none print:p-0">
+        <aside className="hidden self-start lg:block print:hidden">
           <Sidebar />
         </aside>
 

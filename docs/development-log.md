@@ -4,6 +4,22 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-15 — Slice 6d-2b: Finalized versions and printing (Step 5) · Slice 6 done
+
+**Goal.** Let the tester open any finalized version of the report and print or save the report as a PDF (D-040). Last part of Slice 6.
+
+**What was built**
+- **Version picker** ("Show: Live report / Version 2 · date · verdict…"), shown only once the report has been finalized. A version opens its saved snapshot (`GET …/report/versions/:version`, `services/report.ts → getReportVersion`) in the same `ReportView`, read-only: a banner "Finalized version N · date · verdict · read-only" with "Back to the live report", its own conclusion as text (`report/ConclusionText`), no Finalize, no links to fix risks, no CSV buttons (they're for the live report).
+- **Print / Save as PDF** (`window.print()`): prints whatever is open. On paper the top menu, sidebar, back link, page header, step tabs, picker, buttons and banners are hidden (`print:hidden`; the layout grid becomes a single column), a print-only line names "Live report" or "Version N, finalized date" and the print date, the live conclusion prints as text instead of a text box, and everything folded or cut short is shown (from the small fixes). `index.css` print rules: 14 mm margins, white page, colours kept, report sections not split where avoidable.
+- EN + TH texts.
+
+**How it was checked**
+- Frontend `tsc`, `lint`, `build` and the i18n check (423 keys, none missing).
+- Browser check (`ui-check6d2b.mjs`: headless Chrome, a temporary Keycloak user, the mock AI and a test backend on port 5099; all removed afterwards): 18 checks. They covered no picker before the first finalize; the picker's options; version 1 with its own Not ready verdict and conclusion, read-only (no Finalize, no text box, no fix links, no CSV, Print shown); the print layout (menus, sidebar, step tabs and picker hidden, print header naming version 1); back to live (Ready, its own conclusion, the "changed" banner); printing the live report (print header, the conclusion as text, the banner not printed); the Thai picker; and no sideways scrolling at phone width.
+- Two real A4 PDFs made by headless Chrome (version 1 and the live report): 3 pages each, with the right verdict and conclusion and none of the menu, sidebar or button texts.
+
+---
+
 ## 2026-11-15 — Slice 6d-2a: Conclusion and Finalize (Step 5)
 
 **Goal.** Let the tester write a conclusion and finalize the report on the page (backend from 6c-2, D-040). 6d-2 was split: 6d-2a is the conclusion and Finalize; 6d-2b adds viewing earlier versions and printing.
