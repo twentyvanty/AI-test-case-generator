@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getReport, type LiveReport } from "../../services/report";
-import type { Scenario, TestCase } from "../../services/requirements";
+import type { RequirementDetail, Scenario, TestCase } from "../../services/requirements";
 import { downloadReport } from "../../utils/reportExport";
 import { downloadCaseTable, downloadCoverageReport, groupByScenario } from "../../utils/testCaseExport";
+import ReportConclusion from "../report/ReportConclusion";
 import type { ReportLinkStep } from "../report/ReportRisks";
+import { formatDay } from "../report/reportLabels";
 import ReportView from "../report/ReportView";
 import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
@@ -17,15 +19,28 @@ type ReportStepProps = {
   scenarios: Scenario[];
   testCases: TestCase[];
   onGoToStep: (step: ReportLinkStep) => void;
+  // Tells the page what changed (the status after finalizing)
+  onChange: (changes: Partial<RequirementDetail>) => void;
+  // After a 409: true when a running generation is the reason
+  onConflict?: () => Promise<boolean>;
 };
 
 const errorText = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
 // Step 5: the test completion report (Slice 6, D-040), built by the backend from
-// the current data each time the step opens, with the CSV downloads. Conclusion,
-// finalizing, versions and printing come in 6d-2.
-function ReportStep({ projectId, requirementNumber, requirementTitle, scenarios, testCases, onGoToStep }: ReportStepProps) {
-  const { t } = useTranslation();
+// the current data each time the step opens, with the CSV downloads, the tester's
+// conclusion and "Finalize report". Versions and printing come in 6d-2b.
+function ReportStep({
+  projectId,
+  requirementNumber,
+  requirementTitle,
+  scenarios,
+  testCases,
+  onGoToStep,
+  onChange,
+  onConflict,
+}: ReportStepProps) {
+  const { t, i18n } = useTranslation();
   const [report, setReport] = useState<LiveReport | null>(null);
   const [error, setError] = useState<string | null>(null);
   const groups = groupByScenario(scenarios, testCases);
@@ -85,7 +100,31 @@ function ReportStep({ projectId, requirementNumber, requirementTitle, scenarios,
 
       {!report && !error && <Spinner label={t("report.loading")} />}
 
+      {report?.finalized && report.changedSinceFinalized && (
+        <p
+          role="status"
+          data-testid="report-changed"
+          className="rounded-2xl border border-brand/30 bg-brand-soft/50 px-4 py-3 text-sm text-gray-700 print:hidden"
+        >
+          {t("report.changed", {
+            version: report.finalized.version,
+            date: formatDay(report.finalized.finalizedAt, i18n.language),
+          })}
+        </p>
+      )}
+
       {report && <ReportView report={report} onGoToStep={onGoToStep} />}
+
+      {report && (
+        <ReportConclusion
+          projectId={projectId}
+          requirementNumber={requirementNumber}
+          report={report}
+          onReport={setReport}
+          onFinalized={() => onChange({ status: "REPORTED" })}
+          onConflict={onConflict}
+        />
+      )}
     </div>
   );
 }

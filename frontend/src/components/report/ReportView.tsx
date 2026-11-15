@@ -1,12 +1,12 @@
 import { useTranslation } from "react-i18next";
-import type { TestReport, VerdictReason } from "../../services/report";
-import { formatDefectCode, formatRequirementCode, formatScenarioCode } from "../../services/requirements";
+import type { TestReport } from "../../services/report";
+import { formatRequirementCode, formatScenarioCode } from "../../services/requirements";
 import CoverageReport, { type CoverageSummary } from "../coverage/CoverageReport";
 import Card from "../ui/Card";
 import { ReportAi, ReportDefects } from "./ReportDefects";
 import ReportRisks, { type ReportLinkStep } from "./ReportRisks";
 import ReportTraceability from "./ReportTraceability";
-import { formatDay, formatMoment } from "./reportLabels";
+import { formatDay, formatMoment, verdictReasonText } from "./reportLabels";
 
 type ReportViewProps = {
   report: TestReport;
@@ -22,15 +22,6 @@ function ReportView({ report, onGoToStep }: ReportViewProps) {
   const { t, i18n } = useTranslation();
   const { header, summary } = report;
   const ready = summary.verdict.value === "READY";
-
-  const reasonText = (reason: VerdictReason) =>
-    reason.code === "OPEN_SERIOUS_DEFECTS"
-      ? t("report.reasons.OPEN_SERIOUS_DEFECTS", {
-          defects: reason.defects
-            .map((defect) => `${formatDefectCode(defect.number)} (${t(`defects.severities.${defect.severity}`)})`)
-            .join(", "),
-        })
-      : t(`report.reasons.${reason.code}`, { count: "count" in reason ? reason.count : 0 });
 
   const coverage: CoverageSummary = {
     percent: summary.passRate,
@@ -100,7 +91,7 @@ function ReportView({ report, onGoToStep }: ReportViewProps) {
           ) : (
             <ul className="mt-1.5 list-disc space-y-0.5 pl-5 text-sm text-gray-700">
               {summary.verdict.reasons.map((reason) => (
-                <li key={reason.code}>{reasonText(reason)}</li>
+                <li key={reason.code}>{verdictReasonText(reason, t)}</li>
               ))}
             </ul>
           )}

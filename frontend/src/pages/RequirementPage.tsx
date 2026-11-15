@@ -508,6 +508,8 @@ function RequirementPage() {
               scenarios={detail.scenarios}
               testCases={detail.testCases}
               onGoToStep={goToStep}
+              onChange={changeDetail}
+              onConflict={showRunningGeneration}
             />
           )}
         </>

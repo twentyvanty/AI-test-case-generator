@@ -4,6 +4,23 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-15 — Slice 6d-2a: Conclusion and Finalize (Step 5)
+
+**Goal.** Let the tester write a conclusion and finalize the report on the page (backend from 6c-2, D-040). 6d-2 was split: 6d-2a is the conclusion and Finalize; 6d-2b adds viewing earlier versions and printing.
+
+**What was built**
+- `report/ReportConclusion`: the conclusion box at the end of the report. Its placeholder asks for what ISO/IEC/IEEE 29119-3 and ISTQB put in a completion report that the app can't fill in itself: the assessment, anything that blocked testing, and lessons learned. It saves itself 1 second after typing stops ("Saving…" / "Saved"; only the newest save's answer is used; a save still waiting is sent when the tester leaves the step).
+- **Finalize report:** when the verdict is Ready it finalizes at once; when Not ready a dialog, "Finalize with open risks?", lists the same reasons as the report (`verdictReasonText` in `reportLabels`, shared) with Cancel / Finalize anyway. The conclusion on screen goes with the request. Afterwards: "Finalized as version N", "Last finalized: version N · date · verdict", and the status badge becomes Reported. A 409 during a generation shows "Still generating…", not an error.
+- "Changed since version N was finalized (date). Finalize again to save the current results." above the report when the content or the conclusion changed since the last version.
+- `services/report.ts`: `saveConclusion`, `finalizeReport`. EN + TH texts.
+- D-040 gained a note on how the report was adapted from ISO/IEC/IEEE 29119-3 and ISTQB.
+
+**How it was checked**
+- Frontend `tsc`, `lint`, `build` and the i18n check (411 keys, none missing).
+- Browser check (`ui-check6d2a.mjs`: headless Chrome, a temporary Keycloak user, the mock AI and a test backend on port 5099; all removed afterwards): 18 checks. They covered the placeholder, "Not finalized yet" with no banner, auto-save kept after a reload, the Not ready dialog listing the reasons, Cancel saving nothing, version 1 with "Not ready" and the Reported badge, no banner right after finalizing or after a reload, the banner after editing the conclusion and after results changed, Ready finalizing directly as version 2 with both versions kept, finalize during a generation showing "Still generating…", the Thai texts, and no sideways scrolling at phone width.
+
+---
+
 ## 2026-11-15 — Small fixes: "Show more" in the report, clearer AI notes
 
 **Goal.** Two things found while using the app: the report's long sections flooded the page on real runs (11–19 scenarios, 20–40 test cases), and the AI notes' headings didn't match their content: "Missing from your scenarios" held a note about a scenario going *beyond* the requirement, and one hint showed as the raw key `review.hint.scenarios.coverage`.

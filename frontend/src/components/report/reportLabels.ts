@@ -1,4 +1,7 @@
+import type { TFunction } from "i18next";
 import type { BadgeTone } from "../ui/Badge";
+import type { VerdictReason } from "../../services/report";
+import { formatDefectCode } from "../../services/requirements";
 import type { DefectSeverity, DefectStatus } from "../../services/defects";
 import type { TestCaseStatus } from "../../services/requirements";
 
@@ -30,3 +33,14 @@ export const formatMoment = (value: string, language: string) =>
     hour: "2-digit",
     minute: "2-digit",
   });
+
+// One reason for "Not ready", in the interface language. Used by the report and
+// by the Finalize dialog, so both say exactly the same.
+export const verdictReasonText = (reason: VerdictReason, t: TFunction) =>
+  reason.code === "OPEN_SERIOUS_DEFECTS"
+    ? t("report.reasons.OPEN_SERIOUS_DEFECTS", {
+        defects: reason.defects
+          .map((defect) => `${formatDefectCode(defect.number)} (${t(`defects.severities.${defect.severity}`)})`)
+          .join(", "),
+      })
+    : t(`report.reasons.${reason.code}`, { count: "count" in reason ? reason.count : 0 });

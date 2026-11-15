@@ -86,3 +86,18 @@ const base = (projectId: number, requirementNumber: number) =>
 export function getReport(projectId: number, requirementNumber: number) {
   return request<LiveReport>(base(projectId, requirementNumber));
 }
+
+// The tester's draft conclusion (saved while typing); returns the report
+export function saveConclusion(projectId: number, requirementNumber: number, conclusion: string) {
+  return request<LiveReport>(base(projectId, requirementNumber), { method: "PATCH", body: { conclusion } });
+}
+
+// Saves the report as the next version and sets REPORTED. acceptOpenRisks is
+// needed when the verdict is Not ready (the page asks first).
+export function finalizeReport(
+  projectId: number,
+  requirementNumber: number,
+  input: { conclusion: string; acceptOpenRisks: boolean }
+) {
+  return request<LiveReport>(`${base(projectId, requirementNumber)}/finalize`, { method: "POST", body: input });
+}
