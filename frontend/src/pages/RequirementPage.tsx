@@ -502,10 +502,12 @@ function RequirementPage() {
 
           {step === "report" && detail && (
             <ReportStep
+              projectId={projectId}
               requirementNumber={detail.number}
               requirementTitle={detail.title}
               scenarios={detail.scenarios}
               testCases={detail.testCases}
+              onGoToStep={goToStep}
             />
           )}
         </>

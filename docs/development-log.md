@@ -4,6 +4,23 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-15 — Slice 6d-1: The report page (Step 5)
+
+**Goal.** Show the live test completion report (D-040) in Step 5. 6d was split: 6d-1 shows the report, 6d-2 adds the conclusion, Finalize, versions and printing.
+
+**What was built**
+- `services/report.ts`: the report types and `getReport`.
+- `components/report/`: `ReportView` (header; suggested verdict with its reasons and the rule; the key numbers), `ReportRisks` (one line per risk with its TC / SC codes and a button to Step 3 or Step 2), results by scenario (the existing coverage card), `ReportTraceability` (scenario → cases with status badges → defects; folded when there are more than 6 scenarios), `ReportDefects` (severity × status table, not linked, on deleted cases) and `ReportAi` (runs, attempts, first-try passes, needed review, models, tokens). `ReportView` takes any report data, so 6d-2 can draw a finalized version with it.
+- `ReportStep` loads the report each time the step opens. Downloads: a new **report CSV** (`utils/reportExport.ts`: header, summary, verdict, risks, then one row per test case with its scenario, status and defects; in the interface language; Excel-safe), plus the coverage CSV and test case table as before.
+- EN + TH texts for every code (verdict, reasons, risks, sections). The old "Download report" / "Coverage & traceability report" texts were removed (no longer used).
+
+**How it was checked**
+- Frontend `tsc`, `lint`, `build` and the i18n check (372 keys, none missing).
+- Browser check (`ui-check6d1.mjs`: headless Chrome, a temporary Keycloak user, the mock AI and a test backend on port 5099; all removed afterwards): 17 checks. They covered Not ready with every case not run, the risk link opening Step 3, failures with an open Critical defect, each risk (failure without a defect, a scenario added afterwards shown as out of date, an assumed rule), DEF-1 under its case in the traceability, the defect table, the AI info, the results card, the report CSV (name, BOM, verdict, defects), Ready after fixing and retesting, the Thai report, and no sideways scrolling at phone width.
+- Found by the phone screenshot and fixed: long scenario titles were squeezed beside their details in the traceability; the title now keeps at least 12rem and the details wrap below. The defect table scrolls sideways inside its card on a phone.
+
+---
+
 ## 2026-11-15 — Slice 6c-2: Finalize the report (backend)
 
 **Goal.** Let the tester write a conclusion and finalize the report: a saved version they can show later, the status REPORTED, and a note when things change afterwards (D-040).
