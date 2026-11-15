@@ -4,6 +4,24 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-15 — Slice 6c-2: Finalize the report (backend)
+
+**Goal.** Let the tester write a conclusion and finalize the report: a saved version they can show later, the status REPORTED, and a note when things change afterwards (D-040).
+
+**What was built**
+- Migration `add_test_reports`: `TestReport` (requirement, version, verdict, withOpenRisks, conclusion, snapshot, fingerprint, finalizedAt; unique per requirement + version; deleted with the requirement), the `ReportVerdict` enum, and `Requirement.reportConclusion`. Prisma named it with the current time, which sorted before the guard migration's hand-picked `…120000` name, so it was renamed to `20261115120100_add_test_reports` (and its row in `_prisma_migrations` updated) to keep creation order.
+- `reportFingerprint` in `report-builder.js`: SHA-256 of the report without its date and AI info.
+- `report.service.js`: `getReport` now adds the draft conclusion, the latest finalized version, every version and `changedSinceFinalized`; `saveConclusion`; `finalizeReport` (409 with no test cases, during a generation, or NOT_READY without `acceptOpenRisks`; next version with a retry on a clash; REPORTED); `getReportVersion`.
+- `dto/report/report.dto.js`, the controller, and the routes `PATCH …/report`, `POST …/report/finalize`, `GET …/report/versions/:version`, with `@openapi`.
+- **Bug fix:** a scenario draft set SCENARIOS_READY even when test cases existed, so "Generate more" after test cases locked steps 3–5 (seen in the guard check's screenshot). It now calls `refreshStatus`.
+
+**How it was checked**
+- `npm test`: 167 pass (new: the fingerprint ignores the date and tokens but not a status or a new defect; the two DTOs).
+- `finalize-check.mjs` (real services, mock AI, temporary user): 21 checks. They covered finalize refused without test cases, "Generate more" keeping CASES_READY and REPORTED, the draft conclusion, NOT_READY refused without acceptance and nothing saved, version 1 with its conclusion, REPORTED, a later GET unchanged, case statuses changing the report, version 2 READY with both versions listed and version 1's snapshot unchanged, an unknown version, an edited conclusion counting as a change, finalize during a generation refused, and all test cases deleted dropping the status with both versions kept.
+- Migration: the database and a fresh replay match the schema. The new endpoints answer 401 without a token. Redocly lint: valid.
+
+---
+
 ## 2026-11-15 — Slice 6c-1: Live test completion report (backend)
 
 **Goal.** The data for the full Step 5 report (D-040), built live. 6c was split: 6c-1 is the live report (no database change), 6c-2 adds the conclusion, finalizing with a snapshot and REPORTED.

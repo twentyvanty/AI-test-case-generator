@@ -238,7 +238,8 @@ router.post("/:number/technique-suggestions", authenticateToken, suggestTechniqu
  *       - Only one generation runs per requirement at a time: while scenarios or
  *         test cases are being generated, this answers 409 (D-039).
  *       - **PASSED / NEEDS_REVIEW**: the scenarios are saved and the requirement's
- *         status becomes SCENARIOS_READY.
+ *         status becomes SCENARIOS_READY (or stays CASES_READY / REPORTED when test
+ *         cases exist).
  *       - **FAILED** (AI busy, over its limit…): the old scenarios are kept and
  *         errorMessage explains why. Still HTTP 201.
  *

@@ -64,6 +64,12 @@ enum DefectStatus {
   CLOSED
 }
 
+// The suggested verdict saved with a finalized report (D-040)
+enum ReportVerdict {
+  READY
+  NOT_READY
+}
+
 enum ItemSource {
   AI
   MANUAL
@@ -126,25 +132,29 @@ model Requirement {
   projectId Int
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  number         Int // shown as REQ-0001, unique per project
-  title          String            @db.VarChar(255)
-  text           String            @db.Text
-  sourceFileName String?           @db.VarChar(255)
-  techniques     Json // technique keys, e.g. ["boundaryValue"] — strings so new techniques need no migration
-  status         RequirementStatus @default(DRAFT)
+  number           Int // shown as REQ-0001, unique per project
+  title            String            @db.VarChar(255)
+  text             String            @db.Text
+  sourceFileName   String?           @db.VarChar(255)
+  techniques       Json // technique keys, e.g. ["boundaryValue"] — strings so new techniques need no migration
+  status           RequirementStatus @default(DRAFT)
   // The test data every test case shares (D-035): { conventions, records }. Only
   // grows while test cases exist; cleared when the last one is deleted.
-  testDataPlan   Json?
+  testDataPlan     Json?
   // Set while an AI generation runs for this requirement (D-039), so a refresh
   // can show "Still generating…" and a second click is refused. Ignored after
   // 15 minutes (a backend that stopped mid-run never clears it).
-  generatingKind  GenerationKind?
-  generatingSince DateTime?
+  generatingKind   GenerationKind?
+  generatingSince  DateTime?
+  // The tester's conclusion for the report, saved while writing it (D-040);
+  // finalizing copies it into the report version
+  reportConclusion String?           @db.Text
 
   scenarios Scenario[]
   testCases TestCase[]
   runs      GenerationRun[]
   defects   Defect[]
+  reports   TestReport[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -253,6 +263,29 @@ model TestCase {
   // Deleted cases keep their numbers, so this holds for every row (D-039)
   @@unique([requirementId, number])
   @@index([deletedAt])
+}
+
+// One finalized test completion report (Slice 6c, D-040). Every "Finalize"
+// adds a version; earlier ones are never changed. `snapshot` is the report's data
+// as it was at that moment (not an image), so the page can show it again exactly.
+model TestReport {
+  id Int @id @default(autoincrement())
+
+  requirementId Int
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  version       Int // 1, 2, 3… per requirement
+  verdict       ReportVerdict // the suggested verdict at that moment
+  withOpenRisks Boolean // any "risks to confirm" were listed
+  conclusion    String        @db.Text
+  snapshot      Json
+  // Hash of the report's content (not its date or token counts), to tell when
+  // the live report has changed since this version
+  fingerprint   String        @db.VarChar(64)
+
+  finalizedAt DateTime @default(now())
+
+  @@unique([requirementId, version])
 }
 
 // A defect the tester found (Slice 6). Numbered DEF-1, DEF-2… per requirement,

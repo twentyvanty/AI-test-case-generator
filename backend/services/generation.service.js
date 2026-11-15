@@ -128,10 +128,10 @@ async function draft(requirement, mode) {
         data: toScenarioRows(requirement.id, run.id, added, firstNumber),
       });
 
-      await tx.requirement.update({
-        where: { id: requirement.id },
-        data: { status: "SCENARIOS_READY" },
-      });
+      // Recounted, not set: after "Generate more" with test cases the status
+      // stays CASES_READY / REPORTED (it used to drop to SCENARIOS_READY, which
+      // locked steps 3–5)
+      await refreshStatus(tx, requirement.id);
     }
 
     return { run, scenarios: await scenariosWithCounts(tx, requirement.id) };

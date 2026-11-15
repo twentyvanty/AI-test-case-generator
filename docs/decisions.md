@@ -312,4 +312,11 @@ Separately, the `gemini-2.5-*` models turned out to be unavailable to new keys, 
 - The report returns **codes**, not text (NOT_RUN, CRITICAL, technique keys), so the page shows it in English or Thai.
 - AI info covers the runs behind what's on screen: number of runs and attempts, runs passed on the first try, runs that needed review, models, and **tokens** (the test-data plan calls included). No cost in money: prices change and differ per model.
 
-**Consequences.** The report is always current and needs no storage until it's finalized (6c-2: snapshot, conclusion, REPORTED). "Assumed rule" is found by its English marker; a Thai answer that translates the marker isn't caught.
+- **Finalizing (6c-2)** saves the live report as a new **version** (`TestReport`: 1, 2, 3… per requirement; earlier versions never change) with the tester's conclusion, the verdict, whether risks were listed, and a **snapshot**: the report's data at that moment (not an image), so the page can show that version again exactly. The requirement becomes REPORTED.
+  - Finalizing is allowed at any time once test cases exist, but a NOT_READY verdict needs `acceptOpenRisks: true` (the page asks "Finalize with open risks?"). It waits for a running generation (409, D-039), so a half-made list is never saved.
+  - The tester's conclusion is saved as a draft on the requirement while writing (`reportConclusion`).
+  - **"Changed since finalizing":** a SHA-256 fingerprint of the report's content (everything except the report date and the AI info, so a later GET or token counts don't count) is stored with each version and compared with the live report; an edited conclusion counts too.
+  - REPORTED stays when the data changes afterwards (the page shows the change instead); it drops back only when no test cases are left. The versions are kept either way.
+- Found while planning this: a scenario draft always set SCENARIOS_READY, so "Generate more" after test cases locked steps 3–5 (and would have dropped REPORTED). The draft now recounts the status (`refreshStatus`), like every other change.
+
+**Consequences.** The report is always current, and every finalized version stays as it was, for showing later what was reported. "Assumed rule" is found by its English marker; a Thai answer that translates the marker isn't caught.

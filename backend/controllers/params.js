@@ -6,6 +6,7 @@ const LABELS = {
   defectNumber: "defect number",
   imageId: "screenshot id",
   runId: "run id",
+  version: "report version",
   id: "id",
 };
 

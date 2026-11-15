@@ -5,7 +5,9 @@
 // Sections, modelled on ISO/IEC/IEEE 29119-3 and ISTQB: header, summary with a
 // suggested verdict, results per scenario, traceability (scenario → test cases →
 // defects), defects by severity × status, risks to confirm, AI generation info.
-// The tester's conclusion and finalizing come in 6c-2.
+// Finalizing (6c-2) saves the report with the tester's conclusion as a version.
+
+import { createHash } from "node:crypto";
 
 export const SEVERITIES = ["CRITICAL", "MAJOR", "MINOR", "TRIVIAL"];
 export const DEFECT_STATUSES = ["OPEN", "IN_PROGRESS", "FIXED", "CLOSED"];
@@ -229,4 +231,11 @@ export function buildReport({ requirement, projectName, tester, scenarios, testC
     risks: findRisks({ scenarios, testCases, defects, runs }),
     ai: aiSummary(runs),
   };
+}
+
+// A short code for the report's content, to tell whether the live report has
+// changed since a version was finalized. The report date and the AI info (token
+// counts) aren't content, so they're left out.
+export function reportFingerprint({ reportedAt: _reportedAt, ai: _ai, ...content }) {
+  return createHash("sha256").update(JSON.stringify(content)).digest("hex");
 }

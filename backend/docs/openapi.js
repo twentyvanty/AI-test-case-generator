@@ -521,6 +521,35 @@ const definition = {
               },
             },
           },
+          conclusion: { type: "string", description: "The tester's draft conclusion" },
+          finalized: {
+            type: "object",
+            nullable: true,
+            description: "The latest finalized version, or null",
+            properties: {
+              version: { type: "integer" },
+              finalizedAt: { type: "string", format: "date-time" },
+              verdict: { type: "string", enum: ["READY", "NOT_READY"] },
+              withOpenRisks: { type: "boolean" },
+              conclusion: { type: "string" },
+            },
+          },
+          versions: {
+            type: "array",
+            description: "Every finalized version, newest first",
+            items: {
+              type: "object",
+              properties: {
+                version: { type: "integer" },
+                finalizedAt: { type: "string", format: "date-time" },
+                verdict: { type: "string", enum: ["READY", "NOT_READY"] },
+              },
+            },
+          },
+          changedSinceFinalized: {
+            type: "boolean",
+            description: "The content or the conclusion differs from the latest finalized version",
+          },
           ai: {
             type: "object",
             properties: {

@@ -1,6 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { aiSummary, buildReport, defectMatrix, findRisks, hasUnreviewedNotes, suggestVerdict } from "../report-builder.js";
+import {
+  aiSummary,
+  buildReport,
+  defectMatrix,
+  findRisks,
+  hasUnreviewedNotes,
+  reportFingerprint,
+  suggestVerdict,
+} from "../report-builder.js";
 
 const scenario = (id, number = id) => ({ id, number, title: `Scenario ${number}`, technique: "useCase", runId: 1 });
 const testCase = (number, scenarioId, status = "PASS", precondition = "") => ({
@@ -200,4 +208,38 @@ test("the whole report: header, summary, results and traceability with defects",
   assert.equal(report.defects.notLinked, 1);
   assert.equal(report.defects.onDeletedCases, 1);
   assert.equal(report.ai.runs, 2);
+});
+
+test("fingerprint: same content → same code; a status change differs; date and tokens don't count", () => {
+  const data = (status, extra = {}) => ({
+    requirement: { number: 1, title: "R", techniques: [] },
+    projectName: "P",
+    tester: "T",
+    scenarios: [scenario(1)],
+    testCases: [testCase(1, 1, status)],
+    defects: [],
+    runs: [run({ usage: { generator: { input: 1, output: 1 } } })],
+    ...extra,
+  });
+  const base = reportFingerprint(buildReport(data("PASS", { now: new Date("2026-11-15T01:00:00Z") })));
+
+  assert.match(base, /^[0-9a-f]{64}$/);
+  assert.equal(
+    reportFingerprint(
+      buildReport(
+        data("PASS", {
+          now: new Date("2026-11-20T01:00:00Z"),
+          runs: [run({ usage: { generator: { input: 999, output: 999 } } })],
+        })
+      )
+    ),
+    base,
+    "another day and other token counts: unchanged"
+  );
+  assert.notEqual(reportFingerprint(buildReport(data("FAIL"))), base, "a status change changes it");
+  assert.notEqual(
+    reportFingerprint(buildReport(data("PASS", { defects: [defect(1, "MINOR")] }))),
+    base,
+    "a new defect changes it"
+  );
 });
