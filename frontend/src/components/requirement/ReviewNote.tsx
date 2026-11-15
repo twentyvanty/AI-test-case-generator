@@ -9,6 +9,37 @@ import Button from "../ui/Button";
 
 const GROUPS: IssueGroup[] = ["coverage", "technique", "other"];
 
+type Kind = "scenarios" | "testCases";
+
+// Every text key written out in full (no keys built from parts), so the i18n
+// check sees each one and a missing text can't slip through again.
+// Headings say WHAT was checked, not a conclusion: a requirement note can mean
+// something is missing OR that an item goes beyond the requirement.
+const GROUP_TITLES: Record<IssueGroup, string> = {
+  coverage: "review.group.requirement",
+  technique: "review.group.technique",
+  other: "review.group.other",
+};
+
+const TITLES: Record<Kind, string> = { scenarios: "review.title.scenarios", testCases: "review.title.testCases" };
+const NOTES_TEXTS: Record<Kind, string> = {
+  scenarios: "review.notesText.scenarios",
+  testCases: "review.notesText.testCases",
+};
+
+const HINTS: Record<Kind, Record<IssueGroup, string>> = {
+  scenarios: {
+    coverage: "review.hint.scenarios.requirement",
+    technique: "review.hint.scenarios.technique",
+    other: "review.hint.scenarios.other",
+  },
+  testCases: {
+    coverage: "review.hint.testCases.requirement",
+    technique: "review.hint.testCases.technique",
+    other: "review.hint.testCases.other",
+  },
+};
+
 // The issues of several runs, grouped, without repeats
 function mergeGroups(runs: RunSummary[]) {
   const merged: Record<IssueGroup, string[]> = { coverage: [], technique: [], other: [] };
@@ -28,7 +59,7 @@ type ReviewNoteProps = {
   // Usually one run; test cases come from one run per batch, shown together
   runs: RunSummary[];
   // What the run produced: changes the title and the hints
-  kind: "scenarios" | "testCases";
+  kind: Kind;
   // "review": NEEDS_REVIEW, open and highlighted. "notes": a PASSED run's warnings,
   // collapsed as "AI notes to check (N)" so they're seen but don't shout
   variant?: "review" | "notes";
@@ -60,7 +91,7 @@ function ReviewNote({
       {GROUPS.filter((group) => groups[group].length > 0).map((group) => (
         <div key={group} className="mt-3">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-            {t(`review.group.${kind}.${group}`)}
+            {t(GROUP_TITLES[group])}
           </p>
 
           <ul className="mt-1.5 space-y-1.5">
@@ -77,9 +108,7 @@ function ReviewNote({
             ))}
           </ul>
 
-          {(group !== "coverage" || !onAddForIssue) && (
-            <p className="mt-1 text-xs text-gray-500">{t(`review.hint.${kind}.${group}`)}</p>
-          )}
+          <p className="mt-1 text-xs text-gray-500">{t(HINTS[kind][group])}</p>
         </div>
       ))}
 
@@ -97,7 +126,7 @@ function ReviewNote({
         <summary className="cursor-pointer font-medium text-ink">
           {t("review.notesTitle", { count })}
         </summary>
-        <p className="mt-2 text-gray-600">{t(`review.notesText.${kind}`)}</p>
+        <p className="mt-2 text-gray-600">{t(NOTES_TEXTS[kind])}</p>
         {body}
       </details>
     );
@@ -105,7 +134,7 @@ function ReviewNote({
 
   return (
     <div className="rounded-2xl border border-warning/30 bg-warning/10 px-5 py-4 text-sm">
-      <p className="font-medium text-ink">{t(`review.title.${kind}`)}</p>
+      <p className="font-medium text-ink">{t(TITLES[kind])}</p>
       <p className="mt-1 text-gray-600">{t("review.text", { count: attempts })}</p>
       {body}
     </div>

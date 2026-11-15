@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ReportRisk } from "../../services/report";
 import { formatScenarioCode, formatTestCaseCode } from "../../services/requirements";
 import Button from "../ui/Button";
 import Card from "../ui/Card";
-import { listCodes } from "./reportLabels";
+import { usePrinting } from "../../utils/usePrinting";
+
+// Codes shown before "+N more"
+const CODE_LIMIT = 8;
 
 export type ReportLinkStep = "scenarios" | "testCases";
 
@@ -25,7 +29,42 @@ const STEP_FOR: Record<ReportRisk["code"], ReportLinkStep> = {
 // "Risks to confirm" (D-040): what the tester should look at before trusting the result
 function ReportRisks({ risks, onGoToStep }: ReportRisksProps) {
   const { t } = useTranslation();
-  const more = (count: number) => t("report.risks.more", { count });
+  const printing = usePrinting();
+  // Risks whose whole code list is shown
+  const [expanded, setExpanded] = useState<Set<ReportRisk["code"]>>(() => new Set());
+
+  const toggle = (code: ReportRisk["code"]) =>
+    setExpanded((current) => {
+      const next = new Set(current);
+
+      if (next.has(code)) {
+        next.delete(code);
+      } else {
+        next.add(code);
+      }
+
+      return next;
+    });
+
+  const linkClasses = "ml-1 font-sans font-medium text-brand-strong hover:underline print:hidden";
+
+  // The codes, cut after CODE_LIMIT with a "+N more" link (printing shows all)
+  const codeList = (risk: ReportRisk, codes: string[]) => {
+    const open = expanded.has(risk.code);
+
+    if (codes.length <= CODE_LIMIT || printing) {
+      return codes.join(", ");
+    }
+
+    return (
+      <>
+        {(open ? codes : codes.slice(0, CODE_LIMIT)).join(", ")}
+        <button type="button" onClick={() => toggle(risk.code)} className={linkClasses}>
+          {open ? t("report.more.less") : t("report.risks.more", { count: codes.length - CODE_LIMIT })}
+        </button>
+      </>
+    );
+  };
 
   const details = (risk: ReportRisk) => {
     if (risk.code === "UNREVIEWED_AI_NOTES") {
@@ -40,7 +79,7 @@ function ReportRisks({ risks, onGoToStep }: ReportRisksProps) {
 
     const format = risk.code === "SCENARIOS_WITHOUT_CASES" ? formatScenarioCode : formatTestCaseCode;
 
-    return listCodes(risk.items.map(format), more);
+    return codeList(risk, risk.items.map(format));
   };
 
   return (

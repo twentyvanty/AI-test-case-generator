@@ -1,7 +1,8 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import Card from "../ui/Card";
 import ProgressBar, { type ProgressTone } from "../ui/ProgressBar";
+import { usePrinting } from "../../utils/usePrinting";
 
 // Filled with real test results in Slice 6 (report step)
 export type CoverageArea = {
@@ -36,10 +37,16 @@ type CoverageReportProps = {
   // Extra content at the bottom, e.g. download buttons
   children?: ReactNode;
   className?: string;
+  // Show only this many areas until "Show all" (the totals always count every area)
+  limit?: number;
 };
 
-function CoverageReport({ title, coverage, children, className }: CoverageReportProps) {
+function CoverageReport({ title, coverage, children, className, limit }: CoverageReportProps) {
   const { t } = useTranslation();
+  const [showAll, setShowAll] = useState(false);
+  const printing = usePrinting();
+  const cut = limit !== undefined && coverage.areas.length > limit;
+  const areas = cut && !showAll && !printing ? coverage.areas.slice(0, limit) : coverage.areas;
 
   return (
     <Card padding="md" className={className}>
@@ -57,7 +64,7 @@ function CoverageReport({ title, coverage, children, className }: CoverageReport
         <p className="mt-4 text-sm text-gray-500">{t("coverage.empty")}</p>
       ) : (
         <ul className="mt-4 space-y-3.5">
-          {coverage.areas.map((area) => (
+          {areas.map((area) => (
             <li key={area.key}>
               <div className="mb-1.5 flex items-baseline justify-between gap-4">
                 <span className="truncate text-sm text-gray-600">{area.label}</span>
@@ -74,6 +81,16 @@ function CoverageReport({ title, coverage, children, className }: CoverageReport
             </li>
           ))}
         </ul>
+      )}
+
+      {cut && (
+        <button
+          type="button"
+          onClick={() => setShowAll((current) => !current)}
+          className="mt-3 text-sm font-medium text-brand-strong hover:underline print:hidden"
+        >
+          {showAll ? t("coverage.showLess") : t("coverage.showAll", { count: coverage.areas.length })}
+        </button>
       )}
 
       <div className="mt-5 grid grid-cols-2 gap-4 border-t border-gray-200/80 pt-4">

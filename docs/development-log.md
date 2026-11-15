@@ -4,6 +4,28 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-15 — Small fixes: "Show more" in the report, clearer AI notes
+
+**Goal.** Two things found while using the app: the report's long sections flooded the page on real runs (11–19 scenarios, 20–40 test cases), and the AI notes' headings didn't match their content: "Missing from your scenarios" held a note about a scenario going *beyond* the requirement, and one hint showed as the raw key `review.hint.scenarios.coverage`.
+
+**What was changed**
+- **Report (Step 5):**
+  - **Results by scenario** shows 6 scenarios, then "Show all N scenarios" / "Show less" (`CoverageReport` gained a `limit`; the totals always count every scenario).
+  - **Traceability** shows 6 scenarios, then "Show all", and 5 test cases per scenario, then "Show N more test cases". Failed cases and cases with defects are always shown.
+  - **Risks to confirm:** "+N more" after a long code list is a link that shows the whole list.
+  - `utils/usePrinting` (the browser's `beforeprint` / `afterprint`): while printing or saving as PDF, everything is shown and every scenario is opened.
+- **AI notes (Steps 2 and 3):**
+  - Headings named after what was checked, not a conclusion: "About the requirement", "About the technique", "Other" (EN + TH). A requirement note can mean something is missing or that an item goes beyond the requirement.
+  - The missing hint was written, and the requirement hints now cover both directions ("Add a scenario if something is missing, or edit the scenario named if it goes beyond the requirement"). "Add a scenario for this" stays.
+  - `ReviewNote` no longer builds text keys from parts: every key is written out in a table.
+- **i18n check** (`test-scripts/i18n-check.mjs`): also checks key-like strings kept in tables and passed to `t()` later. Shown on a copy of the source: removing one hint text is now reported as missing.
+
+**How it was checked**
+- Frontend `tsc`, `lint`, `build` and the i18n check (396 keys, none missing).
+- Browser check (`ui-check-fixes.mjs`: headless Chrome, a temporary Keycloak user, the mock AI and a test backend on port 5099; all removed afterwards; a warning was added to the test run's saved checks because the mock never writes one): 19 checks. They covered the new heading and hint with no raw key, "Add a scenario for this" still there, results 6 → all 9 → 6 with the totals unchanged, traceability 6 → 9 scenarios, a failed 6th case shown while the limit is 5, "Show 1 more", the "+39 more" risk link, printing showing all 9 scenarios open and all 48 cases, and the Thai heading.
+
+---
+
 ## 2026-11-15 — Slice 6d-1: The report page (Step 5)
 
 **Goal.** Show the live test completion report (D-040) in Step 5. 6d was split: 6d-1 shows the report, 6d-2 adds the conclusion, Finalize, versions and printing.

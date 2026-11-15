@@ -119,6 +119,9 @@ const en = {
     },
 
     coverage: {
+      showAll_one: "Show all {{count}} scenarios",
+      showAll_other: "Show all {{count}} scenarios",
+      showLess: "Show less",
       title: "Coverage & traceability",
       empty: "No test cases yet.",
       failingCases: "failing cases",
@@ -219,6 +222,13 @@ const en = {
         more: "+{{count}} more",
         goToCases: "Open test cases",
         goToScenarios: "Open scenarios",
+      },
+      more: {
+        scenarios_one: "Show all {{count}} scenarios",
+        scenarios_other: "Show all {{count}} scenarios",
+        cases_one: "Show {{count}} more test case",
+        cases_other: "Show {{count}} more test cases",
+        less: "Show less",
       },
       results: { title: "Results by scenario" },
       traceability: {
@@ -419,25 +429,19 @@ const en = {
       text_other:
         "After {{count}} attempts, the AI's own checks still flagged these problems. You decide: fix them yourself, or mark them as reviewed.",
       group: {
-        scenarios: {
-          coverage: "Missing from your scenarios",
-          technique: "Technique not applied correctly",
-          other: "Other things to check",
-        },
-        testCases: {
-          coverage: "Not covered by the test cases",
-          technique: "Technique not applied correctly",
-          other: "Other things to check",
-        },
+        requirement: "About the requirement",
+        technique: "About the technique",
+        other: "Other",
       },
       addForIssue: "Add a scenario for this",
       hint: {
         scenarios: {
+          requirement: "Add a scenario if something is missing, or edit the scenario named if it goes beyond the requirement.",
           technique: "Edit the scenario named in the issue, or redraft.",
           other: "Edit or delete the scenario mentioned.",
         },
         testCases: {
-          coverage: "Edit the test cases of that scenario, or delete the scenario and add a better one.",
+          requirement: "Edit the test cases named: add what's missing, or remove what the requirement doesn't ask for.",
           technique: "Edit the test cases named in the issue.",
           other: "Edit or delete the test cases mentioned.",
         },

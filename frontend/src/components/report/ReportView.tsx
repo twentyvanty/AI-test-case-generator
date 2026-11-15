@@ -119,7 +119,7 @@ function ReportView({ report, onGoToStep }: ReportViewProps) {
 
       <ReportRisks risks={report.risks} onGoToStep={onGoToStep} />
 
-      <CoverageReport title={t("report.results.title")} coverage={coverage} className="report-section" />
+      <CoverageReport title={t("report.results.title")} coverage={coverage} className="report-section" limit={6} />
 
       <ReportTraceability traceability={report.traceability} />
 

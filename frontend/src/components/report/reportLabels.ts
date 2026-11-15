@@ -30,8 +30,3 @@ export const formatMoment = (value: string, language: string) =>
     hour: "2-digit",
     minute: "2-digit",
   });
-
-// At most `limit` codes, then "+3 more"
-export function listCodes(codes: string[], more: (count: number) => string, limit = 8) {
-  return codes.length > limit ? `${codes.slice(0, limit).join(", ")} ${more(codes.length - limit)}` : codes.join(", ");
-}

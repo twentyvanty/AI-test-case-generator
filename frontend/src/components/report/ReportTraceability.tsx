@@ -1,15 +1,52 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TestReport } from "../../services/report";
 import { formatDefectCode, formatScenarioCode, formatTestCaseCode } from "../../services/requirements";
 import Badge from "../ui/Badge";
 import Card from "../ui/Card";
+import { usePrinting } from "../../utils/usePrinting";
 import { CASE_TONES, SEVERITY_TONES } from "./reportLabels";
+
+// On screen: the first scenarios and the first cases of each, then "Show more".
+// Failed cases and cases with defects are always shown; printing shows everything.
+const SCENARIO_LIMIT = 6;
+const CASE_LIMIT = 5;
+
+type TraceScenario = TestReport["traceability"][number];
+type TraceCase = TraceScenario["testCases"][number];
+
+const mustShow = (testCase: TraceCase) => testCase.status === "FAIL" || testCase.defects.length > 0;
 
 // Scenario → its test cases (status) → the defects they found. Scenarios start
 // folded when there are many, so the page stays short; printing opens them all.
 function ReportTraceability({ traceability }: { traceability: TestReport["traceability"] }) {
   const { t } = useTranslation();
-  const startOpen = traceability.length <= 6;
+  const printing = usePrinting();
+  const [allScenarios, setAllScenarios] = useState(false);
+  // Scenario numbers whose cases are all shown
+  const [allCases, setAllCases] = useState<Set<number>>(() => new Set());
+  const startOpen = traceability.length <= SCENARIO_LIMIT;
+  const cutScenarios = traceability.length > SCENARIO_LIMIT;
+  const scenarios = cutScenarios && !allScenarios && !printing ? traceability.slice(0, SCENARIO_LIMIT) : traceability;
+
+  // The first CASE_LIMIT cases plus every failed one or one with defects
+  const visibleCases = (scenario: TraceScenario) =>
+    printing || allCases.has(scenario.scenarioNumber)
+      ? scenario.testCases
+      : scenario.testCases.filter((testCase, index) => index < CASE_LIMIT || mustShow(testCase));
+
+  const toggleCases = (scenarioNumber: number) =>
+    setAllCases((current) => {
+      const next = new Set(current);
+
+      if (next.has(scenarioNumber)) {
+        next.delete(scenarioNumber);
+      } else {
+        next.add(scenarioNumber);
+      }
+
+      return next;
+    });
 
   return (
     <Card padding="md" className="report-section">
@@ -17,13 +54,16 @@ function ReportTraceability({ traceability }: { traceability: TestReport["tracea
       <p className="mt-0.5 text-sm text-gray-500">{t("report.traceability.description")}</p>
 
       <div className="mt-4 space-y-2">
-        {traceability.map((scenario) => {
+        {scenarios.map((scenario) => {
           const failed = scenario.testCases.filter((testCase) => testCase.status === "FAIL").length;
+          const shown = visibleCases(scenario);
+          const hidden = scenario.testCases.length - shown.length;
+          const expanded = allCases.has(scenario.scenarioNumber);
 
           return (
             <details
               key={scenario.scenarioNumber}
-              open={startOpen}
+              open={printing || startOpen}
               className="report-trace group rounded-xl border border-gray-200/80 bg-white/50"
             >
               <summary className="flex cursor-pointer list-none flex-wrap items-baseline gap-x-3 gap-y-1 px-4 py-3">
@@ -46,7 +86,7 @@ function ReportTraceability({ traceability }: { traceability: TestReport["tracea
                 </p>
               ) : (
                 <ul className="divide-y divide-gray-200/80 border-t border-gray-200/80">
-                  {scenario.testCases.map((testCase) => (
+                  {shown.map((testCase) => (
                     <li key={testCase.number} className="px-4 py-2.5">
                       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                         <span className="font-mono text-xs text-gray-500">{formatTestCaseCode(testCase.number)}</span>
@@ -67,12 +107,34 @@ function ReportTraceability({ traceability }: { traceability: TestReport["tracea
                       ))}
                     </li>
                   ))}
+
+                  {(hidden > 0 || expanded) && (
+                    <li className="px-4 py-2 print:hidden">
+                      <button
+                        type="button"
+                        onClick={() => toggleCases(scenario.scenarioNumber)}
+                        className="text-xs font-medium text-brand-strong hover:underline"
+                      >
+                        {expanded ? t("report.more.less") : t("report.more.cases", { count: hidden })}
+                      </button>
+                    </li>
+                  )}
                 </ul>
               )}
             </details>
           );
         })}
       </div>
+
+      {cutScenarios && (
+        <button
+          type="button"
+          onClick={() => setAllScenarios((current) => !current)}
+          className="mt-3 text-sm font-medium text-brand-strong hover:underline print:hidden"
+        >
+          {allScenarios ? t("report.more.less") : t("report.more.scenarios", { count: traceability.length })}
+        </button>
+      )}
     </Card>
   );
 }

@@ -115,6 +115,8 @@ const th = {
     },
 
     coverage: {
+      showAll_other: "แสดงทั้งหมด {{count}} สถานการณ์",
+      showLess: "แสดงน้อยลง",
       title: "ความครอบคลุมและการติดตาม",
       empty: "ยังไม่มี Test Case",
       failingCases: "Test Case ที่ไม่ผ่าน",
@@ -208,6 +210,11 @@ const th = {
         more: "+อีก {{count}} รายการ",
         goToCases: "เปิด Test Case",
         goToScenarios: "เปิดสถานการณ์",
+      },
+      more: {
+        scenarios_other: "แสดงทั้งหมด {{count}} สถานการณ์",
+        cases_other: "แสดง Test Case เพิ่มอีก {{count}} รายการ",
+        less: "แสดงน้อยลง",
       },
       results: { title: "ผลตามสถานการณ์" },
       traceability: {
@@ -382,25 +389,19 @@ const th = {
       text_other:
         "หลังจากลอง {{count}} ครั้ง การตรวจสอบของ AI ยังพบปัญหาเหล่านี้ คุณเป็นผู้ตัดสินใจ: แก้ไขเอง หรือทำเครื่องหมายว่าตรวจแล้ว",
       group: {
-        scenarios: {
-          coverage: "ยังไม่มีในสถานการณ์ของคุณ",
-          technique: "ใช้เทคนิคไม่ถูกต้อง",
-          other: "สิ่งอื่นที่ควรตรวจสอบ",
-        },
-        testCases: {
-          coverage: "Test Case ยังไม่ครอบคลุม",
-          technique: "ใช้เทคนิคไม่ถูกต้อง",
-          other: "สิ่งอื่นที่ควรตรวจสอบ",
-        },
+        requirement: "เกี่ยวกับข้อกำหนด",
+        technique: "เกี่ยวกับเทคนิค",
+        other: "อื่น ๆ",
       },
       addForIssue: "เพิ่มสถานการณ์สำหรับข้อนี้",
       hint: {
         scenarios: {
+          requirement: "เพิ่มสถานการณ์หากมีสิ่งที่ขาด หรือแก้ไขสถานการณ์ที่ระบุหากเกินจากข้อกำหนด",
           technique: "แก้ไขสถานการณ์ที่ระบุในปัญหา หรือร่างใหม่",
           other: "แก้ไขหรือลบสถานการณ์ที่กล่าวถึง",
         },
         testCases: {
-          coverage: "แก้ไข Test Case ของสถานการณ์นั้น หรือลบสถานการณ์แล้วเพิ่มใหม่",
+          requirement: "แก้ไข Test Case ที่ระบุ: เพิ่มสิ่งที่ขาด หรือนำส่วนที่ข้อกำหนดไม่ได้ขอออก",
           technique: "แก้ไข Test Case ที่ระบุในปัญหา",
           other: "แก้ไขหรือลบ Test Case ที่กล่าวถึง",
         },
