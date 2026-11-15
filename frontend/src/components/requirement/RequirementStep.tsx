@@ -76,6 +76,8 @@ type RequirementStepProps = {
   onSave: () => void;
   onDraft: () => void;
   onDelete: () => void;
+  // An AI generation still runs on the server (D-039): drafting waits for it
+  generationRunning?: boolean;
 };
 
 function RequirementStep({
@@ -98,6 +100,7 @@ function RequirementStep({
   onSave,
   onDraft,
   onDelete,
+  generationRunning = false,
 }: RequirementStepProps) {
   const { t } = useTranslation();
   const locked = busy !== null;
@@ -200,7 +203,7 @@ function RequirementStep({
             )}
           </div>
 
-          <Button size="lg" onClick={onDraft} disabled={locked || !complete}>
+          <Button size="lg" onClick={onDraft} disabled={locked || !complete || (generationRunning && !hasTestCases)}>
             {hasTestCases
               ? t("requirementStep.openScenarios")
               : hasScenarios

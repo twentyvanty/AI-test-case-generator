@@ -163,6 +163,15 @@ const en = {
       report: "Report",
     },
 
+    generationRunning: {
+      scenarios: "Still generating scenarios… (started {{started}})",
+      testCases: "Still generating test cases… (started {{started}})",
+      justNow: "just now",
+      minutesAgo_one: "{{count}} min ago",
+      minutesAgo_other: "{{count}} min ago",
+      hint: "The AI keeps working on the server even after a refresh. This page updates by itself when it's done, and generating again is paused until then.",
+      finished: "The generation has finished. The page now shows the results.",
+    },
     requirementStep: {
       describeTitle: "Describe the requirement",
       titleLabel: "Title",

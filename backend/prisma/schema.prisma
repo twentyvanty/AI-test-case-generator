@@ -135,6 +135,11 @@ model Requirement {
   // The test data every test case shares (D-035): { conventions, records }. Only
   // grows while test cases exist; cleared when the last one is deleted.
   testDataPlan   Json?
+  // Set while an AI generation runs for this requirement (D-039), so a refresh
+  // can show "Still generating…" and a second click is refused. Ignored after
+  // 15 minutes (a backend that stopped mid-run never clears it).
+  generatingKind  GenerationKind?
+  generatingSince DateTime?
 
   scenarios Scenario[]
   testCases TestCase[]
@@ -224,7 +229,7 @@ model TestCase {
   runId Int?
   run   GenerationRun? @relation(fields: [runId], references: [id], onDelete: SetNull)
 
-  number              Int // shown as TC-0001, unique among the requirement's active test cases (kept by the code)
+  number              Int // shown as TC-0001, unique per requirement, deleted cases included (D-039)
   title               String         @db.VarChar(255)
   description         String         @db.Text
   precondition        String         @db.Text
@@ -245,7 +250,8 @@ model TestCase {
 
   defects Defect[]
 
-  @@index([requirementId, number])
+  // Deleted cases keep their numbers, so this holds for every row (D-039)
+  @@unique([requirementId, number])
   @@index([deletedAt])
 }
 

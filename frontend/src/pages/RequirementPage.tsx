@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -19,6 +19,7 @@ import RequirementStep, {
   type Busy,
   type RequirementForm,
 } from "../components/requirement/RequirementStep";
+import GenerationRunning from "../components/requirement/GenerationRunning";
 import ScenariosStep from "../components/requirement/ScenariosStep";
 import ReportStep from "../components/requirement/ReportStep";
 import StepPlaceholder from "../components/requirement/StepPlaceholder";
@@ -32,6 +33,7 @@ import Button from "../components/ui/Button";
 import Modal from "../components/ui/Modal";
 import PageHeader from "../components/ui/PageHeader";
 import Spinner from "../components/ui/Spinner";
+import { ApiError } from "../services/http";
 import { isImageFileName } from "../utils/files";
 
 const EMPTY_FORM: RequirementForm = { title: "", text: "", techniques: [] };
@@ -79,6 +81,8 @@ function RequirementPage() {
   const [loading, setLoading] = useState(number !== null);
   const [notFound, setNotFound] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // "The generation has finished", after a "Still generating…" wait
+  const [finishedNotice, setFinishedNotice] = useState(false);
 
   // The requirement on screen. After the first save the URL changes from "new"
   // to the new number — this stops that change from reloading the page.
@@ -165,6 +169,7 @@ function RequirementPage() {
         latestScenarioRun: null,
         latestCaseRun: null,
         caseRuns: [],
+        generating: null,
       });
       navigate(`/projects/${projectId}/requirements/${created.number}`, { replace: true });
 
@@ -179,16 +184,49 @@ function RequirementPage() {
     return detail.number;
   };
 
+  // A generation still running on the server (D-039): generate buttons wait
+  const running = detail?.generating ?? null;
+
+  // The run behind "Still generating…" finished: show its results
+  const handleGenerationFinished = useCallback((fresh: RequirementDetail) => {
+    setDetail(fresh);
+    setFinishedNotice(true);
+  }, []);
+
+  // After a 409: if another generation is running, show "Still generating…"
+  // instead of an error. Returns true when that was the reason.
+  const showRunningGeneration = useCallback(async () => {
+    if (number === null) {
+      return false;
+    }
+
+    const fresh = await getRequirement(projectId, number);
+
+    if (!fresh.generating) {
+      return false;
+    }
+
+    setDetail((current) => current && { ...current, generating: fresh.generating });
+    return true;
+  }, [projectId, number]);
+
   // Runs one action with the busy state + error message handled
   const run = async (kind: Exclude<Busy, null>, action: () => Promise<void>) => {
     setBusy(kind);
     setError(null);
+    setFinishedNotice(false);
 
     try {
       await action();
     } catch (error) {
       console.error(`Failed (${kind}):`, error);
-      setError(errorText(error));
+
+      const elsewhere =
+        error instanceof ApiError && error.status === 409 && (await showRunningGeneration().catch(() => false));
+
+      if (!elsewhere) {
+        setError(errorText(error));
+      }
     } finally {
       setBusy(null);
     }
@@ -380,7 +418,7 @@ function RequirementPage() {
                       <span aria-hidden="true">→</span>
                     </Button>
                   ) : (
-                    <Button onClick={handleDraft} disabled={locked || !complete}>
+                    <Button onClick={handleDraft} disabled={locked || !complete || running !== null}>
                       {hasScenarios ? t("requirementStep.redraft") : t("requirementStep.draft")}
                       <span aria-hidden="true">→</span>
                     </Button>
@@ -390,6 +428,21 @@ function RequirementPage() {
           />
 
           <StepTabs active={step} status={status} onChange={goToStep} />
+
+          {detail && running && (
+            <GenerationRunning
+              projectId={projectId}
+              requirementNumber={detail.number}
+              generating={running}
+              onFinished={handleGenerationFinished}
+            />
+          )}
+
+          {finishedNotice && !running && (
+            <p role="status" className="rounded-2xl bg-success/10 px-4 py-3 text-sm text-success">
+              {t("generationRunning.finished")}
+            </p>
+          )}
 
           {step === "requirement" && (
             <RequirementStep
@@ -411,6 +464,7 @@ function RequirementPage() {
               textChanged={hasScenarios && detail !== null && form.text.trim() !== detail.text}
               onSave={handleSave}
               onDraft={hasTestCases ? handleOpenScenarios : handleDraft}
+              generationRunning={running !== null}
               onDelete={() => setConfirmDelete(true)}
             />
           )}
@@ -424,6 +478,8 @@ function RequirementPage() {
               latestRun={detail.latestScenarioRun}
               onChange={changeDetail}
               onGoToTestCases={() => goToStep("testCases")}
+              generationRunning={running !== null}
+              onConflict={showRunningGeneration}
             />
           )}
 

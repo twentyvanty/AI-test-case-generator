@@ -1,4 +1,5 @@
 import prisma from "../prisma/client.js";
+import { activeGeneration } from "./generation-lock.js";
 import { activeTestCases, scenariosWithCounts } from "./test-case.service.js";
 import { getOrCreateUser } from "./user.service.js";
 
@@ -146,7 +147,8 @@ function runsOf(items) {
 }
 
 // The requirement with its scenarios (each with testCaseCount), its test cases,
-// and the runs behind the current scenarios and test cases
+// the runs behind the current scenarios and test cases, and the generation still
+// running for it, if any (D-039: { kind, since } or null)
 export async function getRequirement(keycloakUser, projectId, number) {
   const requirement = await findOwnedRequirement(keycloakUser, projectId, number);
 
@@ -166,8 +168,11 @@ export async function getRequirement(keycloakUser, projectId, number) {
     prisma.defect.count({ where: { requirementId: requirement.id, deletedAt: null } }),
   ]);
 
+  const { generatingKind, generatingSince, ...fields } = requirement;
+
   return {
-    ...requirement,
+    ...fields,
+    generating: activeGeneration({ generatingKind, generatingSince }),
     scenarioCount: scenarios.length,
     testCaseCount: testCases.length,
     defectCount,

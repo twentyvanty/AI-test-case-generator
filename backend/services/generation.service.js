@@ -9,6 +9,7 @@ import {
   suggestTechniques,
 } from "../ai/index.js";
 import { ConflictError } from "./errors.js";
+import { withGenerationLock } from "./generation-lock.js";
 import { findOwnedRequirement } from "./requirement.service.js";
 import { refreshStatus } from "./requirement-status.js";
 import { activeScenarios, toScenarioRows, toSnapshotItem } from "./scenario-rows.js";
@@ -74,6 +75,7 @@ export async function suggestTechniquesFor(keycloakUser, projectId, number) {
 // With output (PASSED or NEEDS_REVIEW) the scenarios are saved; FAILED changes nothing.
 // The run stores a snapshot of the full list afterwards, for restore.
 // "replace" isn't allowed once test cases exist (D-029) → ConflictError.
+// Only one generation runs per requirement at a time (D-039) → ConflictError.
 // Returns { run, scenarios }, or null if the requirement isn't found.
 export async function draftScenariosFor(keycloakUser, projectId, number, mode = "replace") {
   const requirement = await findOwnedRequirement(keycloakUser, projectId, number);
@@ -82,6 +84,11 @@ export async function draftScenariosFor(keycloakUser, projectId, number, mode = 
     return null;
   }
 
+  // Everything is read after the mark is set, so it can't be stale
+  return withGenerationLock(prisma, requirement.id, "SCENARIOS", () => draft(requirement, mode));
+}
+
+async function draft(requirement, mode) {
   const existing = await activeScenarios(prisma, requirement.id);
 
   if (mode !== "more" && (await hasTestCases(prisma, requirement.id))) {
@@ -152,14 +159,23 @@ export async function draftScenariosFor(keycloakUser, projectId, number, mode = 
 // case in "Recently deleted" can always come back with its own number.
 // Returns { run, runs, testCases }: `run` = the first FAILED batch's run if any,
 // else the last one; `runs` = every batch's run in scenario order. null if the
-// requirement isn't found; ConflictError when every scenario already has cases.
+// requirement isn't found; ConflictError when every scenario already has cases,
+// or when another generation runs for the requirement (D-039).
 export async function generateTestCasesFor(keycloakUser, projectId, number) {
-  const requirement = await findOwnedRequirement(keycloakUser, projectId, number);
+  const found = await findOwnedRequirement(keycloakUser, projectId, number);
 
-  if (!requirement) {
+  if (!found) {
     return null;
   }
 
+  // Read again after the mark is set: a run that just finished may have added
+  // test cases and test-data records since the lookup above
+  return withGenerationLock(prisma, found.id, "TEST_CASES", async () =>
+    generateCases(await prisma.requirement.findUnique({ where: { id: found.id } }))
+  );
+}
+
+async function generateCases(requirement) {
   const [scenarios, counts] = await Promise.all([
     activeScenarios(prisma, requirement.id),
     testCaseCounts(prisma, requirement.id),

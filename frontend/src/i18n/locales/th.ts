@@ -159,6 +159,14 @@ const th = {
       report: "รายงาน",
     },
 
+    generationRunning: {
+      scenarios: "กำลังสร้างสถานการณ์… (เริ่ม{{started}})",
+      testCases: "กำลังสร้าง Test Case… (เริ่ม{{started}})",
+      justNow: "เมื่อสักครู่",
+      minutesAgo_other: "เมื่อ {{count}} นาทีที่แล้ว",
+      hint: "AI ยังทำงานต่อบนเซิร์ฟเวอร์แม้รีเฟรชหน้า หน้านี้จะอัปเดตเองเมื่อเสร็จ และจะสร้างใหม่ไม่ได้จนกว่าจะเสร็จ",
+      finished: "สร้างเสร็จแล้ว หน้านี้แสดงผลลัพธ์ล่าสุดแล้ว",
+    },
     requirementStep: {
       describeTitle: "อธิบายข้อกำหนด",
       titleLabel: "ชื่อ",

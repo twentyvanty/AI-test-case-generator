@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ApiError } from "../../services/http";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import {
@@ -63,6 +64,11 @@ type ScenariosStepProps = {
   // Tells the page what changed, so the header, tabs and other steps stay in sync
   onChange: (changes: Partial<RequirementDetail>) => void;
   onGoToTestCases: () => void;
+  // An AI generation still runs on the server (D-039): generating waits for it
+  generationRunning?: boolean;
+  // After a 409: true when another generation is the reason (the page then shows
+  // "Still generating…" instead of an error)
+  onConflict?: () => Promise<boolean>;
 };
 
 // Step 2: review the drafted scenarios — edit, add, delete, generate more, redraft,
@@ -77,6 +83,8 @@ function ScenariosStep({
   latestRun,
   onChange,
   onGoToTestCases,
+  generationRunning = false,
+  onConflict,
 }: ScenariosStepProps) {
   const { t } = useTranslation();
   // A scenario number, "new" for the add form, or null
@@ -90,6 +98,9 @@ function ScenariosStep({
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const locked = busy !== null;
+  // Generate more, redraft, restore and generate test cases wait for a running
+  // generation; editing, adding and deleting scenarios don't
+  const generateLocked = locked || generationRunning;
   const hasTestCases = testCases.length > 0;
   const pending = scenarios.filter((scenario) => scenario.testCaseCount === 0);
   const totalEstimate = estimateFor(scenarios);
@@ -115,7 +126,13 @@ function ScenariosStep({
       await action();
     } catch (error) {
       console.error(`Failed (${kind}):`, error);
-      setError(errorText(error));
+
+      const elsewhere =
+        error instanceof ApiError && error.status === 409 && onConflict && (await onConflict().catch(() => false));
+
+      if (!elsewhere) {
+        setError(errorText(error));
+      }
     } finally {
       setBusy(null);
     }
@@ -275,24 +292,24 @@ function ScenariosStep({
           <Button variant="secondary" size="sm" onClick={() => setEditing("new")} disabled={locked}>
             + {t("scenariosStep.add")}
           </Button>
-          <Button variant="secondary" size="sm" onClick={() => generate("more")} disabled={locked}>
+          <Button variant="secondary" size="sm" onClick={() => generate("more")} disabled={generateLocked}>
             {t("scenariosStep.generateMore")}
           </Button>
           <Button
             variant="secondary"
             size="sm"
             onClick={() => setConfirm({ kind: "redraft" })}
-            disabled={locked || hasTestCases}
+            disabled={generateLocked || hasTestCases}
             title={hasTestCases ? t("scenariosStep.redraftLocked") : undefined}
           >
             {t("scenariosStep.redraft")}
           </Button>
-          <Button variant="secondary" size="sm" onClick={() => setHistoryOpen(true)} disabled={locked}>
+          <Button variant="secondary" size="sm" onClick={() => setHistoryOpen(true)} disabled={generateLocked}>
             {t("scenariosStep.history")}
           </Button>
 
           {pending.length > 0 && !hasTestCases ? (
-            <Button variant="brand" size="sm" onClick={generateCases} disabled={locked}>
+            <Button variant="brand" size="sm" onClick={generateCases} disabled={generateLocked}>
               {t("scenariosStep.generateCases", { count: estimateFor(pending) })}{" "}
               <span aria-hidden="true">→</span>
             </Button>
@@ -332,7 +349,7 @@ function ScenariosStep({
 
       {hasTestCases && pending.length > 0 && (
         <div className="mt-4">
-          <CaseSyncPanel pending={pending} disabled={locked} onGenerate={generateCases} />
+          <CaseSyncPanel pending={pending} disabled={generateLocked} onGenerate={generateCases} />
         </div>
       )}
 

@@ -92,7 +92,8 @@ const PROVIDERS = {
       timeoutMs: timeoutMs(env),
     }),
 
-  mock: (role, env) => createMockProvider({ role, failMode: env.MOCK_FAIL_MODE || "never" }),
+  mock: (role, env) =>
+    createMockProvider({ role, failMode: env.MOCK_FAIL_MODE || "never", delayMs: Number(env.MOCK_DELAY_MS) || 0 }),
 
   // To add a provider (e.g. openai, claude), see docs/ai-providers.md
 };
@@ -170,12 +171,45 @@ function visionProvider(env, fallback) {
 //   AI_GENERATOR_PROVIDER / AI_VALIDATOR_PROVIDER / AI_VISION_PROVIDER = openrouter | gemini | mock
 // Default for text: openrouter when OPENROUTER_API_KEY is set, else gemini when
 // GEMINI_API_KEY is set, otherwise mock. Default for images: see visionProvider.
+const defaultProvider = (env) => (env.OPENROUTER_API_KEY ? "openrouter" : env.GEMINI_API_KEY ? "gemini" : "mock");
+
 export function getProviders(env = process.env) {
-  const fallback = env.OPENROUTER_API_KEY ? "openrouter" : env.GEMINI_API_KEY ? "gemini" : "mock";
+  const fallback = defaultProvider(env);
 
   return {
     generator: create(env.AI_GENERATOR_PROVIDER || fallback, "generator", env),
     validator: create(env.AI_VALIDATOR_PROVIDER || fallback, "validator", env),
     vision: visionProvider(env, fallback),
   };
+}
+
+// The provider each role ends up with (for images: the main one, see visionProvider)
+export function providerNames(env = process.env) {
+  const fallback = defaultProvider(env);
+
+  return {
+    generator: env.AI_GENERATOR_PROVIDER || fallback,
+    validator: env.AI_VALIDATOR_PROVIDER || fallback,
+    vision: env.AI_VISION_PROVIDER || (env.GEMINI_API_KEY ? "gemini" : fallback),
+  };
+}
+
+// With NODE_ENV=production the backend refuses to start if any role would use
+// the mock, e.g. because the API key is missing: fake test cases must never
+// reach real users or a demo unnoticed. Called by server.js at start.
+export function assertRealProvidersInProduction(env = process.env) {
+  if (env.NODE_ENV !== "production") {
+    return;
+  }
+
+  const mocked = Object.entries(providerNames(env))
+    .filter(([, name]) => name === "mock")
+    .map(([role]) => role);
+
+  if (mocked.length > 0) {
+    throw new Error(
+      `NODE_ENV is production, but the ${mocked.join(", ")} AI provider would be the mock. ` +
+        "Set OPENROUTER_API_KEY (or GEMINI_API_KEY) in .env, and don't set AI_*_PROVIDER=mock."
+    );
+  }
 }

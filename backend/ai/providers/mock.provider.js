@@ -333,7 +333,9 @@ function readImage({ fileName, images }) {
   };
 }
 
-export function createMockProvider({ role, failMode = "never" }) {
+// delayMs: the generator waits this long before answering (MOCK_DELAY_MS), to
+// test what happens while a generation is still running (D-039)
+export function createMockProvider({ role, failMode = "never", delayMs = 0 }) {
   if (!MOCK_FAIL_MODES.includes(failMode)) {
     throw new Error(`MOCK_FAIL_MODE must be one of: ${MOCK_FAIL_MODES.join(", ")}`);
   }
@@ -345,6 +347,10 @@ export function createMockProvider({ role, failMode = "never" }) {
     async generateJson({ prompt, task }) {
       const { kind, input, attempt } = task;
       let data;
+
+      if (delayMs > 0 && role === "generator") {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
 
       if (role === "validator") {
         data =

@@ -132,6 +132,17 @@ const definition = {
               scenarios: { type: "array", items: { $ref: "#/components/schemas/Scenario" } },
               testCaseCount: { type: "integer", example: 12 },
               defectCount: { type: "integer", example: 2, description: "Active defects (list: GET …/defects)" },
+              generating: {
+                type: "object",
+                nullable: true,
+                description:
+                  "The AI generation running for this requirement (D-039), or null. While it's set, " +
+                  "scenario drafts and test-case generation answer 409. Ignored after 15 minutes.",
+                properties: {
+                  kind: { type: "string", enum: ["SCENARIOS", "TEST_CASES"] },
+                  since: { type: "string", format: "date-time" },
+                },
+              },
               testDataPlan: {
                 type: "object",
                 nullable: true,

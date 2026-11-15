@@ -219,7 +219,7 @@ In Step 1, testers can attach **images** (PNG, JPG or WebP, up to 5 MB): screens
 **Which provider reads images.** Images follow their own order, separate from the text steps:
 1. **Gemini** (`gemini-3.5-flash`, then `gemini-3.7-flash`) when `GEMINI_API_KEY` is set. It's by far the best reader we tested.
 2. If Gemini is busy, too slow or out of quota, the same request goes to **OpenRouter** (nano-omni, then Gemma 31B) when `OPENROUTER_API_KEY` is set.
-3. Only a key for one provider → that provider alone. No keys → the mock.
+3. Only a key for one provider → that provider alone. No keys → the mock. With `NODE_ENV=production` the backend refuses to start if any role would be the mock (D-039).
 
 `AI_VISION_PROVIDER` forces a single provider. When Gemini and OpenRouter are both busy, the wait can reach about 3 minutes before "try again".
 
@@ -294,6 +294,7 @@ In Step 1, testers can attach **images** (PNG, JPG or WebP, up to 5 MB): screens
 | `AI_DEBUG` | off | `1` prints every AI request with timings (troubleshooting) |
 | `AI_GENERATOR_PROVIDER` / `AI_VALIDATOR_PROVIDER` | `openrouter` if its key is set, else `gemini` if its key is set, else `mock` | Pick the provider per role |
 | `MOCK_FAIL_MODE` | `never` | Mock only: `once`, `always`, `quota` or `busy` to simulate problems |
+| `MOCK_DELAY_MS` | `0` | Mock only: the generator waits this long before answering, to test a generation that's still running (D-039) |
 
 **Free-tier limits and caveats**
 - Limits are per Google Cloud project (not per key) and the daily count resets at midnight Pacific time (3 pm in Thailand). Confirmed on the project's rate-limit page (https://aistudio.google.com/rate-limit) on 2026-11-12:

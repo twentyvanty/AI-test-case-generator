@@ -4,6 +4,27 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-15 — Generation guard (D-039)
+
+**Goal.** Make a refresh during an AI generation safe. The server always finished the run, but the page didn't know, and a second click could run the AI twice: duplicate test cases, possibly duplicate TC numbers, and lost test-data plan records. Also, never serve mock AI output in production.
+
+**What was built**
+- Migration `add_generation_guard`: `Requirement.generatingKind` / `generatingSince`, and `@@unique([requirementId, number])` on TestCase in place of the plain index. No duplicates existed beforehand (checked). Prisma's generated SQL re-added the wrong foreign key after dropping TestCase's (the same bug as in `add_priority_and_soft_delete`), so the migration re-adds `TestCase_requirementId_fkey` by hand. `migrate dev` couldn't create it here (it asks to confirm the unique rule), so the SQL came from `migrate diff` against a temporary shadow database.
+- `services/generation-lock.js`: claim (one `updateMany` that matches only without a fresh mark), release (only the run's own mark), `withGenerationLock` (always releases), `activeGeneration` (null after 15 minutes). `draftScenariosFor` and `generateTestCasesFor` run inside it and read their data after the claim; the test-case flow reads the requirement again so its test-data plan is current.
+- The requirement detail returns `generating`. OpenAPI updated (detail, both generation endpoints).
+- `assertRealProvidersInProduction` in `ai/providers/index.js`, called by `server.js`: with `NODE_ENV=production` the backend exits with a clear message if any role would be the mock. `MOCK_DELAY_MS` makes the mock generator slow (`.env.example`, `ai-providers.md`).
+- Frontend: `GenerationRunning` ("Still generating scenarios / test cases… (started 2 min ago)", checks every 5 s, then shows the results and "The generation has finished"). Shown on every step while `generating` is set. A 409 from a generate click reloads the detail and shows this state instead of an error when another run is the reason. Generate more, redraft, history, generate test cases and Step 1's draft wait; editing, adding and deleting scenarios don't. EN + TH.
+
+**How it was checked**
+- Backend `npm test`: 156 pass (4 new lock tests with a fake database: second claim refused, stale mark ignored and taken over without the old run clearing the new one, release after success and crash, a waiting second run never starts; plus the production check and the mock delay).
+- `guard-check.mjs` (real services, mock AI with a 400 ms delay, temporary user): 14 checks. They covered a draft in progress shown in the detail, a second draft and a test-case run during it refused, two test-case generations at once giving one run and one 409 with no duplicate cases or numbers, the mark cleared after success and after a refused run, a stale mark ignored and taken over, and the database refusing a duplicate TC number.
+- Migration: the database and a fresh replay of all migrations both match the schema (empty diffs).
+- Browser check (`ui-check-guard.mjs`: headless Chrome, a temporary Keycloak user, a test backend on port 5099 with a 6 s mock delay; all removed afterwards): 15 checks. They covered a refresh during a scenario draft and during test-case generation (banner shown, the right buttons disabled, adding a scenario still allowed, results appearing by themselves), a click refused with 409 showing the banner and not an error, and the Thai text.
+- `NODE_ENV=production` with the mock: the backend exits (code 1) with the message.
+- Frontend `tsc`, `lint`, `build` and the i18n check pass.
+
+---
+
 ## 2026-11-15 — Slice 6b-2: Defect screenshots (UI)
 
 **Goal.** Attach, view and remove up to 3 screenshots per defect in the Step 3 defect report, on the backend from 6a-2 (D-037). Frontend only.

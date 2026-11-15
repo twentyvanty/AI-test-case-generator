@@ -17,6 +17,15 @@ import historyRoutes from "./routes/history.routes.js";
 import { purgeExpired } from "./services/trash.service.js";
 import { openapiSpec } from "./docs/openapi.js";
 import { keycloakClientId } from "./config/keycloak.js";
+import { assertRealProvidersInProduction } from "./ai/providers/index.js";
+
+// Never serve mock AI output in production (e.g. a missing API key)
+try {
+  assertRealProvidersInProduction();
+} catch (error) {
+  console.error(error.message);
+  process.exit(1);
+}
 
 const app = express();
 

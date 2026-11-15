@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { formatZodIssues, scenarioDraftSchema, testCaseSetSchema, toJsonSchema } from "../schemas.js";
-import { getProviders } from "../providers/index.js";
+import { assertRealProvidersInProduction, getProviders } from "../providers/index.js";
+import { createMockProvider } from "../providers/mock.provider.js";
 
 test("bad AI output is rejected with readable issues", () => {
   const parsed = scenarioDraftSchema.safeParse({
@@ -57,6 +58,31 @@ test("asking for Gemini without a key gives a clear error", () => {
 
 test("an unknown provider name gives a clear error", () => {
   assert.throws(() => getProviders({ AI_GENERATOR_PROVIDER: "gpt" }), /Unknown AI provider "gpt"/);
+});
+
+test("production refuses the mock for any role (D-039); development allows it", () => {
+  assert.throws(() => assertRealProvidersInProduction({ NODE_ENV: "production" }), /generator, validator, vision/);
+  assert.throws(
+    () => assertRealProvidersInProduction({ NODE_ENV: "production", OPENROUTER_API_KEY: "k", AI_VALIDATOR_PROVIDER: "mock" }),
+    /the validator AI provider would be the mock/
+  );
+  assert.doesNotThrow(() => assertRealProvidersInProduction({ NODE_ENV: "production", OPENROUTER_API_KEY: "k" }));
+  assert.doesNotThrow(() => assertRealProvidersInProduction({ NODE_ENV: "production", GEMINI_API_KEY: "k" }));
+  assert.doesNotThrow(() => assertRealProvidersInProduction({}));
+  assert.doesNotThrow(() => assertRealProvidersInProduction({ NODE_ENV: "development", AI_GENERATOR_PROVIDER: "mock" }));
+});
+
+test("MOCK_DELAY_MS makes the mock generator wait (not the validator)", async () => {
+  const task = { kind: "TECHNIQUE_SUGGESTION", input: { requirementText: "Password reset" }, attempt: 1 };
+  const slow = createMockProvider({ role: "generator", delayMs: 120 });
+  const validator = createMockProvider({ role: "validator", delayMs: 120 });
+
+  let start = Date.now();
+  await slow.generateJson({ prompt: "", task });
+  assert.ok(Date.now() - start >= 110);
+  start = Date.now();
+  await validator.generateJson({ prompt: "", task: { ...task, kind: "SCENARIOS" } });
+  assert.ok(Date.now() - start < 100);
 });
 
 test("scenarios have no priority (removed in D-028); an old answer with one still parses", () => {

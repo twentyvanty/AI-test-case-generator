@@ -45,6 +45,8 @@ const router = express.Router({ mergeParams: true });
  *       A FAILED batch stops the generation after its pair; batches that passed keep
  *       their cases and the remaining scenarios can be generated again. About 1–2
  *       minutes per pair of batches on free AI models.
+ *       Only one generation runs per requirement at a time: while scenarios or test
+ *       cases are being generated, this answers 409 (D-039).
  *     parameters:
  *       - $ref: '#/components/parameters/ProjectId'
  *       - $ref: '#/components/parameters/RequirementNumber'

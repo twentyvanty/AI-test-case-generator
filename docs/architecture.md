@@ -90,17 +90,17 @@ Current endpoints (all require login):
 | GET | `/api/projects/:id` | Get one project (404 if it isn't the user's) |
 | GET | `/api/projects/:projectId/requirements` | List the project's requirements (status, scenario count) |
 | POST | `/api/projects/:projectId/requirements` | Create a requirement (gets the next number: REQ-0001, REQ-0002, …) |
-| GET | `/api/projects/:projectId/requirements/:number` | One requirement with its scenarios (each with `testCaseCount`), test cases, the run behind the scenarios and every run behind the test cases (`caseRuns`) |
+| GET | `/api/projects/:projectId/requirements/:number` | One requirement with its scenarios (each with `testCaseCount`), test cases, the run behind the scenarios, every run behind the test cases (`caseRuns`) and `generating` (the AI generation still running, or null; D-039) |
 | PATCH | `/api/projects/:projectId/requirements/:number` | Edit title, details, techniques, file names |
 | DELETE | `/api/projects/:projectId/requirements/:number` | Move it to Recently deleted for 7 days (with its runs, scenarios and test cases) |
 | POST | `/api/projects/:projectId/requirements/:number/technique-suggestions` | AI suggests techniques (saved as a `GenerationRun`) |
-| POST | `/api/projects/:projectId/requirements/:number/scenario-drafts` | AI drafts scenarios, saved as a `GenerationRun`. Body `{ mode }`: `replace` (default) replaces the scenarios, `more` adds new ones that don't overlap. `replace` → 409 once test cases exist (D-029) |
+| POST | `/api/projects/:projectId/requirements/:number/scenario-drafts` | AI drafts scenarios, saved as a `GenerationRun`. Body `{ mode }`: `replace` (default) replaces the scenarios, `more` adds new ones that don't overlap. `replace` → 409 once test cases exist (D-029); 409 while another generation runs for the requirement (D-039) |
 | POST | `/api/projects/:projectId/requirements/:number/scenarios` | Add a scenario by hand |
 | PATCH | `/api/projects/:projectId/requirements/:number/scenarios/:scenarioNumber` | Edit a scenario (title, description, technique, estimated cases); 409 if it has test cases (D-029) |
 | DELETE | `/api/projects/:projectId/requirements/:number/scenarios/:scenarioNumber` | Move a scenario **and its test cases** to Recently deleted for 7 days |
 | GET | `/api/projects/:projectId/requirements/:number/scenario-runs` | The last 10 scenario drafts (draft history) |
 | POST | `/api/projects/:projectId/requirements/:number/scenario-runs/:runId/restore` | Replace the scenarios with that draft's saved list; 409 once test cases exist |
-| POST | `/api/projects/:projectId/requirements/:number/test-case-drafts` | AI writes a shared test-data plan (D-035), then test cases for the scenarios that have none yet, in batches (D-030); returns every batch's run and all test cases. Existing cases are never replaced |
+| POST | `/api/projects/:projectId/requirements/:number/test-case-drafts` | AI writes a shared test-data plan (D-035), then test cases for the scenarios that have none yet, in batches (D-030); returns every batch's run and all test cases. Existing cases are never replaced; 409 while another generation runs (D-039) |
 | GET | `/api/projects/:projectId/requirements/:number/test-cases` | The requirement's test cases |
 | PATCH | `/api/projects/:projectId/requirements/:number/test-cases/:testCaseNumber` | Set the status (Open / Pass / Fail) or edit title, precondition, steps, expected result |
 | DELETE | `/api/projects/:projectId/requirements/:number/test-cases/:testCaseNumber` | Move a test case to Recently deleted for 7 days |

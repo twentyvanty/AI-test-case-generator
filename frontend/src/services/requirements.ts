@@ -115,6 +115,9 @@ export type RunSummary = {
   createdAt: string;
 };
 
+// An AI generation still running on the server for the requirement (D-039)
+export type RunningGeneration = { kind: "SCENARIOS" | "TEST_CASES"; since: string };
+
 export type RequirementDetail = Requirement & {
   text: string;
   scenarios: Scenario[];
@@ -127,6 +130,8 @@ export type RequirementDetail = Requirement & {
   latestCaseRun: RunSummary | null;
   // Every run behind the current test cases (one per batch), oldest first
   caseRuns: RunSummary[];
+  // Set while scenarios or test cases are being generated; null otherwise
+  generating: RunningGeneration | null;
 };
 
 export type TechniqueSuggestion = {
