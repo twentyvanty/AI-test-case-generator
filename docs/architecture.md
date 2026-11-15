@@ -113,6 +113,7 @@ Current endpoints (all require login):
 | DELETE | `/api/projects/:projectId/requirements/:number/defects/:defectNumber/images/:imageId` | Remove a screenshot and its file |
 | POST | `/api/projects/:projectId/requirements/:number/runs/:runId/reviewed` | "Mark as reviewed" on a scenario or test-case run |
 | GET | `/api/history/generations` | History → Generated: finished generations across the user's projects, one item per click (`?kind=`, `?limit=`) |
+| GET | `/api/projects/:projectId/requirements/:number/report` | The live test completion report (D-040): header, summary with the suggested verdict, results per scenario, traceability with defects, defects by severity × status, risks to confirm, AI info. Codes, not text |
 | GET | `/api/trash` | The user's recently deleted requirements, scenarios, test cases and defects, with days left |
 | POST | `/api/trash/:type/:id/restore` | Restore a deleted item (`type` = `requirement`, `scenario`, `testCase` or `defect`) |
 | DELETE | `/api/trash/:type/:id` | Delete an item for good now |

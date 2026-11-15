@@ -4,6 +4,22 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-15 — Slice 6c-1: Live test completion report (backend)
+
+**Goal.** The data for the full Step 5 report (D-040), built live. 6c was split: 6c-1 is the live report (no database change), 6c-2 adds the conclusion, finalizing with a snapshot and REPORTED.
+
+**What was built**
+- `services/report-builder.js` (pure): `buildReport` with the header (REQ, title, project, tester, techniques, when the cases were generated), summary (Pass / Fail / Not run, pass rate, executed rate, open and resolved defects, suggested verdict), results per scenario, traceability (scenario → test cases → linked defects), defects by severity × status (every cell), risks to confirm and AI info. Helpers `suggestVerdict`, `findRisks`, `hasUnreviewedNotes`, `defectMatrix`, `aiSummary`.
+- `services/report.service.js`: loads the requirement's scenarios, test cases, defects and the AI runs behind them (plus the test-data plan runs of the same clicks, for tokens). `GET /api/projects/:projectId/requirements/:number/report` (`routes/report.routes.js`, `controllers/report.controller.js`), with `@openapi` and the `TestReport` schema (new Swagger tag "Report").
+
+**How it was checked**
+- `npm test`: 164 pass (8 new: READY and each NOT_READY reason, every risk, out of date vs not, unreviewed notes, the defect table, AI totals, a whole report).
+- `report-check.mjs` (real services, mock AI, temporary users): 17 checks. They covered an empty requirement, the generated cases all not run, fails with and without a defect, an open Critical blocking READY, then READY once fixed with only a Minor open, a scenario added afterwards shown as out of date, an assumed-rule case, the traceability link, and another user getting nothing.
+- `GET …/report` without a token → 401. The report built on the eleventh try (REQ-0015) from the real database: 20 cases not run, 3 unreviewed AI-note runs, 4 "Assumed rule" cases, 4 runs / 8 attempts, about 134k input and 65k output tokens.
+- Redocly lint: valid (the 2 warnings were there before: no license, localhost server).
+
+---
+
 ## 2026-11-15 — Generation guard (D-039)
 
 **Goal.** Make a refresh during an AI generation safe. The server always finished the run, but the page didn't know, and a second click could run the AI twice: duplicate test cases, possibly duplicate TC numbers, and lost test-data plan records. Also, never serve mock AI output in production.

@@ -302,3 +302,14 @@ Separately, the `gemini-2.5-*` models turned out to be unavailable to new keys, 
 - **With `NODE_ENV=production` the backend refuses to start if any AI role would use the mock.** The mock stays for development, tests and browser checks, where it's needed (no cost, the same answer every time, failures on demand; `MOCK_DELAY_MS` makes it slow for checks like this one).
 
 **Consequences.** A refresh during a run is safe, and a second click can't duplicate work or numbers. A tester can't cancel a run; deleting a scenario while its test cases are being generated is still possible (rare, and the cases are then saved without it being shown). The mark lives in the database, so it also works with several backend instances.
+
+### D-040 — The test completion report is built live, with a strict suggested verdict and risks to confirm
+**Context.** Step 5 showed only coverage and pass rates. Slice 6 adds a full test completion report (decided with the team on 2026-11-14), modelled on ISO/IEC/IEEE 29119-3 (test completion report) and ISTQB: what was tested, the results, the defects, what's still risky and whether the requirement is ready.
+**Decision.**
+- The backend builds the report from the current data on every request (`GET …/report`), in one pure function (`services/report-builder.js`): header, summary, results per scenario, traceability (scenario → test cases → defects), defects by severity × status, **risks to confirm** and AI generation info.
+- **Suggested verdict, strict:** READY only when every test case was run, none failed and no Critical or Major defect is open (Open or In progress). Otherwise NOT_READY with each reason (no test cases, n not run, n failed, the open serious defects). The tester's own conclusion comes with finalizing (6c-2); the verdict is a suggestion, not a decision.
+- **Risks to confirm**, listed only when they apply: failed cases without a defect, cases not run, scenarios without test cases (marked out of date when test cases exist, which in this app is the out-of-date warning, since scenarios with cases are locked by D-029), AI runs whose notes aren't marked reviewed (NEEDS_REVIEW, or PASSED with warnings), and cases whose precondition states an "Assumed rule" (D-036).
+- The report returns **codes**, not text (NOT_RUN, CRITICAL, technique keys), so the page shows it in English or Thai.
+- AI info covers the runs behind what's on screen: number of runs and attempts, runs passed on the first try, runs that needed review, models, and **tokens** (the test-data plan calls included). No cost in money: prices change and differ per model.
+
+**Consequences.** The report is always current and needs no storage until it's finalized (6c-2: snapshot, conclusion, REPORTED). "Assumed rule" is found by its English marker; a Thai answer that translates the marker isn't caught.

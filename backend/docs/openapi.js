@@ -26,6 +26,7 @@ const definition = {
     { name: "Scenarios", description: "Editing scenarios (step 2) and their draft history" },
     { name: "Test cases", description: "Generating, running and editing test cases (step 3)" },
     { name: "Defects", description: "Defects found while testing (step 3, Slice 6)" },
+    { name: "Report", description: "The test completion report (step 5, Slice 6)" },
     { name: "History", description: "Finished AI generations across all projects" },
     { name: "AI generation", description: "AI runs, saved as generation history" },
     { name: "Recently deleted", description: "Deleted items, restorable for 7 days" },
@@ -390,6 +391,162 @@ const definition = {
           requirementTitle: { type: "string" },
         },
         required: ["id", "runIds", "kind", "status", "itemCount", "createdAt", "projectId", "requirementNumber"],
+      },
+      TestReport: {
+        type: "object",
+        description: "The live test completion report (D-040). Values are codes; the page translates them.",
+        properties: {
+          reportedAt: { type: "string", format: "date-time" },
+          header: {
+            type: "object",
+            properties: {
+              requirementNumber: { type: "integer", example: 3 },
+              title: { type: "string", example: "Password reset by email" },
+              projectName: { type: "string" },
+              tester: { type: "string", nullable: true },
+              techniques: { type: "array", items: { type: "string" } },
+              casesGeneratedAt: { type: "string", format: "date-time", nullable: true },
+            },
+          },
+          summary: {
+            type: "object",
+            properties: {
+              scenarios: { type: "integer" },
+              testCases: { $ref: "#/components/schemas/ReportCounts" },
+              passRate: { type: "integer", description: "Passed ÷ all test cases, %", example: 80 },
+              executedRate: { type: "integer", description: "(Passed + failed) ÷ all test cases, %", example: 90 },
+              defects: {
+                type: "object",
+                properties: {
+                  total: { type: "integer" },
+                  open: { type: "integer", description: "Open or In progress" },
+                  resolved: { type: "integer", description: "Fixed or Closed" },
+                },
+              },
+              verdict: {
+                type: "object",
+                properties: {
+                  value: { type: "string", enum: ["READY", "NOT_READY"] },
+                  reasons: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        code: { type: "string", enum: ["NO_TEST_CASES", "NOT_RUN", "FAILED", "OPEN_SERIOUS_DEFECTS"] },
+                        count: { type: "integer" },
+                        defects: {
+                          type: "array",
+                          items: { type: "object", properties: { number: { type: "integer" }, severity: { type: "string" } } },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          results: {
+            type: "array",
+            items: {
+              allOf: [
+                { type: "object", properties: { scenarioNumber: { type: "integer" }, title: { type: "string" } } },
+                { $ref: "#/components/schemas/ReportCounts" },
+              ],
+            },
+          },
+          traceability: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                scenarioNumber: { type: "integer" },
+                title: { type: "string" },
+                technique: { type: "string", nullable: true },
+                testCases: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      number: { type: "integer" },
+                      title: { type: "string" },
+                      status: { type: "string", enum: ["OPEN", "PASS", "FAIL"] },
+                      defects: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            number: { type: "integer" },
+                            title: { type: "string" },
+                            severity: { type: "string" },
+                            status: { type: "string" },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          defects: {
+            type: "object",
+            properties: {
+              bySeverity: {
+                type: "object",
+                description: "severity → status → count, e.g. { CRITICAL: { OPEN: 1, IN_PROGRESS: 0, FIXED: 0, CLOSED: 0 }, … }",
+                additionalProperties: { type: "object", additionalProperties: { type: "integer" } },
+              },
+              notLinked: { type: "integer" },
+              onDeletedCases: { type: "integer", description: "Linked to a test case in Recently deleted" },
+            },
+          },
+          risks: {
+            type: "array",
+            description: "Only the risks that apply",
+            items: {
+              type: "object",
+              properties: {
+                code: {
+                  type: "string",
+                  enum: ["FAILED_WITHOUT_DEFECT", "NOT_RUN", "SCENARIOS_WITHOUT_CASES", "UNREVIEWED_AI_NOTES", "ASSUMED_RULE"],
+                },
+                items: {
+                  type: "array",
+                  description:
+                    "Test case numbers, scenario numbers (SCENARIOS_WITHOUT_CASES) or " +
+                    "{ kind, status, scenarioNumbers } runs (UNREVIEWED_AI_NOTES)",
+                  items: {},
+                },
+                outOfDate: { type: "boolean", description: "SCENARIOS_WITHOUT_CASES only: added after test cases were generated" },
+              },
+            },
+          },
+          ai: {
+            type: "object",
+            properties: {
+              runs: { type: "integer" },
+              attempts: { type: "integer" },
+              passedFirstTry: { type: "integer" },
+              needsReview: { type: "integer" },
+              generatorModels: { type: "array", items: { type: "string" } },
+              validatorModels: { type: "array", items: { type: "string" } },
+              tokens: {
+                type: "object",
+                description: "Including the test-data plan calls",
+                properties: { input: { type: "integer" }, output: { type: "integer" } },
+              },
+            },
+          },
+        },
+      },
+      ReportCounts: {
+        type: "object",
+        properties: {
+          total: { type: "integer" },
+          passed: { type: "integer" },
+          failed: { type: "integer" },
+          notRun: { type: "integer", description: "Status OPEN" },
+        },
       },
       TestCaseDraftResult: {
         type: "object",
