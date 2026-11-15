@@ -1,17 +1,22 @@
-import { useId, useState } from "react";
-import type { FormEvent, ReactNode } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import type { ChangeEvent, FormEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
   DEFECT_PRIORITIES,
   DEFECT_SEVERITIES,
+  DEFECT_IMAGE_TYPES,
   DEFECT_STATUSES,
+  MAX_DEFECT_IMAGE_BYTES,
+  MAX_DEFECT_IMAGES,
   todayIso,
   type Defect,
+  type DefectImage,
   type DefectInput,
   type DefectStatus,
 } from "../../services/defects";
 import { formatTestCaseCode, type TestCase } from "../../services/requirements";
 import Button from "../ui/Button";
+import { ImageViewer, SavedThumb, Thumb, type ImageSource, type OpenImage } from "./DefectImages";
 
 const fieldClasses =
   "mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft";
@@ -31,9 +36,14 @@ type Values = {
   notes: string;
 };
 
+// Screenshot changes, applied after the defect itself is saved
+export type ImageChanges = { add: File[]; remove: number[] };
+
 type DefectFormProps = {
   // null = a new defect
   defect: Defect | null;
+  // Where the defect's saved screenshots are loaded from (edit only)
+  imageSource: ImageSource | null;
   // The code it will get (new) or has (edit), e.g. "DEF-3"
   code: string;
   testCases: TestCase[];
@@ -41,7 +51,7 @@ type DefectFormProps = {
   initialTestCaseNumber?: number | null;
   saving: boolean;
   // Only the fields that changed are sent on an edit
-  onSave: (input: DefectInput) => void;
+  onSave: (input: DefectInput, images: ImageChanges) => void;
   onCancel: () => void;
 };
 
@@ -82,9 +92,10 @@ const valuesOf = (defect: Defect | null, testCaseNumber: number | null): Values 
       };
 
 // Add or edit a defect (inline, as in the mock-up): name, linked test case,
-// severity, priority, status, dates and notes. Screenshots come in part 6b-2.
+// severity, priority, status, dates, notes and up to 3 screenshots (6b-2).
 function DefectForm({
   defect,
+  imageSource,
   code,
   testCases,
   initialTestCaseNumber = null,
@@ -96,6 +107,45 @@ function DefectForm({
   const [initial] = useState(() => valuesOf(defect, initialTestCaseNumber));
   const [values, setValues] = useState(initial);
   const [problem, setProblem] = useState<string | null>(null);
+  // Screenshots: saved ones still kept, and files picked but not uploaded yet
+  const [kept, setKept] = useState<DefectImage[]>(() => defect?.images ?? []);
+  // Each picked file with its preview URL, made when picked and released on
+  // remove or when the form closes
+  const [added, setAdded] = useState<{ file: File; url: string }[]>([]);
+  const addedRef = useRef(added);
+  addedRef.current = added;
+  useEffect(() => () => addedRef.current.forEach((item) => URL.revokeObjectURL(item.url)), []);
+  const [imageProblem, setImageProblem] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<OpenImage | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const imageCount = kept.length + added.length;
+
+  // The same checks as the backend (type, 5 MB, 3 in total); the first problem
+  // is shown and the other files are still added
+  const pickFiles = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = [...(event.target.files ?? [])];
+    event.target.value = "";
+    let message: string | null = null;
+    const accepted: File[] = [];
+
+    for (const file of files) {
+      if (!DEFECT_IMAGE_TYPES.includes(file.type)) {
+        message ??= t("defects.errImageType", { name: file.name });
+      } else if (file.size > MAX_DEFECT_IMAGE_BYTES) {
+        message ??= t("defects.errImageSize", { name: file.name });
+      } else if (imageCount + accepted.length >= MAX_DEFECT_IMAGES) {
+        message ??= t("defects.errImageCount");
+      } else {
+        accepted.push(file);
+      }
+    }
+
+    setImageProblem(message);
+    setAdded((current) => [...current, ...accepted.map((file) => ({ file, url: URL.createObjectURL(file) }))]);
+  };
+
+  const removed = () =>
+    (defect?.images ?? []).filter((image) => !kept.some((item) => item.id === image.id)).map((image) => image.id);
 
   // Any change hides the last error message; it's checked again on save
   const set = <K extends keyof Values>(key: K, value: Values[K]) => {
@@ -152,8 +202,10 @@ function DefectForm({
       notes: values.notes.trim(),
     };
 
+    const images: ImageChanges = { add: added.map((item) => item.file), remove: removed() };
+
     if (!defect) {
-      onSave(next);
+      onSave(next, images);
       return;
     }
 
@@ -166,12 +218,12 @@ function DefectForm({
       Object.entries(next).filter(([key, value]) => before[key as keyof DefectInput] !== value)
     ) as DefectInput;
 
-    if (Object.keys(changes).length === 0) {
+    if (Object.keys(changes).length === 0 && images.add.length === 0 && images.remove.length === 0) {
       onCancel();
       return;
     }
 
-    onSave(changes);
+    onSave(changes, images);
   };
 
   return (
@@ -319,6 +371,65 @@ function DefectForm({
         )}
       </Field>
 
+      <div>
+        <p className={labelClasses}>{t("defects.images")}</p>
+        <p className="mt-0.5 text-xs text-gray-500">{t("defects.imagesHint")}</p>
+
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {kept.map((image) =>
+            imageSource ? (
+              <span key={image.id} className="relative">
+                <SavedThumb source={imageSource} image={image} onOpen={setViewing} />
+                <RemoveButton
+                  label={t("defects.removeImage", { name: image.fileName })}
+                  onClick={() => {
+                    setImageProblem(null);
+                    setKept((current) => current.filter((item) => item.id !== image.id));
+                  }}
+                />
+              </span>
+            ) : null
+          )}
+
+          {added.map((item) => (
+            <span key={item.url} className="relative">
+              <Thumb url={item.url} name={item.file.name} onOpen={setViewing} />
+              <RemoveButton
+                label={t("defects.removeImage", { name: item.file.name })}
+                onClick={() => {
+                  setImageProblem(null);
+                  URL.revokeObjectURL(item.url);
+                  setAdded((current) => current.filter((other) => other.url !== item.url));
+                }}
+              />
+            </span>
+          ))}
+
+          {imageCount < MAX_DEFECT_IMAGES && (
+            <>
+              <Button variant="secondary" size="sm" onClick={() => fileInput.current?.click()} disabled={saving}>
+                + {t("defects.addImage")}
+              </Button>
+              <input
+                ref={fileInput}
+                type="file"
+                accept={DEFECT_IMAGE_TYPES.join(",")}
+                multiple
+                onChange={pickFiles}
+                className="hidden"
+                data-testid="defect-image-input"
+              />
+            </>
+          )}
+        </div>
+
+        {imageProblem && (
+          <p role="alert" className="mt-2 text-xs text-danger">
+            {imageProblem}
+          </p>
+        )}
+      </div>
+
       {problem && (
         <p role="alert" className="rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">
           {problem}
@@ -333,7 +444,22 @@ function DefectForm({
           {t("defects.save")}
         </Button>
       </div>
+      <ImageViewer image={viewing} onClose={() => setViewing(null)} />
     </form>
+  );
+}
+
+function RemoveButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-ink text-xs leading-none text-white shadow hover:bg-danger"
+    >
+      ×
+    </button>
   );
 }
 

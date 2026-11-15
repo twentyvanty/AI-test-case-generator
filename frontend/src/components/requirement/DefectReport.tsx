@@ -3,10 +3,12 @@ import { useTranslation } from "react-i18next";
 import {
   createDefect,
   deleteDefect,
+  deleteDefectImage,
   formatDefectCode,
   formatDefectDate,
   isOpenDefect,
   updateDefect,
+  uploadDefectImages,
   type Defect,
   type DefectInput,
   type DefectPriority,
@@ -21,7 +23,8 @@ import Button from "../ui/Button";
 import Card from "../ui/Card";
 import Modal from "../ui/Modal";
 import Spinner from "../ui/Spinner";
-import DefectForm from "./DefectForm";
+import DefectForm, { type ImageChanges } from "./DefectForm";
+import { ImageViewer, SavedThumb, type OpenImage } from "./DefectImages";
 
 // Badge colours from the mock-up
 const SEVERITY_TONES: Record<DefectSeverity, BadgeTone> = {
@@ -68,6 +71,7 @@ const DefectReport = forwardRef<HTMLDivElement, DefectReportProps>(function Defe
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Defect | null>(null);
+  const [viewing, setViewing] = useState<OpenImage | null>(null);
 
   const list = defects ?? [];
   const open = list.filter(isOpenDefect).length;
@@ -88,16 +92,44 @@ const DefectReport = forwardRef<HTMLDivElement, DefectReportProps>(function Defe
     }
   };
 
-  const save = (input: DefectInput) =>
+  // The defect first (a new one needs its DEF number), then its screenshots:
+  // removals before uploads, so the 3-image limit counts the final set. If a
+  // screenshot fails, the defect is still saved and the message says so.
+  const save = (input: DefectInput, images: ImageChanges) =>
     act(async () => {
-      if (form?.kind === "edit") {
-        const updated = await updateDefect(projectId, requirementNumber, form.number, input);
-        onDefectsChange(list.map((defect) => (defect.id === updated.id ? updated : defect)));
+      const editing = form?.kind === "edit" ? list.find((defect) => defect.number === form.number) : undefined;
+      let saved: Defect;
+
+      if (editing) {
+        saved = Object.keys(input).length > 0
+          ? await updateDefect(projectId, requirementNumber, editing.number, input)
+          : editing;
       } else {
-        const created = await createDefect(projectId, requirementNumber, input);
-        onDefectsChange([...list, created]);
+        saved = await createDefect(projectId, requirementNumber, input);
       }
 
+      const show = (defect: Defect) =>
+        onDefectsChange(
+          editing ? list.map((item) => (item.id === defect.id ? defect : item)) : [...list, defect]
+        );
+
+      try {
+        for (const imageId of images.remove) {
+          saved = await deleteDefectImage(projectId, requirementNumber, saved.number, imageId);
+        }
+
+        if (images.add.length > 0) {
+          saved = await uploadDefectImages(projectId, requirementNumber, saved.number, images.add);
+        }
+      } catch (error) {
+        show(saved);
+        onFormChange(null);
+        throw new Error(
+          t("defects.errImageSave", { code: formatDefectCode(saved.number), message: errorText(error) })
+        );
+      }
+
+      show(saved);
       onFormChange(null);
     });
 
@@ -172,6 +204,7 @@ const DefectReport = forwardRef<HTMLDivElement, DefectReportProps>(function Defe
         {form?.kind === "new" && (
           <DefectForm
             defect={null}
+            imageSource={null}
             code={nextCode}
             testCases={testCases}
             initialTestCaseNumber={form.testCaseNumber}
@@ -213,6 +246,7 @@ const DefectReport = forwardRef<HTMLDivElement, DefectReportProps>(function Defe
                         <td colSpan={8} className="px-2">
                           <DefectForm
                             defect={defect}
+                            imageSource={{ projectId, requirementNumber, defectNumber: defect.number }}
                             code={code}
                             testCases={testCases}
                             saving={saving}
@@ -231,6 +265,18 @@ const DefectReport = forwardRef<HTMLDivElement, DefectReportProps>(function Defe
                         <p className="font-medium leading-5 text-ink">{defect.title}</p>
                         {defect.notes && (
                           <p className="mt-1 whitespace-pre-line text-xs leading-5 text-gray-600">{defect.notes}</p>
+                        )}
+                        {defect.images.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {defect.images.map((image) => (
+                              <SavedThumb
+                                key={image.id}
+                                source={{ projectId, requirementNumber, defectNumber: defect.number }}
+                                image={image}
+                                onOpen={setViewing}
+                              />
+                            ))}
+                          </div>
                         )}
                       </td>
                       <td
@@ -284,6 +330,8 @@ const DefectReport = forwardRef<HTMLDivElement, DefectReportProps>(function Defe
           </div>
         )}
       </Card>
+
+      <ImageViewer image={viewing} onClose={() => setViewing(null)} />
 
       <Modal
         open={deleting !== null}

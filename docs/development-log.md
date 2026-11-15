@@ -4,6 +4,25 @@ Newest entries first. Each entry records the goal, what was built, the decisions
 
 ---
 
+## 2026-11-15 — Slice 6b-2: Defect screenshots (UI)
+
+**Goal.** Attach, view and remove up to 3 screenshots per defect in the Step 3 defect report, on the backend from 6a-2 (D-037). Frontend only.
+
+**What was built**
+- `DefectForm`: a "Screenshots (optional)" field with the mock-up's hint, an "Attach image" button (hidden at 3), a preview per image with a remove (×) button, and the saved screenshots when editing. The browser checks each picked file first (PNG / JPG / WebP, ≤ 5 MB, 3 in total) and shows the mock-up's message for the first problem; the other files are still added. The backend checks again, by content.
+- Saving: the defect first (a new one needs its DEF number), then removals, then uploads, so the 3-image limit counts the final set. An edit that only changes screenshots now saves instead of closing as "nothing changed". If a screenshot step fails, the defect stays saved and the card says "DEF-3 was saved, but its screenshots weren't: … Edit it to try again."
+- `DefectReport`: thumbnails under each defect's name; a click opens the image full size (`ImageViewer`) with its file name and Close.
+- `DefectImages.tsx`: the image endpoint needs the login token, which a plain `<img src>` can't send, so each image is downloaded with it (`requestBlob` in `services/http.ts`) and shown from an object URL, released when it leaves the screen. Picked files get their preview URL when picked, released on remove or when the form closes.
+- `services/defects.ts`: upload, delete and fetch a screenshot, and the limits. `Modal` gained a `size="lg"`.
+- EN + TH texts from the mock-up, with GIF left out of the hint (the backend refuses GIF), plus messages for a screenshot that can't be loaded or saved.
+- The CSV's Images column already lists the file names (from 6b-1), so it was kept that way rather than changed to a count.
+
+**How it was checked**
+- Frontend `tsc`, `lint`, `build` and the i18n check (309 keys, none missing) pass.
+- A browser check (`ui-check6b2.mjs`: headless Chrome, a temporary Keycloak user, the mock AI and a test backend on port 5099 with a temporary upload folder; all removed afterwards): 21 checks. They covered two real PNGs attached to a new defect (one with a Thai file name), thumbnails loaded with the token, the full-size viewer, the image URL refused without login (401), the edit form showing saved screenshots, a GIF, a file over 5 MB and a 4th image each refused with its message, "Attach image" hidden at 3, a removal saved with no other change (file gone from the server, 404), the result after reload, the CSV file names, and the Thai labels and message. Screenshots compared with the mock-up.
+
+---
+
 ## 2026-11-14 — Exit sentence removed: use-case prompt back to version A (D-038)
 
 **Goal.** The soft exit sentence from the previous entry over-expanded with GPT-6.1 Terra Pro + Gemini 4 Carbon (tenth try): "tested in the main places it can occur" became the main stages of each flow, 8 exit and 5 cancel cases (the book has 4 + 2), 40 estimated cases against 30 in the first run with the same models. The strong models covered every exit without any sentence (runs 1–3).

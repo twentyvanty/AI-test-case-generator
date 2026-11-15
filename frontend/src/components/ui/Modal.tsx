@@ -9,6 +9,8 @@ type ModalProps = {
   description?: string;
   children?: ReactNode;
   footer?: ReactNode;
+  // "lg" for content that needs room, e.g. a full-size screenshot
+  size?: "md" | "lg";
 };
 
 function Modal({
@@ -18,6 +20,7 @@ function Modal({
   description,
   children,
   footer,
+  size = "md",
 }: ModalProps) {
   // Close on Escape
   useEffect(() => {
@@ -51,7 +54,7 @@ function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+        className={`w-full ${size === "lg" ? "max-w-3xl" : "max-w-md"} rounded-2xl bg-white p-6 shadow-xl`}
         onClick={(event) => event.stopPropagation()}
       >
         <h2 className="font-heading text-lg font-semibold text-ink">{title}</h2>

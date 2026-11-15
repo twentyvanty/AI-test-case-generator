@@ -54,3 +54,16 @@ export async function request<T>(path: string, { method = "GET", body }: Request
   // 204 No Content (e.g. after a delete) has no body
   return (response.status === 204 ? undefined : await response.json()) as T;
 }
+
+// Downloads a file that needs the login token (e.g. a defect screenshot): a
+// plain <img src> can't send it, so the page shows the Blob instead.
+export async function requestBlob(path: string) {
+  const response = await fetch(`${config.apiUrl}${path}`, { headers: await authHeader() });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new ApiError(data?.message ?? `Request failed (${response.status})`, response.status);
+  }
+
+  return response.blob();
+}

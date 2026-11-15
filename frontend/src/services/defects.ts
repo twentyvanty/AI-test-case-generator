@@ -1,4 +1,4 @@
-import { request } from "./http";
+import { request, requestBlob } from "./http";
 import { formatDefectCode } from "./requirements";
 
 // Defects (Slice 6), logged under the Step 3 test-case table
@@ -75,4 +75,31 @@ export function updateDefect(projectId: number, requirementNumber: number, numbe
 // → Recently deleted (7 days)
 export function deleteDefect(projectId: number, requirementNumber: number, number: number) {
   return request<void>(`${base(projectId, requirementNumber)}/${number}`, { method: "DELETE" });
+}
+
+// Screenshots (6b-2): the same limits as the backend, which checks them again
+// (and the real type from the file's bytes)
+export const MAX_DEFECT_IMAGES = 3;
+export const MAX_DEFECT_IMAGE_BYTES = 5 * 1024 * 1024;
+export const DEFECT_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
+
+const imagesPath = (projectId: number, requirementNumber: number, number: number) =>
+  `${base(projectId, requirementNumber)}/${number}/images`;
+
+// Adds files to the defect; returns the defect with its images
+export function uploadDefectImages(projectId: number, requirementNumber: number, number: number, files: File[]) {
+  const form = new FormData();
+  files.forEach((file) => form.append("files", file));
+
+  return request<Defect>(imagesPath(projectId, requirementNumber, number), { method: "POST", body: form });
+}
+
+// Removed for good (screenshots don't go to Recently deleted); returns the defect
+export function deleteDefectImage(projectId: number, requirementNumber: number, number: number, imageId: number) {
+  return request<Defect>(`${imagesPath(projectId, requirementNumber, number)}/${imageId}`, { method: "DELETE" });
+}
+
+// The image itself, behind login
+export function fetchDefectImage(projectId: number, requirementNumber: number, number: number, imageId: number) {
+  return requestBlob(`${imagesPath(projectId, requirementNumber, number)}/${imageId}`);
 }
